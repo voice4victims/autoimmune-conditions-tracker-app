@@ -1,0 +1,6 @@
+# HTTPS redirects for Netlify
+http://pandas-tracker.netlify.app/* https://pandas-tracker.netlify.app/:splat 301!
+http://www.pandas-tracker.netlify.app/* https://www.pandas-tracker.netlify.app/:splat 301!
+
+# SPA fallback
+/*    /index.html   200
