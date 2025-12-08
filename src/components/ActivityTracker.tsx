@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { firestore } from '@/lib/firebase';
+import { collection, query, where, orderBy, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import ActivityForm from './ActivityForm';
 import ActivityList from './ActivityList';
@@ -15,7 +16,7 @@ interface Activity {
   duration_minutes: number;
   date: string;
   notes?: string;
-  created_at: string;
+  created_at: any;
 }
 
 const ActivityTracker: React.FC = () => {
@@ -34,17 +35,13 @@ const ActivityTracker: React.FC = () => {
     if (!childProfile) return;
 
     try {
-      const { data, error } = await supabase
-        .from('activity_logs')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setActivities(data || []);
+      const activitiesRef = collection(firestore, 'activity_logs');
+      const q = query(activitiesRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setActivities(data as Activity[]);
     } catch (error) {
-      console.log('Loading activities from localStorage:', error);
+      console.log('Error fetching from Firestore, falling back to localStorage', error);
       const key = `pandas-activities-${childProfile.id}`;
       const stored = localStorage.getItem(key);
       setActivities(stored ? JSON.parse(stored) : []);
@@ -62,30 +59,30 @@ const ActivityTracker: React.FC = () => {
   }) => {
     if (!childProfile) return;
 
-    const newActivity = {
-      id: Date.now().toString(),
+    const newActivityData = {
       child_id: childProfile.id,
-      created_at: new Date().toISOString(),
-      ...activityData
+      ...activityData,
+      created_at: serverTimestamp()
     };
 
     try {
-      const { data, error } = await supabase
-        .from('activity_logs')
-        .insert([newActivity])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setActivities(prev => [data, ...prev]);
-    } catch (error) {
-      console.log('Saving activity to localStorage:', error);
+      const docRef = await addDoc(collection(firestore, 'activity_logs'), newActivityData);
+      const newActivity = { ...newActivityData, id: docRef.id, created_at: new Date() };
       setActivities(prev => [newActivity, ...prev]);
-      const key = `pandas-activities-${childProfile.id}`;
-      const stored = localStorage.getItem(key);
-      const activities = stored ? JSON.parse(stored) : [];
-      activities.unshift(newActivity);
-      localStorage.setItem(key, JSON.stringify(activities));
+    } catch (error) {
+        console.log('Saving activity to localStorage:', error);
+        const newActivity = {
+            id: Date.now().toString(),
+            child_id: childProfile.id,
+            created_at: new Date().toISOString(),
+            ...activityData
+        };
+        setActivities(prev => [newActivity, ...prev]);
+        const key = `pandas-activities-${childProfile.id}`;
+        const stored = localStorage.getItem(key);
+        const activities = stored ? JSON.parse(stored) : [];
+        activities.unshift(newActivity);
+        localStorage.setItem(key, JSON.stringify(activities));
     }
 
     toast({
@@ -96,14 +93,9 @@ const ActivityTracker: React.FC = () => {
 
   const handleDeleteActivity = async (activityId: string) => {
     try {
-      const { error } = await supabase
-        .from('activity_logs')
-        .delete()
-        .eq('id', activityId);
-
-      if (error) throw error;
+      await deleteDoc(doc(firestore, 'activity_logs', activityId));
     } catch (error) {
-      console.log('Deleting activity from localStorage:', error);
+      console.log('Error deleting from Firestore, deleting from localStorage', error);
     }
 
     setActivities(prev => {
