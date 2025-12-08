@@ -31,7 +31,8 @@ import FAQ from './FAQ';
 import MoreMenu from './MoreMenu';
 import PTECTracker from './PTECTracker';
 import AdvancedAnalyticsDashboard from './AdvancedAnalyticsDashboard';
-import { Activity, User, Settings, Utensils, Users, Clock, HelpCircle, MoreHorizontal, Search } from 'lucide-react';
+import { DiagnosisTracker } from './DiagnosisTracker';
+import { Activity, User, Settings, Utensils, Users, Clock, HelpCircle, MoreHorizontal, Search, ListTree } from 'lucide-react';
 
 
 const PANDASApp: React.FC = () => {
@@ -137,10 +138,14 @@ const PANDASApp: React.FC = () => {
           <div className="sticky top-20 bg-background/95 backdrop-blur-sm z-40 pb-2">
             <ScrollArea className="w-full">
               <TabsList className="inline-flex h-auto p-1.5 bg-muted rounded-lg w-full">
-                <div className="grid grid-cols-7 gap-0.5 sm:gap-1 w-full">
+                <div className="grid grid-cols-8 gap-0.5 sm:gap-1 w-full">
                   <TabsTrigger value="track" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
                     <Activity className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="truncate">Track</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="diagnosis" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
+                    <ListTree className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                    <span className="truncate">Diagnosis</span>
                   </TabsTrigger>
                   <TabsTrigger value="providers" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
                     <Search className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
@@ -177,6 +182,10 @@ const PANDASApp: React.FC = () => {
               customSymptoms={customSymptoms}
               onAddCustomSymptom={addCustomSymptom}
             />
+          </TabsContent>
+          
+          <TabsContent value="diagnosis" className="mt-6">
+            <DiagnosisTracker />
           </TabsContent>
 
           <TabsContent value="providers" className="mt-6">
