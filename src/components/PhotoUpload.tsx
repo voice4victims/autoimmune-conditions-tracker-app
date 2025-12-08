@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 
 interface PhotoUploadProps {
@@ -43,19 +44,13 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `child-photos/${fileName}`;
+      const storageRef = ref(storage, filePath);
 
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(filePath, file);
+      const uploadTask = await uploadBytes(storageRef, file);
+      const photoUrl = await getDownloadURL(uploadTask.ref);
 
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('files')
-        .getPublicUrl(filePath);
-
-      setPreviewUrl(data.publicUrl);
-      onPhotoChange(data.publicUrl);
+      setPreviewUrl(photoUrl);
+      onPhotoChange(photoUrl);
       toast({ title: 'Success', description: 'Photo uploaded successfully!' });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to upload photo', variant: 'destructive' });

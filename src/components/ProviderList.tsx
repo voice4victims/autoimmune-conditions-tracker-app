@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit, Phone, Mail, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { firestore } from '@/lib/firebase';
+import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
 interface Provider {
   id: string;
@@ -29,14 +30,11 @@ const ProviderList: React.FC<ProviderListProps> = ({ childId, refreshTrigger }) 
 
   const fetchProviders = async () => {
     try {
-      const { data, error } = await supabase
-        .from('healthcare_providers')
-        .select('*')
-        .eq('child_id', childId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProviders(data || []);
+      const providersRef = collection(firestore, 'healthcare_providers');
+      const q = query(providersRef, where('child_id', '==', childId), orderBy('created_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const providersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setProviders(providersData as Provider[]);
     } catch (error) {
       console.error('Error fetching providers:', error);
       toast({ title: 'Error', description: 'Failed to load providers', variant: 'destructive' });
@@ -47,12 +45,7 @@ const ProviderList: React.FC<ProviderListProps> = ({ childId, refreshTrigger }) 
 
   const deleteProvider = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('healthcare_providers')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await deleteDoc(doc(firestore, 'healthcare_providers', id));
       
       setProviders(providers.filter(p => p.id !== id));
       toast({ title: 'Success', description: 'Provider deleted successfully' });
