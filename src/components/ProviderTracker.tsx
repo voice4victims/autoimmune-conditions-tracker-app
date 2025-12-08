@@ -1,14 +1,18 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, Mail } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ProviderForm from './ProviderForm';
 import ProviderList from './ProviderList';
+import EmailProvider from './EmailProvider'; // Import the new component
 import { useApp } from '@/contexts/AppContext';
 
 const ProviderTracker: React.FC = () => {
   const { childProfile } = useApp();
   const [showForm, setShowForm] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleProviderAdded = () => {
@@ -34,13 +38,29 @@ const ProviderTracker: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900">Healthcare Providers</h2>
           <p className="text-gray-600">Manage your child's healthcare team</p>
         </div>
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add Provider
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Provider
+          </Button>
+          <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Mail className="w-4 h-4 mr-2" />
+                Email Records
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Email Health Records to Provider</DialogTitle>
+              </DialogHeader>
+              <EmailProvider />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {showForm && (

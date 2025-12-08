@@ -3,6 +3,7 @@
 import * as React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { ThemeProviderProps } from "next-themes/dist/types"
+import { setSecureItem, getSecureItem } from "@/lib/encryption";
 
 type Theme = "dark" | "light" | "system"
 
@@ -21,8 +22,8 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("theme")
-      return (savedTheme && (savedTheme === "dark" || savedTheme === "light" || savedTheme === "system")
+      const savedTheme = getSecureItem<Theme>("theme");
+      return (savedTheme && ["dark", "light", "system"].includes(savedTheme)
         ? savedTheme
         : defaultTheme) as Theme
     }
@@ -48,7 +49,7 @@ export function ThemeProvider({
   const value: ThemeContextType = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem("theme", theme)
+      setSecureItem("theme", theme);
       setTheme(theme)
     },
   }
