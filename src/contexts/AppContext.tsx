@@ -1,6 +1,21 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ChildProfile, SymptomRating } from '@/types/pandas';
 import { useAuth } from './AuthContext';
+import { db } from '../lib/firebase';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  Timestamp,
+  orderBy,
+} from 'firebase/firestore';
 
 interface Treatment {
   id: string;
@@ -11,7 +26,14 @@ interface Treatment {
   administration_time: string;
   symptoms_improved: boolean;
   improvement_notes?: string;
-  created_at: string;
+  created_at: string | Timestamp;
+}
+
+interface Note {
+  id: string;
+  note: string;
+  date: string;
+  created_at: string | Timestamp;
 }
 
 interface AppContextType {
@@ -21,13 +43,18 @@ interface AppContextType {
   setChildProfile: (profile: ChildProfile | null) => void;
   children: ChildProfile[];
   treatments: Treatment[];
+  symptoms: SymptomRating[];
+  notes: Note[];
   customSymptoms: string[];
   addSymptom: (symptom: SymptomRating) => Promise<void>;
   addTreatment: (treatment: any) => Promise<void>;
+  addNote: (note: Pick<Note, 'note' | 'date'>) => Promise<void>;
   addCustomSymptom: (symptom: string) => void;
   loadChildren: () => Promise<void>;
   loadTreatments: () => Promise<void>;
-  saveChildProfile: (profile: ChildProfile) => Promise<void>;
+  loadSymptoms: () => Promise<void>;
+  loadNotes: () => Promise<void>;
+  saveChildProfile: (profile: Partial<ChildProfile>) => Promise<void>;
   deleteChild: (childId: string) => Promise<void>;
 }
 
@@ -40,108 +67,169 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [childProfile, setChildProfile] = useState<ChildProfile | null>(null);
   const [childrenList, setChildrenList] = useState<ChildProfile[]>([]);
   const [treatments, setTreatments] = useState<Treatment[]>([]);
+  const [symptoms, setSymptoms] = useState<SymptomRating[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [customSymptoms, setCustomSymptoms] = useState<string[]>([]);
   const { user } = useAuth();
 
-  const toggleSidebar = () => setSidebarOpen(prev => !prev);
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+
   const addCustomSymptom = (symptom: string) => {
     if (!customSymptoms.includes(symptom)) {
-      setCustomSymptoms(prev => [...prev, symptom]);
+      setCustomSymptoms((prev) => [...prev, symptom]);
     }
   };
 
   const loadChildren = async () => {
-    const stored = localStorage.getItem('pandas-children');
-    if (stored) {
-      const localChildren = JSON.parse(stored);
-      setChildrenList(localChildren);
-      if (localChildren.length > 0 && !childProfile) {
-        setChildProfile(localChildren[0]);
-      }
-    } else {
-      const defaultChild: ChildProfile = {
-        id: 'local-child-' + Date.now(),
-        name: 'My Child',
-        dateOfBirth: '2015-01-01',
-        age: 9,
-        diagnosisDate: '2023-01-01',
-        notes: '',
-        photoUrl: null,
-        symptoms: []
-      };
-      setChildrenList([defaultChild]);
-      setChildProfile(defaultChild);
-      localStorage.setItem('pandas-children', JSON.stringify([defaultChild]));
+    if (!user) return;
+    const q = query(collection(db, 'children'), where('userId', '==', user.uid));
+    const querySnapshot = await getDocs(q);
+    const loadedChildren = querySnapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as ChildProfile)
+    );
+    setChildrenList(loadedChildren);
+    if (loadedChildren.length > 0 && !childProfile) {
+      setChildProfile(loadedChildren[0]);
+    } else if (loadedChildren.length === 0) {
+      setChildProfile(null);
     }
   };
 
-  const saveChildProfile = async (profile: ChildProfile) => {
-    setChildrenList(prev => {
-      const updated = prev.map(child => child.id === profile.id ? profile : child);
-      if (!updated.find(c => c.id === profile.id)) {
-        updated.push(profile);
-      }
-      localStorage.setItem('pandas-children', JSON.stringify(updated));
-      return updated;
-    });
-    if (childProfile?.id === profile.id) {
-      setChildProfile(profile);
+  const saveChildProfile = async (profile: Partial<ChildProfile>) => {
+    if (!user) return;
+    if (profile.id) {
+      const childRef = doc(db, 'children', profile.id);
+      await updateDoc(childRef, profile);
+    } else {
+      await addDoc(collection(db, 'children'), {
+        ...profile,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+      });
+    }
+    await loadChildren();
+  };
+
+  const deleteChild = async (childId: string) => {
+    if (!user) return;
+    await deleteDoc(doc(db, 'children', childId));
+    await loadChildren();
+    const remainingChildren = childrenList.filter((child) => child.id !== childId);
+    if (childProfile?.id === childId) {
+        setChildProfile(remainingChildren.length > 0 ? remainingChildren[0] : null);
     }
   };
 
   const addSymptom = async (symptom: SymptomRating) => {
-    if (!childProfile) return;
-    const key = `pandas-symptoms-${childProfile.id}`;
-    const stored = localStorage.getItem(key);
-    const symptoms = stored ? JSON.parse(stored) : [];
-    symptoms.push(symptom);
-    localStorage.setItem(key, JSON.stringify(symptoms));
+    if (!childProfile || !childProfile.id) return;
+    await addDoc(collection(db, 'children', childProfile.id, 'symptoms'), {
+      ...symptom,
+      createdAt: serverTimestamp(),
+    });
+    await loadSymptoms();
   };
 
-  const addTreatment = async (treatment: any) => {
-    if (!childProfile) return;
-    const newTreatment = { id: Date.now().toString(), ...treatment };
-    setTreatments(prev => [newTreatment, ...prev]);
-    const key = `pandas-treatments-${childProfile.id}`;
-    const stored = localStorage.getItem(key);
-    const treatments = stored ? JSON.parse(stored) : [];
-    treatments.push(newTreatment);
-    localStorage.setItem(key, JSON.stringify(treatments));
+  const loadSymptoms = async () => {
+    if (!childProfile || !childProfile.id) {
+      setSymptoms([]);
+      return;
+    }
+    const q = query(collection(db, 'children', childProfile.id, 'symptoms'), orderBy('date', 'desc'));
+    const querySnapshot = await getDocs(q);
+    const loadedSymptoms = querySnapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as SymptomRating)
+    );
+    setSymptoms(loadedSymptoms);
   };
 
   const loadTreatments = async () => {
-    if (!childProfile) return;
-    const key = `pandas-treatments-${childProfile.id}`;
-    const stored = localStorage.getItem(key);
-    setTreatments(stored ? JSON.parse(stored) : []);
+    if (!childProfile || !childProfile.id) {
+        setTreatments([]);
+        return;
+    };
+    const q = query(collection(db, 'children', childProfile.id, 'treatments'), orderBy('administration_date', 'desc'));
+    const querySnapshot = await getDocs(q);
+    const loadedTreatments = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    } as Treatment));
+    setTreatments(loadedTreatments);
   };
 
-  const deleteChild = async (childId: string) => {
-    setChildrenList(prev => {
-      const updated = prev.filter(child => child.id !== childId);
-      localStorage.setItem('pandas-children', JSON.stringify(updated));
-      return updated;
-    });
-    if (childProfile?.id === childId) {
-      const remainingChildren = childrenList.filter(child => child.id !== childId);
-      setChildProfile(remainingChildren.length > 0 ? remainingChildren[0] : null);
+  const addTreatment = async (treatment: any) => {
+    if (!childProfile || !childProfile.id) return;
+    const newTreatment = {
+      ...treatment,
+      createdAt: serverTimestamp(),
+    };
+    await addDoc(collection(db, 'children', childProfile.id, 'treatments'), newTreatment);
+    await loadTreatments();
+  };
+
+  const loadNotes = async () => {
+    if (!childProfile || !childProfile.id) {
+      setNotes([]);
+      return;
     }
+    const q = query(collection(db, 'children', childProfile.id, 'notes'), orderBy('date', 'desc'));
+    const querySnapshot = await getDocs(q);
+    const loadedNotes = querySnapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Note)
+    );
+    setNotes(loadedNotes);
+  };
+
+  const addNote = async (note: Pick<Note, 'note' | 'date'>) => {
+    if (!childProfile || !childProfile.id) return;
+    await addDoc(collection(db, 'children', childProfile.id, 'notes'), {
+      ...note,
+      createdAt: serverTimestamp(),
+    });
+    await loadNotes();
   };
 
   useEffect(() => {
-    if (user) loadChildren();
+    if (user) {
+      loadChildren();
+    }
   }, [user]);
 
   useEffect(() => {
-    if (childProfile) loadTreatments();
+    if (childProfile) {
+      loadTreatments();
+      loadSymptoms();
+      loadNotes();
+    } else {
+      setTreatments([]);
+      setSymptoms([]);
+      setNotes([]);
+    }
   }, [childProfile]);
 
   return (
-    <AppContext.Provider value={{
-      sidebarOpen, toggleSidebar, childProfile, setChildProfile, children: childrenList,
-      treatments, customSymptoms, addSymptom, addTreatment, addCustomSymptom,
-      loadChildren, loadTreatments, saveChildProfile, deleteChild
-    }}>
+    <AppContext.Provider
+      value={{
+        sidebarOpen,
+        toggleSidebar,
+        childProfile,
+        setChildProfile,
+        children: childrenList,
+        treatments,
+        symptoms,
+        notes,
+        customSymptoms,
+        addSymptom,
+        addTreatment,
+        addNote,
+        addCustomSymptom,
+        loadChildren,
+        loadTreatments,
+        loadSymptoms,
+        loadNotes,
+        saveChildProfile,
+        deleteChild,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

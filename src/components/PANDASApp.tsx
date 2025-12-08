@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -32,6 +33,7 @@ import MoreMenu from './MoreMenu';
 import PTECTracker from './PTECTracker';
 import AdvancedAnalyticsDashboard from './AdvancedAnalyticsDashboard';
 import { DiagnosisTracker } from './DiagnosisTracker';
+import ProfileAndSecurity from './ProfileAndSecurity';
 import { Activity, User, Settings, Utensils, Users, Clock, HelpCircle, MoreHorizontal, Search, ListTree } from 'lucide-react';
 
 
@@ -67,7 +69,8 @@ const PANDASApp: React.FC = () => {
   };
 
   const handleAddChild = () => {
-    setShowChildManager(true);
+    // This now opens the profile tab
+    setCurrentTab("profile");
   };
 
   const handleMoreTabClick = (tabName: string) => {
@@ -115,17 +118,6 @@ const PANDASApp: React.FC = () => {
             onChildSelect={handleChildSelect}
             onAddChild={handleAddChild}
           />
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowChildManager(true)}
-            className="flex items-center gap-2 h-12 px-4 touch-manipulation"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="hidden sm:inline">Manage Children</span>
-            <span className="sm:hidden">Manage</span>
-          </Button>
         </div>
         
         {childProfile && (
@@ -138,7 +130,11 @@ const PANDASApp: React.FC = () => {
           <div className="sticky top-20 bg-background/95 backdrop-blur-sm z-40 pb-2">
             <ScrollArea className="w-full">
               <TabsList className="inline-flex h-auto p-1.5 bg-muted rounded-lg w-full">
-                <div className="grid grid-cols-8 gap-0.5 sm:gap-1 w-full">
+                <div className="grid grid-cols-9 gap-0.5 sm:gap-1 w-full">
+                  <TabsTrigger value="profile" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                    <span className="truncate">Profile</span>
+                  </TabsTrigger>
                   <TabsTrigger value="track" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
                     <Activity className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="truncate">Track</span>
@@ -175,6 +171,10 @@ const PANDASApp: React.FC = () => {
               </TabsList>
             </ScrollArea>
           </div>
+
+          <TabsContent value="profile" className="mt-6">
+            <ProfileAndSecurity />
+          </TabsContent>
 
           <TabsContent value="track" className="mt-6">
             <SymptomTracker 

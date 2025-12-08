@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { Activity, List, TrendingUp, Trash2 } from 'lucide-react';
+import { Activity, List, Trash2 } from 'lucide-react';
+import { setSecureItem, getSecureItem } from '@/lib/encryption';
 
 interface VitalSign {
   id: string;
@@ -55,10 +56,10 @@ const VitalSignsTracker: React.FC = () => {
       if (error) throw error;
       setVitals(data || []);
     } catch (error) {
-      console.log('Loading vitals from localStorage:', error);
+      console.log('Loading vitals from secure storage:', error);
       const key = `pandas-vitals-${childProfile.id}`;
-      const stored = localStorage.getItem(key);
-      setVitals(stored ? JSON.parse(stored) : []);
+      const stored = getSecureItem<VitalSign[]>(key);
+      setVitals(stored || []);
     }
   };
 
@@ -90,13 +91,12 @@ const VitalSignsTracker: React.FC = () => {
       if (error) throw error;
       setVitals(prev => [data, ...prev]);
     } catch (error) {
-      console.log('Saving vital to localStorage:', error);
+      console.log('Saving vital to secure storage:', error);
       setVitals(prev => [newVital, ...prev]);
       const key = `pandas-vitals-${childProfile.id}`;
-      const stored = localStorage.getItem(key);
-      const vitals = stored ? JSON.parse(stored) : [];
-      vitals.unshift(newVital);
-      localStorage.setItem(key, JSON.stringify(vitals));
+      const stored = getSecureItem<VitalSign[]>(key) || [];
+      stored.unshift(newVital);
+      setSecureItem(key, stored);
     } finally {
       setLoading(false);
     }
@@ -123,14 +123,14 @@ const VitalSignsTracker: React.FC = () => {
         .eq('id', vitalId);
       if (error) throw error;
     } catch (error) {
-      console.log('Deleting vital from localStorage:', error);
+      console.log('Deleting vital from secure storage:', error);
     }
 
     setVitals(prev => {
       const updated = prev.filter(vital => vital.id !== vitalId);
       if (childProfile) {
         const key = `pandas-vitals-${childProfile.id}`;
-        localStorage.setItem(key, JSON.stringify(updated));
+        setSecureItem(key, updated);
       }
       return updated;
     });
