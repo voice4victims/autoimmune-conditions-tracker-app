@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { firestore } from '@/lib/firebase';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { SymptomRating } from '@/types/pandas';
 import SymptomHistoryDetails from './SymptomHistoryDetails';
 import { BarChart3 } from 'lucide-react';
@@ -24,17 +25,13 @@ const SymptomChart: React.FC = () => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('symptom_ratings')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .order('date', { ascending: false })
-        .limit(100);
+      const symptomsRef = collection(firestore, 'symptom_ratings');
+      const q = query(symptomsRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'), limit(100));
+      const querySnapshot = await getDocs(q);
+      const symptomsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      if (error) throw error;
-      
       // Transform database data to match SymptomRating interface
-      const formattedSymptoms = (data || []).map(item => ({
+      const formattedSymptoms = (symptomsData || []).map(item => ({
         id: item.id,
         symptomType: item.symptom_type,
         severity: item.severity,
@@ -42,7 +39,7 @@ const SymptomChart: React.FC = () => {
         notes: item.notes
       }));
       
-      setSymptoms(formattedSymptoms);
+      setSymptoms(formattedSymptoms as SymptomRating[]);
     } catch (error) {
       console.error('Error fetching symptoms:', error);
       toast({

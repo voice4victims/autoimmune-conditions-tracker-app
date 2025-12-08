@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { firestore } from '@/lib/firebase';
+import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import FoodDiaryForm from './FoodDiaryForm';
 import FoodDiaryList from './FoodDiaryList';
 import { Plus, History, Utensils } from 'lucide-react';
@@ -38,15 +39,11 @@ const FoodDiaryTracker: React.FC = () => {
 
     try {
       setIsLoadingEntries(true);
-      const { data, error } = await supabase
-        .from('food_diary')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setEntries(data || []);
+      const entriesRef = collection(firestore, 'food_diary');
+      const q = query(entriesRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const entriesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setEntries(entriesData as FoodEntry[]);
     } catch (error) {
       console.log('Loading food diary from localStorage:', error);
       const key = `pandas-food-diary-${childProfile.id}`;
@@ -61,7 +58,6 @@ const FoodDiaryTracker: React.FC = () => {
     if (!childProfile?.id) return;
 
     const newEntry = {
-      id: Date.now().toString(),
       child_id: childProfile.id,
       created_at: new Date().toISOString(),
       ...entryData
@@ -69,21 +65,16 @@ const FoodDiaryTracker: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('food_diary')
-        .insert([newEntry])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setEntries(prev => [data, ...prev]);
+      const docRef = await addDoc(collection(firestore, 'food_diary'), newEntry);
+      setEntries(prev => [{...newEntry, id: docRef.id}, ...prev]);
     } catch (error) {
       console.log('Saving food diary to localStorage:', error);
-      setEntries(prev => [newEntry, ...prev]);
+      const entryWithId = {...newEntry, id: Date.now().toString() };
+      setEntries(prev => [entryWithId, ...prev]);
       const key = `pandas-food-diary-${childProfile.id}`;
       const stored = localStorage.getItem(key);
       const entries = stored ? JSON.parse(stored) : [];
-      entries.unshift(newEntry);
+      entries.unshift(entryWithId);
       localStorage.setItem(key, JSON.stringify(entries));
     } finally {
       setIsLoading(false);
@@ -98,12 +89,7 @@ const FoodDiaryTracker: React.FC = () => {
   const handleDeleteEntry = async (entryId: string) => {
     try {
       setIsLoading(true);
-      const { error } = await supabase
-        .from('food_diary')
-        .delete()
-        .eq('id', entryId);
-
-      if (error) throw error;
+      await deleteDoc(doc(firestore, 'food_diary', entryId));
     } catch (error) {
       console.log('Deleting food diary from localStorage:', error);
     }

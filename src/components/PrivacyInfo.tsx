@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { ShieldCheck, Lock, KeyRound, Siren } from 'lucide-react';
 
 const PrivacyInfo: React.FC = () => {
@@ -37,11 +36,9 @@ const PrivacyInfo: React.FC = () => {
           </span>
         </li>
       </ul>
-      <Link href="/privacy-policy" passHref>
         <Button variant="link" className="p-0">
           Read our full Privacy Policy
         </Button>
-      </Link>
     </div>
   );
 };

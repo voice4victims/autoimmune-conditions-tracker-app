@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { firestore } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Mail, UserPlus } from 'lucide-react';
 
@@ -27,19 +28,15 @@ export const FamilyInviteForm: React.FC = () => {
     setLoading(true);
     try {
       const inviteCode = generateInviteCode();
-      const familyId = user.id;
+      const familyId = user.uid;
 
-      const { error } = await supabase
-        .from('family_invitations')
-        .insert({
-          family_id: familyId,
-          email: email.trim().toLowerCase(),
-          invited_by: user.id,
-          invitation_code: inviteCode,
-          status: 'pending'
-        });
-
-      if (error) throw error;
+      await addDoc(collection(firestore, 'family_invitations'), {
+        family_id: familyId,
+        email: email.trim().toLowerCase(),
+        invited_by: user.uid,
+        invitation_code: inviteCode,
+        status: 'pending'
+      });
 
       toast({
         title: 'Invitation sent!',

@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FileImage } from 'lucide-react';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 interface OCRProps {
   onDataExtracted: (data: any) => void;
@@ -20,16 +21,15 @@ const LabResultsOCR: React.FC<OCRProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const functions = getFunctions();
 
   const processImage = async (file: File) => {
     setIsProcessing(true);
     try {
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         throw new Error('File size too large. Please select an image under 5MB.');
       }
 
-      // Convert file to base64
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
@@ -41,28 +41,21 @@ const LabResultsOCR: React.FC<OCRProps> = ({
           const imageData = result;
           setPreviewUrl(imageData);
 
-          // Validate image data format
           if (!imageData.startsWith('data:image/')) {
             throw new Error('Invalid image format detected');
           }
 
-          const { data, error } = await supabase.functions.invoke('ocr-lab-results', {
-            body: { imageData, formType }
-          });
+          const ocrLabResults = httpsCallable(functions, 'ocr-lab-results');
+          const { data } = await ocrLabResults({ imageData, formType });
 
-          if (error) {
-            console.error('Supabase function error:', error);
-            throw new Error(error.message || 'Failed to process image');
-          }
-
-          if (data?.data && !data.data.error) {
-            onDataExtracted(data.data);
+          if (data && !(data as any).error) {
+            onDataExtracted(data);
             toast({
               title: 'Data Extracted Successfully',
               description: 'Information has been extracted and populated in the form.'
             });
           } else {
-            const errorMsg = data?.data?.error || 'Could not extract data from the image';
+            const errorMsg = (data as any)?.error || 'Could not extract data from the image';
             toast({
               title: 'Extraction Failed',
               description: errorMsg,
@@ -73,7 +66,7 @@ const LabResultsOCR: React.FC<OCRProps> = ({
           console.error('OCR processing error:', error);
           toast({
             title: 'Processing Error',
-            description: error.message || 'Failed to process the image. Please try again.',
+            description: (error as Error).message || 'Failed to process the image. Please try again.',
             variant: 'destructive'
           });
         } finally {
@@ -96,7 +89,7 @@ const LabResultsOCR: React.FC<OCRProps> = ({
       console.error('File processing error:', error);
       toast({
         title: 'File Error',
-        description: error.message || 'Failed to process the selected file.',
+        description: (error as Error).message || 'Failed to process the selected file.',
         variant: 'destructive'
       });
     }
