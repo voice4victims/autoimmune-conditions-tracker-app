@@ -5,7 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Image, Video, Download, Trash2, MoreVertical } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { firestore, storage } from '@/lib/firebase';
+import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 
@@ -35,14 +37,11 @@ const FileList: React.FC = () => {
 
   const fetchFiles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('file_uploads')
-        .select('*')
-        .eq('child_id', childProfile?.id)
-        .order('uploaded_at', { ascending: false });
-
-      if (error) throw error;
-      setFiles(data || []);
+      const filesRef = collection(firestore, 'file_uploads');
+      const q = query(filesRef, where('child_id', '==', childProfile?.id), orderBy('uploaded_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const filesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setFiles(filesData as FileUpload[]);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch files', variant: 'destructive' });
     } finally {
@@ -52,18 +51,13 @@ const FileList: React.FC = () => {
 
   const handleDownload = async (file: FileUpload) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('files')
-        .download(file.storage_path);
+      const fileRef = ref(storage, file.storage_path);
+      const url = await getDownloadURL(fileRef);
 
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
       a.download = file.file_name;
       a.click();
-      URL.revokeObjectURL(url);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to download file', variant: 'destructive' });
     }
@@ -71,18 +65,10 @@ const FileList: React.FC = () => {
 
   const handleDelete = async (file: FileUpload) => {
     try {
-      const { error: storageError } = await supabase.storage
-        .from('files')
-        .remove([file.storage_path]);
+      const fileRef = ref(storage, file.storage_path);
+      await deleteObject(fileRef);
 
-      if (storageError) throw storageError;
-
-      const { error: dbError } = await supabase
-        .from('file_uploads')
-        .delete()
-        .eq('id', file.id);
-
-      if (dbError) throw dbError;
+      await deleteDoc(doc(firestore, 'file_uploads', file.id));
 
       setFiles(files.filter(f => f.id !== file.id));
       toast({ title: 'Success', description: 'File deleted successfully' });

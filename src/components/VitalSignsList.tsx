@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { firestore } from '@/lib/firebase';
+import { collection, query, where, orderBy, limit, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 
@@ -44,16 +45,15 @@ const VitalSignsList: React.FC<VitalSignsListProps> = ({ refreshTrigger }) => {
     if (!childProfile || !user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('vital_signs')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .eq('user_id', user.id)
-        .order('date_recorded', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      setVitals(data || []);
+      const vitalsRef = collection(firestore, 'vital_signs');
+      const q = query(vitalsRef, 
+                      where('child_id', '==', childProfile.id), 
+                      where('user_id', '==', user.uid), 
+                      orderBy('date_recorded', 'desc'), 
+                      limit(20));
+      const querySnapshot = await getDocs(q);
+      const vitalsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setVitals(vitalsData as VitalSign[]);
     } catch (error) {
       console.error('Error fetching vitals:', error);
       toast({
@@ -68,12 +68,7 @@ const VitalSignsList: React.FC<VitalSignsListProps> = ({ refreshTrigger }) => {
 
   const deleteVital = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('vital_signs')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await deleteDoc(doc(firestore, 'vital_signs', id));
 
       setVitals(vitals.filter(v => v.id !== id));
       toast({

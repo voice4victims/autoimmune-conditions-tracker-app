@@ -1,20 +1,26 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { User, Settings, Menu, Monitor, Smartphone, Tablet } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import PANDASApp from './PANDASApp';
-import ProfileMenu from './ProfileMenu';
 import ThemeToggle from './ThemeToggle';
+
 const AppLayout: React.FC = () => {
   const { user } = useAuth();
   const deviceInfo = useDeviceDetection();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [currentTab, setCurrentTab] = useState('track');
+  const [showChildManager, setShowChildManager] = useState(false);
+
+  const handleAppSettingsClick = () => {
+    setCurrentTab('profile');
+    setShowMobileMenu(false);
+  };
 
   const getDeviceIcon = () => {
     if (deviceInfo.isMobile) return <Smartphone className="w-3 h-3" />;
@@ -37,7 +43,7 @@ const AppLayout: React.FC = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={() => setShowProfileMenu(true)} className="h-12">
+        <DropdownMenuItem onClick={handleAppSettingsClick} className="h-12">
           <Settings className="w-4 h-4 mr-2" />
           App Settings
         </DropdownMenuItem>
@@ -83,10 +89,7 @@ const AppLayout: React.FC = () => {
                 </div>
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    setShowProfileMenu(true);
-                    setShowMobileMenu(false);
-                  }}
+                  onClick={handleAppSettingsClick}
                   className="justify-start h-14 text-base touch-manipulation"
                 >
                   <Settings className="w-5 h-5 mr-3" />
@@ -99,17 +102,13 @@ const AppLayout: React.FC = () => {
       </header>
       
       <main className="p-4 pb-8 safe-area-bottom">
-        <PANDASApp />
+        <PANDASApp 
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          showChildManager={showChildManager}
+          setShowChildManager={setShowChildManager}
+        />
       </main>
-      
-      <Dialog open={showProfileMenu} onOpenChange={setShowProfileMenu}>
-        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg">App Settings</DialogTitle>
-          </DialogHeader>
-          <ProfileMenu />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

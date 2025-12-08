@@ -10,7 +10,6 @@ import MedicalDisclaimer from './MedicalDisclaimer';
 import SelfCareBanner from './SelfCareBanner';
 import ChildProfileForm from './ChildProfileForm';
 import ChildSelector from './ChildSelector';
-import ChildManager from './ChildManager';
 import SymptomTracker from './SymptomTracker';
 import SymptomChart from './SymptomChart';
 import SymptomHeatmap from './SymptomHeatmap';
@@ -36,8 +35,14 @@ import { DiagnosisTracker } from './DiagnosisTracker';
 import ProfileAndSecurity from './ProfileAndSecurity';
 import { Activity, User, Settings, Utensils, Users, Clock, HelpCircle, MoreHorizontal, Search, ListTree } from 'lucide-react';
 
+interface PANDASAppProps {
+  currentTab: string;
+  setCurrentTab: (tab: string) => void;
+  showChildManager: boolean;
+  setShowChildManager: (show: boolean) => void;
+}
 
-const PANDASApp: React.FC = () => {
+const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showChildManager, setShowChildManager }) => {
   const { 
     childProfile, 
     children, 
@@ -49,9 +54,7 @@ const PANDASApp: React.FC = () => {
   } = useApp();
   
   const deviceInfo = useDeviceDetection();
-  const [showChildManager, setShowChildManager] = useState(false);
   const [activeMoreTab, setActiveMoreTab] = useState<string | null>(null);
-  const [currentTab, setCurrentTab] = useState('track');
 
   const handleCreateProfile = async (profile: any) => {
     await saveChildProfile(profile);
@@ -69,7 +72,6 @@ const PANDASApp: React.FC = () => {
   };
 
   const handleAddChild = () => {
-    // This now opens the profile tab
     setCurrentTab("profile");
   };
 
@@ -173,7 +175,7 @@ const PANDASApp: React.FC = () => {
           </div>
 
           <TabsContent value="profile" className="mt-6">
-            <ProfileAndSecurity />
+            <ProfileAndSecurity showChildManager={showChildManager} setShowChildManager={setShowChildManager} />
           </TabsContent>
 
           <TabsContent value="track" className="mt-6">
@@ -258,11 +260,6 @@ const PANDASApp: React.FC = () => {
           </CardContent>
         </Card>
       )}
-      
-      <ChildManager 
-        isOpen={showChildManager} 
-        onClose={() => setShowChildManager(false)} 
-      />
     </div>
   );
 };

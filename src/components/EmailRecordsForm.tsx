@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Mail, Send, Loader2 } from 'lucide-react';
 
 const EmailRecordsForm: React.FC = () => {
@@ -35,8 +35,9 @@ const EmailRecordsForm: React.FC = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('email-records', {
-        body: {
+      const functions = getFunctions();
+      const emailRecords = httpsCallable(functions, 'email-records');
+      const result = await emailRecords({
           childId: childProfile.id,
           doctorEmail: formData.doctorEmail,
           doctorName: formData.doctorName,
@@ -48,10 +49,7 @@ const EmailRecordsForm: React.FC = () => {
           includeFoodDiary: formData.includeFoodDiary,
           includeActivities: formData.includeActivities,
           dateRange: parseInt(formData.dateRange)
-        }
       });
-
-      if (error) throw error;
 
       toast({
         title: 'Email Sent Successfully',

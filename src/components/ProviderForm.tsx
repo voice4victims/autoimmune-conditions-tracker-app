@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { firestore } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 interface ProviderFormProps {
   childId: string;
@@ -33,11 +34,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('healthcare_providers')
-        .insert([{ ...formData, child_id: childId }]);
-
-      if (error) throw error;
+      await addDoc(collection(firestore, 'healthcare_providers'), { ...formData, child_id: childId });
 
       toast({ title: 'Success', description: 'Provider added successfully' });
       setFormData({ name: '', title: '', role: '', specialty: '', contact_info: '', notes: '' });
