@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { firestore } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Copy, RefreshCw, Key } from 'lucide-react';
@@ -26,7 +26,7 @@ export const InviteCodeRetrieval: React.FC = () => {
     if (!user) return;
 
     try {
-      const invitationsRef = collection(firestore, 'family_invitations');
+      const invitationsRef = collection(db, 'family_invitations');
       const q = query(invitationsRef, where('invited_by', '==', user.uid), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const invitationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

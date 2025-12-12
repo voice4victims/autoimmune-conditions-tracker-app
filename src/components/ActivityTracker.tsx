@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
-import { firestore } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import ActivityForm from './ActivityForm';
@@ -35,7 +35,7 @@ const ActivityTracker: React.FC = () => {
     if (!childProfile) return;
 
     try {
-      const activitiesRef = collection(firestore, 'activity_logs');
+      const activitiesRef = collection(db, 'activity_logs');
       const q = query(activitiesRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -66,23 +66,23 @@ const ActivityTracker: React.FC = () => {
     };
 
     try {
-      const docRef = await addDoc(collection(firestore, 'activity_logs'), newActivityData);
+      const docRef = await addDoc(collection(db, 'activity_logs'), newActivityData);
       const newActivity = { ...newActivityData, id: docRef.id, created_at: new Date() };
       setActivities(prev => [newActivity, ...prev]);
     } catch (error) {
-        console.log('Saving activity to localStorage:', error);
-        const newActivity = {
-            id: Date.now().toString(),
-            child_id: childProfile.id,
-            created_at: new Date().toISOString(),
-            ...activityData
-        };
-        setActivities(prev => [newActivity, ...prev]);
-        const key = `pandas-activities-${childProfile.id}`;
-        const stored = localStorage.getItem(key);
-        const activities = stored ? JSON.parse(stored) : [];
-        activities.unshift(newActivity);
-        localStorage.setItem(key, JSON.stringify(activities));
+      console.log('Saving activity to localStorage:', error);
+      const newActivity = {
+        id: Date.now().toString(),
+        child_id: childProfile.id,
+        created_at: new Date().toISOString(),
+        ...activityData
+      };
+      setActivities(prev => [newActivity, ...prev]);
+      const key = `pandas-activities-${childProfile.id}`;
+      const stored = localStorage.getItem(key);
+      const activities = stored ? JSON.parse(stored) : [];
+      activities.unshift(newActivity);
+      localStorage.setItem(key, JSON.stringify(activities));
     }
 
     toast({
@@ -93,7 +93,7 @@ const ActivityTracker: React.FC = () => {
 
   const handleDeleteActivity = async (activityId: string) => {
     try {
-      await deleteDoc(doc(firestore, 'activity_logs', activityId));
+      await deleteDoc(doc(db, 'activity_logs', activityId));
     } catch (error) {
       console.log('Error deleting from Firestore, deleting from localStorage', error);
     }
@@ -168,9 +168,9 @@ const ActivityTracker: React.FC = () => {
                   <p className="text-gray-500 mt-2">Loading activities...</p>
                 </div>
               ) : (
-                <ActivityList 
-                  activities={activities} 
-                  onDelete={handleDeleteActivity} 
+                <ActivityList
+                  activities={activities}
+                  onDelete={handleDeleteActivity}
                 />
               )}
             </CardContent>

@@ -1,0 +1,294 @@
+{
+    "securityMonitoring": {
+        "version": "1.0.0",
+        "lastUpdated": "2024-12-11",
+        "environment": "production",
+        "configuration": {
+            "realTimeMonitoring": {
+                "enabled": true,
+                "alertThresholds": {
+                    "failedLoginAttempts": {
+                        "threshold": 5,
+                        "timeWindow": "5m",
+                        "action": "block_ip"
+                    },
+                    "privacySettingsChanges": {
+                        "threshold": 10,
+                        "timeWindow": "1h",
+                        "action": "alert_security_team"
+                    },
+                    "dataAccessAnomalies": {
+                        "threshold": 3,
+                        "timeWindow": "15m",
+                        "action": "require_mfa"
+                    },
+                    "suspiciousDataExport": {
+                        "threshold": 1,
+                        "timeWindow": "1h",
+                        "action": "immediate_alert"
+                    }
+                }
+            },
+            "auditLogMonitoring": {
+                "enabled": true,
+                "logSources": [
+                    "firebase_auth",
+                    "firestore_access",
+                    "privacy_settings",
+                    "data_export",
+                    "user_management"
+                ],
+                "alertRules": [
+                    {
+                        "name": "unauthorized_access_attempt",
+                        "condition": "result == 'denied' AND action == 'view_data'",
+                        "severity": "high",
+                        "notification": "immediate"
+                    },
+                    {
+                        "name": "bulk_data_access",
+                        "condition": "count(resourceType == 'medical_data') > 50 in 10m",
+                        "severity": "critical",
+                        "notification": "immediate"
+                    },
+                    {
+                        "name": "privacy_settings_mass_change",
+                        "condition": "count(action == 'update_privacy_settings') > 5 in 5m",
+                        "severity": "medium",
+                        "notification": "delayed"
+                    },
+                    {
+                        "name": "admin_privilege_escalation",
+                        "condition": "action == 'grant_access' AND newRole in ['admin', 'parent']",
+                        "severity": "high",
+                        "notification": "immediate"
+                    }
+                ]
+            },
+            "behaviorAnalytics": {
+                "enabled": true,
+                "baselineWindow": "30d",
+                "anomalyDetection": {
+                    "userAccessPatterns": {
+                        "enabled": true,
+                        "sensitivity": "medium",
+                        "alertOnDeviation": 2.5
+                    },
+                    "dataAccessVolume": {
+                        "enabled": true,
+                        "sensitivity": "high",
+                        "alertOnDeviation": 3.0
+                    },
+                    "geographicAccess": {
+                        "enabled": true,
+                        "sensitivity": "high",
+                        "alertOnNewLocation": true
+                    },
+                    "deviceFingerprinting": {
+                        "enabled": true,
+                        "sensitivity": "medium",
+                        "alertOnNewDevice": true
+                    }
+                }
+            },
+            "threatIntelligence": {
+                "enabled": true,
+                "sources": [
+                    "firebase_threat_intelligence",
+                    "ip_reputation_feeds",
+                    "malware_indicators"
+                ],
+                "autoBlock": {
+                    "maliciousIPs": true,
+                    "knownAttackers": true,
+                    "botNetworks": true
+                }
+            }
+        },
+        "alerting": {
+            "channels": [
+                {
+                    "name": "security_team_email",
+                    "type": "email",
+                    "endpoint": "security@pandas-tracker.com",
+                    "severity": [
+                        "critical",
+                        "high"
+                    ],
+                    "enabled": true
+                },
+                {
+                    "name": "security_team_sms",
+                    "type": "sms",
+                    "endpoint": "+1-XXX-XXX-XXXX",
+                    "severity": [
+                        "critical"
+                    ],
+                    "enabled": true
+                },
+                {
+                    "name": "security_dashboard",
+                    "type": "webhook",
+                    "endpoint": "https://security-dashboard.pandas-tracker.com/alerts",
+                    "severity": [
+                        "critical",
+                        "high",
+                        "medium"
+                    ],
+                    "enabled": true
+                },
+                {
+                    "name": "incident_response_system",
+                    "type": "webhook",
+                    "endpoint": "https://incident-response.pandas-tracker.com/api/alerts",
+                    "severity": [
+                        "critical"
+                    ],
+                    "enabled": true
+                }
+            ],
+            "escalation": {
+                "critical": {
+                    "immediate": [
+                        "security_team_email",
+                        "security_team_sms",
+                        "incident_response_system"
+                    ],
+                    "after_15m": [
+                        "engineering_lead",
+                        "cto"
+                    ],
+                    "after_1h": [
+                        "ceo",
+                        "legal_team"
+                    ]
+                },
+                "high": {
+                    "immediate": [
+                        "security_team_email",
+                        "security_dashboard"
+                    ],
+                    "after_30m": [
+                        "security_lead"
+                    ],
+                    "after_2h": [
+                        "engineering_lead"
+                    ]
+                },
+                "medium": {
+                    "immediate": [
+                        "security_dashboard"
+                    ],
+                    "after_1h": [
+                        "security_team_email"
+                    ],
+                    "after_4h": [
+                        "security_lead"
+                    ]
+                }
+            }
+        },
+        "compliance": {
+            "hipaaCompliance": {
+                "auditLogRetention": "7_years",
+                "accessLogCompleteness": "100%",
+                "encryptionValidation": "continuous",
+                "breachNotificationTime": "72_hours"
+            },
+            "gdprCompliance": {
+                "dataProcessingLog": "enabled",
+                "consentTracking": "enabled",
+                "rightToErasure": "automated",
+                "dataPortability": "enabled"
+            },
+            "reporting": {
+                "dailySecuritySummary": true,
+                "weeklyComplianceReport": true,
+                "monthlyThreatAssessment": true,
+                "quarterlySecurityReview": true
+            }
+        },
+        "incidentResponse": {
+            "automatedResponse": {
+                "suspiciousActivity": {
+                    "action": "require_additional_auth",
+                    "duration": "1h",
+                    "escalate_after": "3_attempts"
+                },
+                "dataBreachSuspicion": {
+                    "action": "immediate_lockdown",
+                    "notify": [
+                        "security_team",
+                        "legal_team",
+                        "cto"
+                    ],
+                    "preserve_evidence": true
+                },
+                "malwareDetection": {
+                    "action": "isolate_session",
+                    "scan_related_accounts": true,
+                    "notify": [
+                        "security_team"
+                    ]
+                }
+            },
+            "manualResponse": {
+                "securityIncidentWorkflow": {
+                    "detection": "automated_or_reported",
+                    "triage": "security_team_lead",
+                    "investigation": "security_analyst",
+                    "containment": "engineering_team",
+                    "eradication": "security_team",
+                    "recovery": "engineering_team",
+                    "lessons_learned": "all_stakeholders"
+                }
+            }
+        },
+        "metrics": {
+            "securityKPIs": [
+                {
+                    "name": "mean_time_to_detection",
+                    "target": "< 5 minutes",
+                    "measurement": "automated"
+                },
+                {
+                    "name": "mean_time_to_response",
+                    "target": "< 15 minutes",
+                    "measurement": "automated"
+                },
+                {
+                    "name": "false_positive_rate",
+                    "target": "< 5%",
+                    "measurement": "weekly_review"
+                },
+                {
+                    "name": "security_test_coverage",
+                    "target": "> 95%",
+                    "measurement": "continuous"
+                },
+                {
+                    "name": "vulnerability_remediation_time",
+                    "target": "< 24 hours (critical), < 7 days (high)",
+                    "measurement": "automated"
+                }
+            ],
+            "complianceMetrics": [
+                {
+                    "name": "audit_log_completeness",
+                    "target": "100%",
+                    "measurement": "daily"
+                },
+                {
+                    "name": "encryption_coverage",
+                    "target": "100% of PHI",
+                    "measurement": "continuous"
+                },
+                {
+                    "name": "access_control_effectiveness",
+                    "target": "0 unauthorized access",
+                    "measurement": "continuous"
+                }
+            ]
+        }
+    }
+}

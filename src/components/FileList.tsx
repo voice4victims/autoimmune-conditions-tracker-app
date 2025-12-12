@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Image, Video, Download, Trash2, MoreVertical } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { firestore, storage } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,7 +37,7 @@ const FileList: React.FC = () => {
 
   const fetchFiles = async () => {
     try {
-      const filesRef = collection(firestore, 'file_uploads');
+      const filesRef = collection(db, 'file_uploads');
       const q = query(filesRef, where('child_id', '==', childProfile?.id), orderBy('uploaded_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const filesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -68,7 +68,7 @@ const FileList: React.FC = () => {
       const fileRef = ref(storage, file.storage_path);
       await deleteObject(fileRef);
 
-      await deleteDoc(doc(firestore, 'file_uploads', file.id));
+      await deleteDoc(doc(db, 'file_uploads', file.id));
 
       setFiles(files.filter(f => f.id !== file.id));
       toast({ title: 'Success', description: 'File deleted successfully' });
@@ -134,7 +134,7 @@ const FileList: React.FC = () => {
                 <div className="flex-shrink-0 mt-1">
                   {getFileIcon(file.file_type, file.category)}
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -158,7 +158,7 @@ const FileList: React.FC = () => {
                         </p>
                       )}
                     </div>
-                    
+
                     <div className="flex-shrink-0">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -171,7 +171,7 @@ const FileList: React.FC = () => {
                             <Download className="w-4 h-4 mr-2" />
                             Download
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDelete(file)}
                             className="text-red-600 focus:text-red-600"
                           >

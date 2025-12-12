@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useApp } from '@/contexts/AppContext';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
+import { usePermissions } from '@/hooks/useRoleAccess';
+import { PermissionGuard, ConditionalRender } from '@/components/PermissionGuard';
 import MedicalDisclaimer from './MedicalDisclaimer';
 import SelfCareBanner from './SelfCareBanner';
 import ChildProfileForm from './ChildProfileForm';
@@ -33,7 +35,10 @@ import PTECTracker from './PTECTracker';
 import AdvancedAnalyticsDashboard from './AdvancedAnalyticsDashboard';
 import { DiagnosisTracker } from './DiagnosisTracker';
 import ProfileAndSecurity from './ProfileAndSecurity';
-import { Activity, User, Settings, Utensils, Users, Clock, HelpCircle, MoreHorizontal, Search, ListTree } from 'lucide-react';
+import PrivacySettings from './PrivacySettings';
+import PrivacyNotifications from './PrivacyNotifications';
+import { ProviderAccessManager } from './ProviderAccessManager';
+import { Activity, User, Settings, Utensils, Users, Clock, HelpCircle, MoreHorizontal, Search, ListTree, Shield } from 'lucide-react';
 
 interface PANDASAppProps {
   currentTab: string;
@@ -43,17 +48,18 @@ interface PANDASAppProps {
 }
 
 const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showChildManager, setShowChildManager }) => {
-  const { 
-    childProfile, 
-    children, 
-    setChildProfile, 
-    saveChildProfile, 
+  const {
+    childProfile,
+    children,
+    setChildProfile,
+    saveChildProfile,
     addSymptom,
     customSymptoms,
     addCustomSymptom
   } = useApp();
-  
+
   const deviceInfo = useDeviceDetection();
+  const permissions = usePermissions();
   const [activeMoreTab, setActiveMoreTab] = useState<string | null>(null);
 
   const handleCreateProfile = async (profile: any) => {
@@ -90,6 +96,10 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
     }
   };
 
+  const handleNavigateToPrivacy = () => {
+    setCurrentTab('privacy');
+  };
+
   if (children.length === 0) {
     return (
       <div className="max-w-2xl mx-auto pt-4 px-2">
@@ -103,16 +113,25 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
     );
   }
 
-   return (
-     <div className={`max-w-6xl mx-auto px-1 sm:px-2 ${deviceInfo.isMobile ? 'responsive-grid' : ''}`}>
+  return (
+    <div className={`max-w-6xl mx-auto px-1 sm:px-2 ${deviceInfo.isMobile ? 'responsive-grid' : ''}`}>
       <MedicalDisclaimer />
       <SelfCareBanner />
-      
+
+      {/* Privacy Notifications */}
+      <div className="mb-6">
+        <PrivacyNotifications
+          onNavigateToPrivacy={handleNavigateToPrivacy}
+          compact={deviceInfo.isMobile}
+          maxNotifications={deviceInfo.isMobile ? 2 : 3}
+        />
+      </div>
+
       <div className="text-center mb-6">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
           PANDAS Symptom Tracker
         </h2>
-        
+
         <div className="flex flex-col gap-4 items-center">
           <ChildSelector
             children={children}
@@ -121,7 +140,7 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
             onAddChild={handleAddChild}
           />
         </div>
-        
+
         {childProfile && (
           <p className="text-sm text-gray-500 mt-3">Tracking for {childProfile.name}</p>
         )}
@@ -132,10 +151,14 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
           <div className="sticky top-20 bg-background/95 backdrop-blur-sm z-40 pb-2">
             <ScrollArea className="w-full">
               <TabsList className="inline-flex h-auto p-1.5 bg-muted rounded-lg w-full">
-                <div className="grid grid-cols-9 gap-0.5 sm:gap-1 w-full">
+                <div className="grid grid-cols-10 gap-0.5 sm:gap-1 w-full">
                   <TabsTrigger value="profile" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
                     <User className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="truncate">Profile</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="privacy" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                    <span className="truncate">Privacy</span>
                   </TabsTrigger>
                   <TabsTrigger value="track" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
                     <Activity className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
@@ -178,16 +201,24 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
             <ProfileAndSecurity showChildManager={showChildManager} setShowChildManager={setShowChildManager} />
           </TabsContent>
 
-          <TabsContent value="track" className="mt-6">
-            <SymptomTracker 
-              onAddSymptom={handleAddSymptom} 
-              customSymptoms={customSymptoms}
-              onAddCustomSymptom={addCustomSymptom}
-            />
+          <TabsContent value="privacy" className="mt-6">
+            <PrivacySettings />
           </TabsContent>
-          
+
+          <TabsContent value="track" className="mt-6">
+            <PermissionGuard permissions={['read_data']}>
+              <SymptomTracker
+                onAddSymptom={handleAddSymptom}
+                customSymptoms={customSymptoms}
+                onAddCustomSymptom={addCustomSymptom}
+              />
+            </PermissionGuard>
+          </TabsContent>
+
           <TabsContent value="diagnosis" className="mt-6">
-            <DiagnosisTracker />
+            <PermissionGuard permissions={['read_data']}>
+              <DiagnosisTracker />
+            </PermissionGuard>
           </TabsContent>
 
           <TabsContent value="providers" className="mt-6">
@@ -205,15 +236,21 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
           </TabsContent>
 
           <TabsContent value="activities" className="mt-6">
-            <ActivityTracker />
+            <PermissionGuard permissions={['read_data']}>
+              <ActivityTracker />
+            </PermissionGuard>
           </TabsContent>
 
           <TabsContent value="food" className="mt-6">
-            <FoodDiaryTracker />
+            <PermissionGuard permissions={['read_data']}>
+              <FoodDiaryTracker />
+            </PermissionGuard>
           </TabsContent>
 
           <TabsContent value="family" className="mt-6">
-            <FamilyManager />
+            <PermissionGuard permissions={['invite_users']} showFallback={true}>
+              <FamilyManager />
+            </PermissionGuard>
           </TabsContent>
 
           <TabsContent value="faq" className="mt-6">
@@ -222,22 +259,51 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
 
           <TabsContent value="more" className="mt-6">
             <div className="space-y-4">
-              <MoreMenu 
+              <MoreMenu
                 activeMoreTab={activeMoreTab}
                 onMoreTabClick={handleMoreTabClick}
                 onBackToMenu={handleBackToMoreMenu}
               />
-              
-              {activeMoreTab === 'analytics' && <AdvancedAnalyticsDashboard />}
-              {activeMoreTab === 'ptec' && <PTECTracker />}
+
+              {activeMoreTab === 'analytics' && (
+                <PermissionGuard permissions={['view_analytics']}>
+                  <AdvancedAnalyticsDashboard />
+                </PermissionGuard>
+              )}
+              {activeMoreTab === 'ptec' && (
+                <PermissionGuard permissions={['read_data']}>
+                  <PTECTracker />
+                </PermissionGuard>
+              )}
               {activeMoreTab === 'selfcare' && <SelfCareGuide />}
-              {activeMoreTab === 'vitals' && <VitalSignsTracker />}
-              {activeMoreTab === 'treatments' && <TreatmentTracker />}
-              {activeMoreTab === 'reminders' && <MedicationReminders />}
-              {activeMoreTab === 'recipes' && <SupplementRecipes />}
+              {activeMoreTab === 'vitals' && (
+                <PermissionGuard permissions={['read_data']}>
+                  <VitalSignsTracker />
+                </PermissionGuard>
+              )}
+              {activeMoreTab === 'treatments' && (
+                <PermissionGuard permissions={['read_data']}>
+                  <TreatmentTracker />
+                </PermissionGuard>
+              )}
+              {activeMoreTab === 'reminders' && (
+                <PermissionGuard permissions={['read_data']}>
+                  <MedicationReminders />
+                </PermissionGuard>
+              )}
+              {activeMoreTab === 'recipes' && (
+                <PermissionGuard permissions={['read_data']}>
+                  <SupplementRecipes />
+                </PermissionGuard>
+              )}
               {activeMoreTab === 'notes' && <NotesTracker />}
               {activeMoreTab === 'history' && <SymptomChart />}
               {activeMoreTab === 'heatmap' && <SymptomHeatmap />}
+              {activeMoreTab === 'provider-access' && (
+                <PermissionGuard permissions={['invite_users']}>
+                  <ProviderAccessManager />
+                </PermissionGuard>
+              )}
               {activeMoreTab === 'providers' && <ProviderTracker />}
               {activeMoreTab === 'files' && <FileManager />}
               {activeMoreTab === 'email' && <EmailRecordsForm />}

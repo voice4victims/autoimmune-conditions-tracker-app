@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { vitalSignsService } from '@/lib/firebaseService';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus } from 'lucide-react';
 import LabResultsOCR from './LabResultsOCR';
@@ -34,7 +34,7 @@ const VitalSignForm: React.FC<VitalSignFormProps> = ({ onVitalAdded }) => {
   const [value, setValue] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
-  const [customVitals, setCustomVitals] = useState<Array<{type: string, unit: string, label: string}>>([]);
+  const [customVitals, setCustomVitals] = useState<Array<{ type: string, unit: string, label: string }>>([]);
   const [showCustomDialog, setShowCustomDialog] = useState(false);
   const [customLabel, setCustomLabel] = useState('');
   const [customUnit, setCustomUnit] = useState('');
@@ -46,19 +46,19 @@ const VitalSignForm: React.FC<VitalSignFormProps> = ({ onVitalAdded }) => {
 
   const handleAddCustomVital = () => {
     if (!customLabel || !customUnit) return;
-    
+
     const customType = customLabel.toLowerCase().replace(/\s+/g, '_');
     const newVital = {
       type: customType,
       unit: customUnit,
       label: customLabel
     };
-    
+
     setCustomVitals(prev => [...prev, newVital]);
     setCustomLabel('');
     setCustomUnit('');
     setShowCustomDialog(false);
-    
+
     toast({
       title: 'Custom Vital Added',
       description: `${customLabel} has been added to your vital signs.`
@@ -82,18 +82,17 @@ const VitalSignForm: React.FC<VitalSignFormProps> = ({ onVitalAdded }) => {
     setLoading(true);
     try {
       const vitalInfo = allVitals.find(v => v.type === vitalType);
-      const { error } = await supabase
-        .from('vital_signs')
-        .insert({
-          child_id: childProfile.id,
-          user_id: user.id,
-          vital_type: vitalType,
-          value: parseFloat(value),
-          unit: vitalInfo?.unit || '',
-          notes: notes || null
-        });
+      await vitalSignsService.addVitalSigns({
+        child_id: childProfile.id,
+        user_id: user.id,
+        vital_type: vitalType,
+        value: parseFloat(value),
+        unit: vitalInfo?.unit || '',
+        notes: notes || null,
+        date: new Date().toISOString()
+      });
 
-      if (error) throw error;
+
 
       toast({
         title: 'Vital Sign Added',
@@ -119,7 +118,7 @@ const VitalSignForm: React.FC<VitalSignFormProps> = ({ onVitalAdded }) => {
   return (
     <div className="space-y-6">
       <LabResultsOCR onLabDataExtracted={handleLabDataExtracted} />
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -163,52 +162,52 @@ const VitalSignForm: React.FC<VitalSignFormProps> = ({ onVitalAdded }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="vital-type">Vital Sign Type</Label>
-            <Select value={vitalType} onValueChange={setVitalType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select vital sign type" />
-              </SelectTrigger>
-              <SelectContent>
-                {allVitals.map(vital => (
-                  <SelectItem key={vital.type} value={vital.type}>
-                    {vital.label} ({vital.unit})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="vital-type">Vital Sign Type</Label>
+              <Select value={vitalType} onValueChange={setVitalType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select vital sign type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allVitals.map(vital => (
+                    <SelectItem key={vital.type} value={vital.type}>
+                      {vital.label} ({vital.unit})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div>
-            <Label htmlFor="value">Value</Label>
-            <Input
-              id="value"
-              type="number"
-              step="0.1"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="Enter value"
-              required
-            />
-          </div>
+            <div>
+              <Label htmlFor="value">Value</Label>
+              <Input
+                id="value"
+                type="number"
+                step="0.1"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder="Enter value"
+                required
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="notes">Notes (Optional)</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional notes..."
-              rows={3}
-            />
-          </div>
+            <div>
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Any additional notes..."
+                rows={3}
+              />
+            </div>
 
-          <Button type="submit" disabled={loading || !vitalType || !value}>
-            {loading ? 'Recording...' : 'Record Vital Sign'}
-          </Button>
-        </form>
-      </CardContent>
+            <Button type="submit" disabled={loading || !vitalType || !value}>
+              {loading ? 'Recording...' : 'Record Vital Sign'}
+            </Button>
+          </form>
+        </CardContent>
       </Card>
     </div>
   );

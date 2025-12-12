@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
-import { firestore } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import FoodDiaryForm from './FoodDiaryForm';
 import FoodDiaryList from './FoodDiaryList';
@@ -39,7 +39,7 @@ const FoodDiaryTracker: React.FC = () => {
 
     try {
       setIsLoadingEntries(true);
-      const entriesRef = collection(firestore, 'food_diary');
+      const entriesRef = collection(db, 'food_diary');
       const q = query(entriesRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const entriesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -65,11 +65,11 @@ const FoodDiaryTracker: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const docRef = await addDoc(collection(firestore, 'food_diary'), newEntry);
-      setEntries(prev => [{...newEntry, id: docRef.id}, ...prev]);
+      const docRef = await addDoc(collection(db, 'food_diary'), newEntry);
+      setEntries(prev => [{ ...newEntry, id: docRef.id }, ...prev]);
     } catch (error) {
       console.log('Saving food diary to localStorage:', error);
-      const entryWithId = {...newEntry, id: Date.now().toString() };
+      const entryWithId = { ...newEntry, id: Date.now().toString() };
       setEntries(prev => [entryWithId, ...prev]);
       const key = `pandas-food-diary-${childProfile.id}`;
       const stored = localStorage.getItem(key);
@@ -89,7 +89,7 @@ const FoodDiaryTracker: React.FC = () => {
   const handleDeleteEntry = async (entryId: string) => {
     try {
       setIsLoading(true);
-      await deleteDoc(doc(firestore, 'food_diary', entryId));
+      await deleteDoc(doc(db, 'food_diary', entryId));
     } catch (error) {
       console.log('Deleting food diary from localStorage:', error);
     }
@@ -156,10 +156,10 @@ const FoodDiaryTracker: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <FoodDiaryList 
-              entries={entries} 
-              onDelete={handleDeleteEntry} 
-              isLoading={isLoading} 
+            <FoodDiaryList
+              entries={entries}
+              onDelete={handleDeleteEntry}
+              isLoading={isLoading}
             />
           )}
         </TabsContent>

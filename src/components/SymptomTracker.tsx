@@ -9,6 +9,9 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SYMPTOM_TYPES, SymptomRating } from '@/types/pandas';
 import { toast } from '@/components/ui/use-toast';
+import { usePermissions } from '@/hooks/useRoleAccess';
+import { ConditionalRender } from '@/components/PermissionGuard';
+import PrivacyStatusIndicator from '@/components/PrivacyStatusIndicator';
 import LabResultsOCR from './LabResultsOCR';
 import { Plus, Calendar as CalendarIcon, Star } from 'lucide-react';
 import { format } from 'date-fns';
@@ -20,11 +23,12 @@ interface SymptomTrackerProps {
   onAddCustomSymptom?: (symptom: string) => void;
 }
 
-const SymptomTracker: React.FC<SymptomTrackerProps> = ({ 
-  onAddSymptom, 
-  customSymptoms = [], 
-  onAddCustomSymptom 
+const SymptomTracker: React.FC<SymptomTrackerProps> = ({
+  onAddSymptom,
+  customSymptoms = [],
+  onAddCustomSymptom
 }) => {
+  const { canWrite } = usePermissions();
   const [selectedSymptom, setSelectedSymptom] = useState('');
   const [severity, setSeverity] = useState('');
   const [notes, setNotes] = useState('');
@@ -36,7 +40,7 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedSymptom || !severity) {
       toast({ title: 'Error', description: 'Please fill in all required fields' });
       return;
@@ -71,7 +75,10 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Record Symptom</CardTitle>
+        <CardTitle className="text-lg flex items-center justify-between">
+          Record Symptom
+          <PrivacyStatusIndicator variant="icon" size="sm" />
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +122,7 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
                 ))}
               </SelectContent>
             </Select>
-            
+
             {onAddCustomSymptom && (
               <div className="space-y-2">
                 <Button
@@ -129,17 +136,17 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
                   Add Custom Symptom
                 </Button>
                 {showCustomInput && (
-                  <CustomSymptomInput 
+                  <CustomSymptomInput
                     onAddCustomSymptom={(symptom) => {
                       onAddCustomSymptom(symptom);
                       setShowCustomInput(false);
-                    }} 
+                    }}
                   />
                 )}
               </div>
             )}
           </div>
-          
+
           <div className="space-y-3">
             <Label className="text-sm font-medium">Severity (0-10)</Label>
             <div className="grid grid-cols-6 gap-2">
@@ -170,7 +177,7 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
               <span>{isImportant ? "Important" : "Mark as Important"}</span>
             </Button>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-sm font-medium">Notes (Optional)</Label>
             <Textarea
@@ -181,17 +188,23 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
               className="w-full min-h-[80px] resize-none"
             />
           </div>
-          
-          <Button 
-            type="submit" 
+
+          <Button
+            type="submit"
             className="w-full h-12 text-base font-medium"
-            disabled={!selectedSymptom || !severity}
+            disabled={!selectedSymptom || !severity || !canWrite}
           >
             Record Symptom
           </Button>
+
+          {!canWrite && (
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              You don't have permission to add symptoms
+            </p>
+          )}
         </form>
-        
-        <LabResultsOCR 
+
+        <LabResultsOCR
           onDataExtracted={handleOCRData}
           formType="symptoms"
           title="Extract Symptom Data from Image"

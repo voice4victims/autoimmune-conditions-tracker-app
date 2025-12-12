@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { vitalSignsService } from '@/lib/firebaseService';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 
@@ -41,16 +41,9 @@ const VitalSignsChart: React.FC<VitalSignsChartProps> = ({ refreshTrigger }) => 
     if (!childProfile || !user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('vital_signs')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .eq('user_id', user.id)
-        .order('date_recorded', { ascending: true });
+      const vitals = await vitalSignsService.getVitalSigns(user.id, childProfile.id);
+      setVitals(vitals);
 
-      if (error) throw error;
-      setVitals(data || []);
-      
       // Set default selected vital if none selected
       if (!selectedVital && data && data.length > 0) {
         setSelectedVital(data[0].vital_type);
@@ -131,21 +124,21 @@ const VitalSignsChart: React.FC<VitalSignsChartProps> = ({ refreshTrigger }) => 
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis 
-                  label={{ 
-                    value: selectedVitalInfo?.unit || '', 
-                    angle: -90, 
-                    position: 'insideLeft' 
-                  }} 
+                <YAxis
+                  label={{
+                    value: selectedVitalInfo?.unit || '',
+                    angle: -90,
+                    position: 'insideLeft'
+                  }}
                 />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => [value, selectedVitalInfo?.unit || '']}
                   labelFormatter={(label) => `Date: ${label}`}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#3b82f6" 
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#3b82f6"
                   strokeWidth={2}
                   dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                 />

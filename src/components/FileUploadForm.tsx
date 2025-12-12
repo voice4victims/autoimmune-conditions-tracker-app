@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, X, Camera, FileText, Video, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { fileService } from '@/lib/firebaseService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 
@@ -35,49 +35,17 @@ const FileUploadForm: React.FC = () => {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${user.id}/${childProfile.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { error: dbError } = await supabase
-        .from('file_uploads')
-        .insert({
-          user_id: user.id,
-          child_id: childProfile.id,
-          file_name: file.name,
-          file_type: file.type,
-          file_size: file.size,
-          storage_path: filePath,
-          category,
-          description
-        });
-
-      if (dbError) throw dbError;
+      await fileService.uploadFile(file, user.id, childProfile.id, category, description);
 
       toast({ title: 'Success', description: 'File uploaded successfully' });
       setFile(null);
       setCategory('');
       setDescription('');
     } catch (error) {
+      console.error('Error uploading file:', error);
       toast({ title: 'Error', description: 'Failed to upload file', variant: 'destructive' });
     } finally {
       setUploading(false);
-    }
-  };
-
-  const getCategoryIcon = (cat: string) => {
-    switch (cat) {
-      case 'photo': return <Image className="w-4 h-4" />;
-      case 'video': return <Video className="w-4 h-4" />;
-      case 'lab_result': return <FileText className="w-4 h-4" />;
-      case 'document': return <FileText className="w-4 h-4" />;
-      default: return <Upload className="w-4 h-4" />;
     }
   };
 

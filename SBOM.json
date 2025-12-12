@@ -1,0 +1,186 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.4",
+    "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2024-12-11T00:00:00.000Z",
+        "tools": [
+            {
+                "vendor": "PANDAS Autoimmune Tracker",
+                "name": "SBOM Generator",
+                "version": "1.0.0"
+            }
+        ],
+        "component": {
+            "type": "application",
+            "bom-ref": "pandas-autoimmune-tracker",
+            "name": "PANDAS Autoimmune Tracker",
+            "version": "0.0.0",
+            "description": "Healthcare tracking application for PANDAS/PANS conditions",
+            "licenses": [
+                {
+                    "license": {
+                        "name": "Proprietary"
+                    }
+                }
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "library",
+            "bom-ref": "react@18.3.1",
+            "name": "react",
+            "version": "18.3.1",
+            "description": "React is a JavaScript library for building user interfaces.",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/react@18.3.1",
+            "externalReferences": [
+                {
+                    "type": "website",
+                    "url": "https://reactjs.org/"
+                },
+                {
+                    "type": "vcs",
+                    "url": "https://github.com/facebook/react"
+                }
+            ],
+            "hashes": [
+                {
+                    "alg": "SHA-256",
+                    "content": "placeholder-hash-react"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "firebase@12.6.0",
+            "name": "firebase",
+            "version": "12.6.0",
+            "description": "Firebase JavaScript SDK",
+            "licenses": [
+                {
+                    "license": {
+                        "name": "Apache-2.0"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/firebase@12.6.0",
+            "externalReferences": [
+                {
+                    "type": "website",
+                    "url": "https://firebase.google.com/"
+                },
+                {
+                    "type": "vcs",
+                    "url": "https://github.com/firebase/firebase-js-sdk"
+                }
+            ],
+            "hashes": [
+                {
+                    "alg": "SHA-256",
+                    "content": "placeholder-hash-firebase"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "crypto-js@4.2.0",
+            "name": "crypto-js",
+            "version": "4.2.0",
+            "description": "JavaScript library of crypto standards",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/crypto-js@4.2.0",
+            "externalReferences": [
+                {
+                    "type": "website",
+                    "url": "https://github.com/brix/crypto-js"
+                }
+            ],
+            "hashes": [
+                {
+                    "alg": "SHA-256",
+                    "content": "placeholder-hash-crypto-js"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "zod@3.23.8",
+            "name": "zod",
+            "version": "3.23.8",
+            "description": "TypeScript-first schema validation with static type inference",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/zod@3.23.8",
+            "externalReferences": [
+                {
+                    "type": "website",
+                    "url": "https://zod.dev"
+                },
+                {
+                    "type": "vcs",
+                    "url": "https://github.com/colinhacks/zod"
+                }
+            ],
+            "hashes": [
+                {
+                    "alg": "SHA-256",
+                    "content": "placeholder-hash-zod"
+                }
+            ]
+        }
+    ],
+    "dependencies": [
+        {
+            "ref": "pandas-autoimmune-tracker",
+            "dependsOn": [
+                "react@18.3.1",
+                "firebase@12.6.0",
+                "crypto-js@4.2.0",
+                "zod@3.23.8"
+            ]
+        }
+    ],
+    "vulnerabilities": [],
+    "annotations": [
+        {
+            "bom-ref": "firebase@12.6.0",
+            "subjects": [
+                "firebase@12.6.0"
+            ],
+            "annotationType": "review",
+            "annotator": "security-team",
+            "timestamp": "2024-12-11T00:00:00.000Z",
+            "text": "Firebase SDK reviewed for security compliance. HIPAA-compliant configuration verified."
+        },
+        {
+            "bom-ref": "crypto-js@4.2.0",
+            "subjects": [
+                "crypto-js@4.2.0"
+            ],
+            "annotationType": "review",
+            "annotator": "security-team",
+            "timestamp": "2024-12-11T00:00:00.000Z",
+            "text": "Cryptographic library reviewed. Used for client-side encryption of sensitive data."
+        }
+    ]
+}

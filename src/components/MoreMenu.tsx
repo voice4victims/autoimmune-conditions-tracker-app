@@ -14,8 +14,8 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
   if (activeMoreTab) {
     return (
       <div className="mb-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={onBackToMenu}
           className="flex items-center gap-2"
         >
@@ -37,6 +37,7 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
     { id: 'notes', label: 'Notes', icon: FileText, description: 'Daily observations and notes' },
     { id: 'history', label: 'History', icon: BarChart3, description: 'View symptom charts and trends' },
     { id: 'heatmap', label: 'Heatmap', icon: Calendar, description: 'Visual symptom calendar' },
+    { id: 'provider-access', label: 'Provider Access', icon: Shield, description: 'Generate secure links for medical providers' },
     { id: 'providers', label: 'Providers', icon: Stethoscope, description: 'Manage healthcare providers' },
     { id: 'files', label: 'Files', icon: FolderOpen, description: 'Upload and manage documents' },
     { id: 'email', label: 'Email Records', icon: Mail, description: 'Send records to doctor' },

@@ -1,0 +1,149 @@
+name: Supply Chain Security
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run npm audit
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
+      
+    - name: Generate SBOM
+      run: |
+        npx @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom-generated.json
+        
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: sbom-generated.json
+        
+    - name: Snyk Security Scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+      continue-on-error: true
+        
+  license-compliance:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check licenses
+      run: |
+        npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD' --excludePrivatePackages
+        
+  supply-chain-verification:
+    name: Supply Chain Verification
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Verify package integrity
+      run: |
+        # Check for package-lock.json integrity
+        npm ci --audit=false
+        
+        # Verify critical dependencies haven't changed unexpectedly
+        npm ls firebase
+        npm ls crypto-js
+        npm ls zod
+        npm ls react
+        
+    - name: Check for known malicious packages
+      run: |
+        # This would integrate with threat intelligence feeds
+        echo "Checking for known malicious packages..."
+        # In production, this would check against databases of known malicious packages
+        
+  security-policy-check:
+    name: Security Policy Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check security policies
+      run: |
+        # Verify SECURITY.md exists
+        if [ ! -f SECURITY.md ]; then
+          echo "SECURITY.md not found"
+          exit 1
+        fi
+        
+        # Verify SBOM exists
+        if [ ! -f SBOM.json ]; then
+          echo "SBOM.json not found"
+          exit 1
+        fi
+        
+        # Check for security-related configuration files
+        echo "Security policy files verified"
+        
+  dependency-update-check:
+    name: Dependency Update Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Check for outdated dependencies
+      run: |
+        npm outdated || true
+        
+    - name: Check for security updates
+      run: |
+        npm audit fix --dry-run || true

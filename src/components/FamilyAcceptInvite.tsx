@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { familyService } from '@/lib/firebaseService';
 import { useAuth } from '@/contexts/AuthContext';
 import { Check, Users } from 'lucide-react';
 
@@ -20,46 +20,7 @@ export const FamilyAcceptInvite: React.FC = () => {
 
     setLoading(true);
     try {
-      // Find the invitation
-      const { data: invitation, error: findError } = await supabase
-        .from('family_invitations')
-        .select('*')
-        .eq('invitation_code', inviteCode.trim())
-        .eq('status', 'pending')
-        .single();
-
-      if (findError || !invitation) {
-        throw new Error('Invalid or expired invitation code');
-      }
-
-      // Check if invitation is expired
-      if (new Date(invitation.expires_at) < new Date()) {
-        throw new Error('Invitation has expired');
-      }
-
-      // Add user to family access
-      const { error: accessError } = await supabase
-        .from('family_access')
-        .insert({
-          family_id: invitation.family_id,
-          user_id: user.id,
-          role: 'parent',
-          invited_by: invitation.invited_by,
-          accepted_at: new Date().toISOString()
-        });
-
-      if (accessError) throw accessError;
-
-      // Update invitation status
-      const { error: updateError } = await supabase
-        .from('family_invitations')
-        .update({ 
-          status: 'accepted',
-          accepted_at: new Date().toISOString()
-        })
-        .eq('id', invitation.id);
-
-      if (updateError) throw updateError;
+      await familyService.acceptInvitation(inviteCode.trim(), user.id);
 
       toast({
         title: 'Success!',

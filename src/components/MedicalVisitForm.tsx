@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { medicalVisitService } from '@/lib/firebaseService';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -37,21 +37,17 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('medical_visits')
-        .insert({
-          child_id: childProfile.id,
-          user_id: user.id,
-          visit_type: formData.visitType,
-          visit_date: formData.visitDate,
-          provider_name: formData.providerName,
-          notes: formData.notes,
-          follow_up_required: formData.followUpRequired,
-          follow_up_date: formData.followUpRequired ? formData.followUpDate : null,
-          follow_up_notes: formData.followUpRequired ? formData.followUpNotes : null
-        });
-
-      if (error) throw error;
+      await medicalVisitService.addVisit({
+        child_id: childProfile.id,
+        user_id: user.id,
+        visit_type: formData.visitType,
+        visit_date: formData.visitDate,
+        provider_name: formData.providerName,
+        notes: formData.notes,
+        follow_up_required: formData.followUpRequired,
+        follow_up_date: formData.followUpRequired ? formData.followUpDate : null,
+        follow_up_notes: formData.followUpRequired ? formData.followUpNotes : null
+      });
 
       toast({ title: 'Success', description: 'Medical visit recorded successfully' });
       setFormData({
@@ -83,7 +79,7 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="visitType">Visit Type</Label>
-            <Select value={formData.visitType} onValueChange={(value) => setFormData({...formData, visitType: value})}>
+            <Select value={formData.visitType} onValueChange={(value) => setFormData({ ...formData, visitType: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select visit type" />
               </SelectTrigger>
@@ -100,7 +96,7 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
               id="visitDate"
               type="date"
               value={formData.visitDate}
-              onChange={(e) => setFormData({...formData, visitDate: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, visitDate: e.target.value })}
               required
             />
           </div>
@@ -110,7 +106,7 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
             <Input
               id="providerName"
               value={formData.providerName}
-              onChange={(e) => setFormData({...formData, providerName: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, providerName: e.target.value })}
               placeholder="Enter provider or hospital name"
             />
           </div>
@@ -120,7 +116,7 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Enter notes from the visit..."
               rows={4}
             />
@@ -130,7 +126,7 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
             <Checkbox
               id="followUp"
               checked={formData.followUpRequired}
-              onCheckedChange={(checked) => setFormData({...formData, followUpRequired: checked as boolean})}
+              onCheckedChange={(checked) => setFormData({ ...formData, followUpRequired: checked as boolean })}
             />
             <Label htmlFor="followUp">Follow-up required</Label>
           </div>
@@ -143,7 +139,7 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
                   id="followUpDate"
                   type="date"
                   value={formData.followUpDate}
-                  onChange={(e) => setFormData({...formData, followUpDate: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, followUpDate: e.target.value })}
                 />
               </div>
               <div>
@@ -151,7 +147,7 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
                 <Textarea
                   id="followUpNotes"
                   value={formData.followUpNotes}
-                  onChange={(e) => setFormData({...formData, followUpNotes: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, followUpNotes: e.target.value })}
                   placeholder="Enter follow-up instructions..."
                   rows={3}
                 />

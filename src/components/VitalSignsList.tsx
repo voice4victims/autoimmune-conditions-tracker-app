@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
-import { firestore } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, limit, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -45,12 +45,12 @@ const VitalSignsList: React.FC<VitalSignsListProps> = ({ refreshTrigger }) => {
     if (!childProfile || !user) return;
 
     try {
-      const vitalsRef = collection(firestore, 'vital_signs');
-      const q = query(vitalsRef, 
-                      where('child_id', '==', childProfile.id), 
-                      where('user_id', '==', user.uid), 
-                      orderBy('date_recorded', 'desc'), 
-                      limit(20));
+      const vitalsRef = collection(db, 'vital_signs');
+      const q = query(vitalsRef,
+        where('child_id', '==', childProfile.id),
+        where('user_id', '==', user.uid),
+        orderBy('date_recorded', 'desc'),
+        limit(20));
       const querySnapshot = await getDocs(q);
       const vitalsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setVitals(vitalsData as VitalSign[]);
@@ -68,7 +68,7 @@ const VitalSignsList: React.FC<VitalSignsListProps> = ({ refreshTrigger }) => {
 
   const deleteVital = async (id: string) => {
     try {
-      await deleteDoc(doc(firestore, 'vital_signs', id));
+      await deleteDoc(doc(db, 'vital_signs', id));
 
       setVitals(vitals.filter(v => v.id !== id));
       toast({

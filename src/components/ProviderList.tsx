@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit, Phone, Mail, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { firestore } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
 interface Provider {
@@ -30,7 +30,7 @@ const ProviderList: React.FC<ProviderListProps> = ({ childId, refreshTrigger }) 
 
   const fetchProviders = async () => {
     try {
-      const providersRef = collection(firestore, 'healthcare_providers');
+      const providersRef = collection(db, 'healthcare_providers');
       const q = query(providersRef, where('child_id', '==', childId), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const providersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -45,8 +45,8 @@ const ProviderList: React.FC<ProviderListProps> = ({ childId, refreshTrigger }) 
 
   const deleteProvider = async (id: string) => {
     try {
-      await deleteDoc(doc(firestore, 'healthcare_providers', id));
-      
+      await deleteDoc(doc(db, 'healthcare_providers', id));
+
       setProviders(providers.filter(p => p.id !== id));
       toast({ title: 'Success', description: 'Provider deleted successfully' });
     } catch (error) {
