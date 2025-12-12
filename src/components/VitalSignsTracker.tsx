@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { vitalSignsService, enhancedVitalSignsService } from '@/lib/firebaseService';
 import { Activity, List, Trash2 } from 'lucide-react';
 import { setSecureItem, getSecureItem } from '@/lib/encryption';
 
@@ -48,13 +48,8 @@ const VitalSignsTracker: React.FC = () => {
   const fetchVitals = async () => {
     if (!childProfile) return;
     try {
-      const { data, error } = await supabase
-        .from('vital_signs')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .order('date', { ascending: false });
-      if (error) throw error;
-      setVitals(data || []);
+      const vitals = await vitalSignsService.getVitalSigns(user?.id || '', childProfile.id);
+      setVitals(vitals);
     } catch (error) {
       console.log('Loading vitals from secure storage:', error);
       const key = `pandas-vitals-${childProfile.id}`;
@@ -83,13 +78,8 @@ const VitalSignsTracker: React.FC = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('vital_signs')
-        .insert([newVital])
-        .select()
-        .single();
-      if (error) throw error;
-      setVitals(prev => [data, ...prev]);
+      await vitalSignsService.addVitalSigns(newVital);
+      setVitals(prev => [newVital, ...prev]);
     } catch (error) {
       console.log('Saving vital to secure storage:', error);
       setVitals(prev => [newVital, ...prev]);
@@ -117,11 +107,7 @@ const VitalSignsTracker: React.FC = () => {
 
   const handleDelete = async (vitalId: string) => {
     try {
-      const { error } = await supabase
-        .from('vital_signs')
-        .delete()
-        .eq('id', vitalId);
-      if (error) throw error;
+      await enhancedVitalSignsService.deleteVitalSigns(vitalId);
     } catch (error) {
       console.log('Deleting vital from secure storage:', error);
     }

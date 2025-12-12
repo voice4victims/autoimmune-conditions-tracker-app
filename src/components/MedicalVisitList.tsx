@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Hospital, User, FileText, Clock, AlertCircle } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { medicalVisitService } from '@/lib/firebaseService';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -35,15 +35,8 @@ const MedicalVisitList: React.FC<MedicalVisitListProps> = ({ refresh }) => {
     if (!childProfile || !user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('medical_visits')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .eq('user_id', user.id)
-        .order('visit_date', { ascending: false });
-
-      if (error) throw error;
-      setVisits(data || []);
+      const visits = await medicalVisitService.getVisits(user.id, childProfile.id);
+      setVisits(visits);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to load medical visits', variant: 'destructive' });
     } finally {
@@ -121,7 +114,7 @@ const MedicalVisitList: React.FC<MedicalVisitListProps> = ({ refresh }) => {
                 <p className="text-sm text-gray-700 pl-6">{visit.notes}</p>
               </div>
             )}
-            
+
             {visit.follow_up_required && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2">

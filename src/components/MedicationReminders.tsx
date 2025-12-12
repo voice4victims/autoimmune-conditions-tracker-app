@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Bell } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { medicationService } from '@/lib/firebaseService';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import ReminderForm from './ReminderForm';
 import ReminderList from './ReminderList';
@@ -18,44 +19,34 @@ interface Reminder {
   times: string[];
   start_date: string;
   end_date?: string;
-  is_active: boolean;
   notes?: string;
+  is_active: boolean;
+  created_at: string;
 }
 
 const MedicationReminders: React.FC = () => {
   const { childProfile } = useApp();
+  const { user } = useAuth();
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  const { testNotification } = useReminderNotifications({
-    reminders,
-    notificationsEnabled
-  });
+  // Initialize notifications
+  useReminderNotifications(reminders);
 
   useEffect(() => {
-    if (childProfile) {
+    if (childProfile && user) {
       fetchReminders();
-      // Load notification preference from localStorage
-      const savedPref = localStorage.getItem(`notifications-${childProfile.id}`);
-      setNotificationsEnabled(savedPref === 'true');
     }
-  }, [childProfile]);
+  }, [childProfile, user]);
 
   const fetchReminders = async () => {
-    if (!childProfile) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('medication_reminders')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .order('created_at', { ascending: false });
+    if (!childProfile || !user) return;
 
-      if (error) throw error;
-      setReminders(data || []);
+    try {
+      const reminders = await medicationService.getReminders(user.id, childProfile.id);
+      setReminders(reminders as Reminder[]);
     } catch (error) {
       console.error('Error fetching reminders:', error);
       toast({
@@ -68,56 +59,27 @@ const MedicationReminders: React.FC = () => {
     }
   };
 
-  const handleToggleNotifications = (enabled: boolean) => {
-    setNotificationsEnabled(enabled);
-    if (childProfile) {
-      localStorage.setItem(`notifications-${childProfile.id}`, enabled.toString());
-    }
-    
-    if (enabled) {
-      toast({
-        title: 'Notifications Enabled',
-        description: 'You will receive push notifications for active reminders'
-      });
-      // Test notification
-      setTimeout(() => {
-        testNotification();
-      }, 1000);
-    } else {
-      toast({
-        title: 'Notifications Disabled',
-        description: 'Push notifications have been turned off'
-      });
-    }
-  };
-
-  const handleSubmit = async (reminderData: any) => {
-    if (!childProfile) return;
+  const handleSaveReminder = async (reminderData: any) => {
+    if (!childProfile || !user) return;
 
     try {
       if (editingReminder) {
-        const { error } = await supabase
-          .from('medication_reminders')
-          .update({
-            ...reminderData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingReminder.id);
-
-        if (error) throw error;
+        await medicationService.updateReminder(editingReminder.id, {
+          ...reminderData,
+          child_id: childProfile.id,
+          user_id: user.id
+        });
         toast({
           title: 'Success',
           description: 'Medication reminder updated successfully'
         });
       } else {
-        const { error } = await supabase
-          .from('medication_reminders')
-          .insert({
-            ...reminderData,
-            child_id: childProfile.id
-          });
-
-        if (error) throw error;
+        await medicationService.addReminder({
+          ...reminderData,
+          child_id: childProfile.id,
+          user_id: user.id,
+          is_active: true
+        });
         toast({
           title: 'Success',
           description: 'Medication reminder created successfully'
@@ -137,21 +99,11 @@ const MedicationReminders: React.FC = () => {
     }
   };
 
-  const handleEdit = (reminder: Reminder) => {
-    setEditingReminder(reminder);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
+  const handleDeleteReminder = async (reminderId: string) => {
     if (!confirm('Are you sure you want to delete this reminder?')) return;
 
     try {
-      const { error } = await supabase
-        .from('medication_reminders')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await medicationService.deleteReminder(reminderId);
       toast({
         title: 'Success',
         description: 'Medication reminder deleted successfully'
@@ -169,12 +121,7 @@ const MedicationReminders: React.FC = () => {
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
-      const { error } = await supabase
-        .from('medication_reminders')
-        .update({ is_active: isActive })
-        .eq('id', id);
-
-      if (error) throw error;
+      await medicationService.updateReminder(id, { is_active: isActive });
       toast({
         title: 'Success',
         description: `Reminder ${isActive ? 'activated' : 'deactivated'} successfully`
@@ -184,82 +131,66 @@ const MedicationReminders: React.FC = () => {
       console.error('Error updating reminder:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update reminder status',
+        description: 'Failed to update reminder',
         variant: 'destructive'
       });
     }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingReminder(null);
+  const handleEditReminder = (reminder: Reminder) => {
+    setEditingReminder(reminder);
+    setShowForm(true);
   };
 
-  if (!childProfile) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-8">
-          <Bell className="w-12 h-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
-            No Child Selected
-          </h3>
-          <p className="text-gray-500 text-center">
-            Please select a child to manage medication reminders
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleCancelEdit = () => {
+    setEditingReminder(null);
+    setShowForm(false);
+  };
 
-  if (showForm) {
-    return (
-      <ReminderForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        existingReminder={editingReminder}
-      />
-    );
+  if (loading) {
+    return <div className="text-center py-4">Loading medication reminders...</div>;
   }
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              Medication Reminders
-            </CardTitle>
-            <Button onClick={() => setShowForm(true)}>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="w-5 h-5" />
+            Medication Reminders
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-sm text-gray-600">
+              Set up reminders for medications and supplements
+            </p>
+            <Button onClick={() => setShowForm(true)} size="sm">
               <Plus className="w-4 h-4 mr-2" />
               Add Reminder
             </Button>
           </div>
-        </CardHeader>
+
+          {showForm && (
+            <div className="mb-6">
+              <ReminderForm
+                reminder={editingReminder}
+                onSave={handleSaveReminder}
+                onCancel={handleCancelEdit}
+              />
+            </div>
+          )}
+
+          <ReminderList
+            reminders={reminders}
+            onEdit={handleEditReminder}
+            onDelete={handleDeleteReminder}
+            onToggleActive={handleToggleActive}
+          />
+        </CardContent>
       </Card>
 
-      <NotificationSettings
-        notificationsEnabled={notificationsEnabled}
-        onToggleNotifications={handleToggleNotifications}
-      />
-
-      {loading ? (
-        <Card>
-          <CardContent className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-500">Loading reminders...</p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <ReminderList
-          reminders={reminders}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onToggleActive={handleToggleActive}
-        />
-      )}
+      <NotificationSettings />
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, TrendingUp, TrendingDown, Minus, Star } from 'lucide-react';
 import { SymptomRating } from '@/types/pandas';
-import { firestore } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { useApp } from '@/contexts/AppContext';
 import SymptomGraphViews from './SymptomGraphViews';
@@ -30,13 +30,13 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
 
   const loadSymptoms = async () => {
     if (!childProfile) return;
-    
+
     setLoading(true);
     try {
-      const symptomsRef = collection(firestore, 'symptom_ratings');
+      const symptomsRef = collection(db, 'symptom_ratings');
       const q = query(symptomsRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'));
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const formattedSymptoms = data.map(item => ({
@@ -47,9 +47,9 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
           notes: item.notes,
           isImportant: item.is_important
         }));
-        
+
         setDbSymptoms(formattedSymptoms as SymptomRating[]);
-        
+
         const uniqueSymptoms = [...new Set(data.map(item => item.symptom_type))]
           .filter(symptom => symptom && symptom.trim() !== '');
         setAvailableSymptoms(uniqueSymptoms);
@@ -91,7 +91,7 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
     return acc;
   }, {} as Record<string, SymptomRating[]>);
 
-  const filteredSymptoms = selectedSymptom 
+  const filteredSymptoms = selectedSymptom
     ? filterByTimeRange(groupedSymptoms[selectedSymptom] || [])
     : [];
 
@@ -106,11 +106,11 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
   return (
     <div className="space-y-6">
       {/* Graph Views Section */}
-      <SymptomGraphViews 
-        symptoms={dbSymptoms} 
+      <SymptomGraphViews
+        symptoms={dbSymptoms}
         availableSymptoms={availableSymptoms}
       />
-      
+
       {/* Detailed History Section */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -132,7 +132,7 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
               )}
             </SelectContent>
           </Select>
-          
+
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-full sm:w-32">
               <SelectValue />

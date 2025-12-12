@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { firestore } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 interface ProviderFormProps {
@@ -34,7 +34,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(firestore, 'healthcare_providers'), { ...formData, child_id: childId });
+      await addDoc(collection(db, 'healthcare_providers'), { ...formData, child_id: childId });
 
       toast({ title: 'Success', description: 'Provider added successfully' });
       setFormData({ name: '', title: '', role: '', specialty: '', contact_info: '', notes: '' });
@@ -75,7 +75,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="role">Role</Label>
@@ -96,7 +96,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
               />
             </div>
           </div>
-          
+
           <div>
             <Label htmlFor="contact_info">Contact Information</Label>
             <Input
@@ -106,7 +106,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
               placeholder="Phone, email, address"
             />
           </div>
-          
+
           <div>
             <Label htmlFor="notes">Notes</Label>
             <Textarea
@@ -117,7 +117,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
               rows={3}
             />
           </div>
-          
+
           <Button type="submit" disabled={isSubmitting} className="w-full">
             {isSubmitting ? 'Adding...' : 'Add Provider'}
           </Button>

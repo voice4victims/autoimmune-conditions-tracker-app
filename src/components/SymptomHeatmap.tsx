@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { symptomService } from '@/lib/firebaseService';
 import { SymptomRating } from '@/types/pandas';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -26,22 +26,14 @@ const SymptomHeatmap: React.FC = () => {
 
   const fetchSymptoms = async () => {
     if (!childProfile) return;
-    
+
     setLoading(true);
     try {
       const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-      
-      const { data, error } = await supabase
-        .from('symptom_ratings')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .gte('date', startOfMonth.toISOString().split('T')[0])
-        .lte('date', endOfMonth.toISOString().split('T')[0])
-        .order('date', { ascending: true });
 
-      if (error) throw error;
-      
+      const data = await symptomService.getSymptoms(user?.id || '', childProfile.id, startOfMonth, endOfMonth);
+
       const formattedSymptoms = (data || []).map(item => ({
         id: item.id,
         symptomType: item.symptom_type,
@@ -49,7 +41,7 @@ const SymptomHeatmap: React.FC = () => {
         date: item.date,
         notes: item.notes
       }));
-      
+
       setSymptoms(formattedSymptoms);
     } catch (error) {
       console.error('Error fetching symptoms:', error);
@@ -70,20 +62,20 @@ const SymptomHeatmap: React.FC = () => {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startDayOfWeek = firstDay.getDay();
-    
+
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     // Add all days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       days.push(date.toISOString().split('T')[0]);
     }
-    
+
     return days;
   };
 
@@ -94,21 +86,21 @@ const SymptomHeatmap: React.FC = () => {
     } else {
       newMonth.setMonth(newMonth.getMonth() + 1);
     }
-    
+
     // Limit to 12 months back from today
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-    
+
     if (direction === 'prev' && newMonth < twelveMonthsAgo) {
       return;
     }
-    
+
     // Don't allow future months
     const today = new Date();
     if (direction === 'next' && newMonth > today) {
       return;
     }
-    
+
     setCurrentMonth(newMonth);
   };
 
@@ -210,25 +202,24 @@ const SymptomHeatmap: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Calendar grid */}
               <div className="grid grid-cols-7 gap-1 sm:gap-2">
                 {days.map((date, index) => {
                   if (!date) {
                     return <div key={index} className="aspect-square"></div>;
                   }
-                  
+
                   const intensity = getDayIntensity(date);
                   const dayOfMonth = new Date(date).getDate();
                   const daySymptoms = symptoms.filter(s => s.date === date);
                   const isToday = date === new Date().toISOString().split('T')[0];
-                  
+
                   return (
                     <div
                       key={date}
-                      className={`aspect-square rounded-sm flex items-center justify-center text-xs font-medium transition-all hover:scale-110 cursor-pointer ${
-                        getIntensityColor(intensity)
-                      } ${isToday ? 'ring-2 ring-blue-500' : ''}`}
+                      className={`aspect-square rounded-sm flex items-center justify-center text-xs font-medium transition-all hover:scale-110 cursor-pointer ${getIntensityColor(intensity)
+                        } ${isToday ? 'ring-2 ring-blue-500' : ''}`}
                       title={`${date}: ${daySymptoms.length} symptoms, Avg severity ${intensity}/10`}
                       onClick={() => handleDayClick(date)}
                     >
@@ -237,7 +228,7 @@ const SymptomHeatmap: React.FC = () => {
                   );
                 })}
               </div>
-              
+
               <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
                 <span>Less</span>
                 <div className="flex gap-1">

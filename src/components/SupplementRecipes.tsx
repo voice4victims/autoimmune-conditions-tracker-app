@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, ChefHat } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
+import { recipeService, enhancedRecipeService } from '@/lib/firebaseService';
 import { toast } from '@/hooks/use-toast';
 import RecipeForm from './RecipeForm';
 import RecipeList from './RecipeList';
@@ -38,16 +38,10 @@ const SupplementRecipes: React.FC = () => {
 
   const loadRecipes = async () => {
     if (!childProfile) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('supplement_recipes')
-        .select('*')
-        .eq('child_id', childProfile.id)
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
+    try {
+      const data = await recipeService.getRecipes(user?.id || '', childProfile.id);
+
       const formattedRecipes = data?.map(recipe => ({
         id: recipe.id,
         name: recipe.name,
@@ -58,7 +52,7 @@ const SupplementRecipes: React.FC = () => {
         createdAt: recipe.created_at,
         updatedAt: recipe.updated_at
       })) || [];
-      
+
       setRecipes(formattedRecipes);
     } catch (error) {
       console.error('Error loading recipes:', error);
@@ -87,27 +81,17 @@ const SupplementRecipes: React.FC = () => {
       };
 
       if (editingRecipe) {
-        const { error } = await supabase
-          .from('supplement_recipes')
-          .update(recipeData)
-          .eq('id', editingRecipe.id);
-
-        if (error) throw error;
-        
+        await enhancedRecipeService.updateRecipe(editingRecipe.id, recipeData);
         toast({
           title: 'Success',
           description: 'Recipe updated successfully'
         });
       } else {
-        const { error } = await supabase
-          .from('supplement_recipes')
-          .insert({
-            ...recipeData,
-            created_at: new Date().toISOString()
-          });
-
-        if (error) throw error;
-        
+        await enhancedRecipeService.addRecipe({
+          ...recipeData,
+          user_id: user?.id,
+          child_id: childProfile.id
+        });
         toast({
           title: 'Success',
           description: 'Recipe created successfully'
@@ -136,18 +120,13 @@ const SupplementRecipes: React.FC = () => {
     if (!confirm('Are you sure you want to delete this recipe?')) return;
 
     try {
-      const { error } = await supabase
-        .from('supplement_recipes')
-        .delete()
-        .eq('id', recipeId);
+      await enhancedRecipeService.deleteRecipe(recipeId);
 
-      if (error) throw error;
-      
       toast({
         title: 'Success',
         description: 'Recipe deleted successfully'
       });
-      
+
       loadRecipes();
     } catch (error) {
       console.error('Error deleting recipe:', error);

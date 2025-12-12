@@ -1,0 +1,264 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.4",
+    "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2024-12-11T00:00:00.000Z",
+        "tools": [
+            {
+                "vendor": "PANDAS Tracker",
+                "name": "SBOM Generator",
+                "version": "1.0.0"
+            }
+        ],
+        "component": {
+            "type": "application",
+            "bom-ref": "pandas-tracker-app",
+            "name": "PANDAS Autoimmune Tracker",
+            "version": "1.0.0",
+            "description": "Medical tracking application for PANDAS/PANS conditions",
+            "licenses": [
+                {
+                    "license": {
+                        "name": "Proprietary"
+                    }
+                }
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "library",
+            "bom-ref": "react@18.3.1",
+            "name": "react",
+            "version": "18.3.1",
+            "description": "React is a JavaScript library for building user interfaces",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/react@18.3.1",
+            "externalReferences": [
+                {
+                    "type": "website",
+                    "url": "https://reactjs.org/"
+                },
+                {
+                    "type": "vcs",
+                    "url": "https://github.com/facebook/react"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "firebase@12.6.0",
+            "name": "firebase",
+            "version": "12.6.0",
+            "description": "Firebase JavaScript SDK",
+            "licenses": [
+                {
+                    "license": {
+                        "name": "Apache-2.0"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/firebase@12.6.0",
+            "externalReferences": [
+                {
+                    "type": "website",
+                    "url": "https://firebase.google.com/"
+                },
+                {
+                    "type": "vcs",
+                    "url": "https://github.com/firebase/firebase-js-sdk"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "security:critical",
+                    "value": "true"
+                },
+                {
+                    "name": "security:reason",
+                    "value": "Handles authentication and data storage"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "crypto-js@4.2.0",
+            "name": "crypto-js",
+            "version": "4.2.0",
+            "description": "JavaScript library of crypto standards",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/crypto-js@4.2.0",
+            "properties": [
+                {
+                    "name": "security:critical",
+                    "value": "true"
+                },
+                {
+                    "name": "security:reason",
+                    "value": "Used for client-side encryption of sensitive data"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "zod@3.23.8",
+            "name": "zod",
+            "version": "3.23.8",
+            "description": "TypeScript-first schema validation with static type inference",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/zod@3.23.8",
+            "properties": [
+                {
+                    "name": "security:critical",
+                    "value": "true"
+                },
+                {
+                    "name": "security:reason",
+                    "value": "Input validation and sanitization"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "react-hook-form@7.53.0",
+            "name": "react-hook-form",
+            "version": "7.53.0",
+            "description": "Performant, flexible and extensible forms with easy validation",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/react-hook-form@7.53.0"
+        },
+        {
+            "type": "library",
+            "bom-ref": "lucide-react@0.462.0",
+            "name": "lucide-react",
+            "version": "0.462.0",
+            "description": "Beautiful & consistent icon toolkit made by the community",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "ISC"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/lucide-react@0.462.0"
+        },
+        {
+            "type": "library",
+            "bom-ref": "date-fns@3.6.0",
+            "name": "date-fns",
+            "version": "3.6.0",
+            "description": "Modern JavaScript date utility library",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/date-fns@3.6.0"
+        },
+        {
+            "type": "library",
+            "bom-ref": "jspdf@3.0.4",
+            "name": "jspdf",
+            "version": "3.0.4",
+            "description": "PDF generation library for JavaScript",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/jspdf@3.0.4",
+            "properties": [
+                {
+                    "name": "security:note",
+                    "value": "Used for generating privacy reports and data exports"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "fast-check@4.4.0",
+            "name": "fast-check",
+            "version": "4.4.0",
+            "description": "Property based testing framework for JavaScript/TypeScript",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "purl": "pkg:npm/fast-check@4.4.0",
+            "scope": "optional",
+            "properties": [
+                {
+                    "name": "security:testing",
+                    "value": "true"
+                },
+                {
+                    "name": "security:reason",
+                    "value": "Property-based testing for privacy settings correctness"
+                }
+            ]
+        }
+    ],
+    "vulnerabilities": [],
+    "dependencies": [
+        {
+            "ref": "pandas-tracker-app",
+            "dependsOn": [
+                "react@18.3.1",
+                "firebase@12.6.0",
+                "crypto-js@4.2.0",
+                "zod@3.23.8",
+                "react-hook-form@7.53.0",
+                "lucide-react@0.462.0",
+                "date-fns@3.6.0",
+                "jspdf@3.0.4"
+            ]
+        }
+    ],
+    "properties": [
+        {
+            "name": "security:scan-date",
+            "value": "2024-12-11"
+        },
+        {
+            "name": "security:critical-dependencies",
+            "value": "firebase,crypto-js,zod"
+        },
+        {
+            "name": "security:medical-data-handling",
+            "value": "true"
+        }
+    ]
+}
