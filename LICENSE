@@ -1,0 +1,73 @@
+MIT License
+
+Copyright (c) 2024 PANDAS Autoimmune Tracker Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Medical Disclaimer
+
+This software is provided for informational and organizational purposes only. 
+It is not intended to:
+
+- Diagnose medical conditions
+- Replace professional medical advice
+- Provide treatment recommendations
+- Serve as a medical device or diagnostic tool
+
+ALWAYS CONSULT WITH QUALIFIED HEALTHCARE PROFESSIONALS for:
+- Medical diagnosis and treatment decisions
+- Medication changes or adjustments
+- Emergency medical situations
+- Interpretation of symptoms or data patterns
+
+In case of a medical emergency, call emergency services immediately. 
+Do not rely on this software for emergency medical care.
+
+## Privacy Notice
+
+This software is designed to handle sensitive medical information in compliance 
+with applicable privacy laws including HIPAA and GDPR. However, users are 
+responsible for:
+
+- Properly configuring privacy settings
+- Securing their devices and accounts
+- Following best practices for medical data protection
+- Understanding their rights and responsibilities regarding medical data
+
+## Data Responsibility
+
+While this software implements security best practices and compliance measures, 
+users retain ultimate responsibility for their medical data. The software 
+providers are not liable for:
+
+- Data loss due to user error or device failure
+- Unauthorized access due to compromised user credentials
+- Misuse of the software by authorized users
+- Technical failures beyond reasonable control
+
+## Support and Liability Limitations
+
+This software is provided as-is without warranty. Support is provided on a 
+best-effort basis. The contributors and maintainers shall not be liable for 
+any damages arising from the use or inability to use this software.
+
+For support, please refer to the documentation and community resources 
+provided with the software.
