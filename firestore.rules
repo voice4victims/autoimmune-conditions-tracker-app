@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only access their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Children data - users can only access their own children
+    match /children/{childId} {
+      allow read, write: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      
+      // Nested collections within children
+      match /{collection}/{document} {
+        allow read, write: if request.auth != null && 
+          get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid;
+      }
+    }
+    
+    // Privacy settings - users can only access their own
+    match /privacy_settings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Family access - controlled sharing
+    match /family_access/{accessId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.ownerId || 
+         request.auth.uid in resource.data.authorizedUsers);
+      allow write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+    }
+  }
+}
