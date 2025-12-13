@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { QRCode } from 'qrcode.react';
+import { QRCodeSVG as QRCode } from 'qrcode.react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const MfaSetup: React.FC = () => {
