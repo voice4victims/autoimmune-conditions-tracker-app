@@ -31,8 +31,6 @@ export default defineConfig(({ mode }) => {
           drop_debugger: true,
           // Remove unused code
           dead_code: true,
-          // Remove comments
-          comments: false,
         },
         mangle: {
           // Mangle variable names for obfuscation
