@@ -35,6 +35,12 @@ dist-ssr
 firebase-debug.log
 firestore-debug.log
 
+# Firebase Service Account Keys (NEVER COMMIT THESE!)
+**/serviceAccountKey.json
+**/*firebase-adminsdk*.json
+server/admin/*.json
+!server/admin/README.md
+
 # Testing
 coverage/
 .nyc_output
