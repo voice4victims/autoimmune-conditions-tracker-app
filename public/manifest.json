@@ -1,12 +1,13 @@
 {
   "name": "PANDAS Symptom Tracker",
   "short_name": "PANDAS Tracker",
-  "description": "Track and manage your child's PANDAS symptoms and easily share updates with doctors.",
+  "description": "Track PANDAS/PANS symptoms, treatments, and health data for your child",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/placeholder.svg",
@@ -21,13 +22,45 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["health", "medical", "lifestyle"],
+  "categories": [
+    "health",
+    "medical",
+    "lifestyle"
+  ],
   "screenshots": [
     {
       "src": "/screenshot-mobile.png",
       "sizes": "320x640",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "narrow",
+      "label": "Symptom tracking interface"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Track Symptoms",
+      "short_name": "Track",
+      "description": "Quickly log symptoms",
+      "url": "/?tab=track",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "View Analytics",
+      "short_name": "Analytics",
+      "description": "View symptom analytics",
+      "url": "/?tab=more",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
 }

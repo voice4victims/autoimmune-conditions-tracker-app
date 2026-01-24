@@ -11,7 +11,11 @@
     "preview": "vite preview",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "admin": "node scripts/admin-cli.js",
+    "admin:create-user": "node scripts/admin-cli.js create-user",
+    "admin:list-users": "node scripts/admin-cli.js list-users",
+    "admin:stats": "node scripts/admin-cli.js stats"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -56,6 +60,7 @@
     "embla-carousel-react": "^8.3.0",
     "file-saver": "^2.0.5",
     "firebase": "^12.6.0",
+    "firebase-admin": "^13.6.0",
     "highlight.js": "^11.9.0",
     "input-otp": "^1.2.4",
     "jspdf": "^3.0.4",
