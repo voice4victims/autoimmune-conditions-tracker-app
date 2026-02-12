@@ -15,9 +15,18 @@
     "admin": "node scripts/admin-cli.js",
     "admin:create-user": "node scripts/admin-cli.js create-user",
     "admin:list-users": "node scripts/admin-cli.js list-users",
-    "admin:stats": "node scripts/admin-cli.js stats"
+    "admin:stats": "node scripts/admin-cli.js stats",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:android": "npm run build && npx cap sync android && npx cap open android",
+    "cap:ios": "npm run build && npx cap sync ios && npx cap open ios",
+    "cap:run:android": "npm run build && npx cap sync android && npx cap run android",
+    "cap:run:ios": "npm run build && npx cap sync ios && npx cap run ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/ios": "^8.1.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
