@@ -41,6 +41,11 @@ firestore-debug.log
 server/admin/*.json
 !server/admin/README.md
 
+# Capacitor
+android/
+ios/
+.capacitor/
+
 # Testing
 coverage/
 .nyc_output
