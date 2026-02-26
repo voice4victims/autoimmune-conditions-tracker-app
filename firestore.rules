@@ -1,34 +1,195 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only access their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+    function isAuthenticated() {
+      return request.auth != null;
     }
-    
-    // Children data - users can only access their own children
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDataOwner(field) {
+      return isAuthenticated() && resource.data[field] == request.auth.uid;
+    }
+
+    function newDataHasOwner(field) {
+      return request.resource.data[field] == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
     match /children/{childId} {
-      allow read, write: if request.auth != null && 
-        resource.data.userId == request.auth.uid;
-      
-      // Nested collections within children
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
       match /{collection}/{document} {
-        allow read, write: if request.auth != null && 
+        allow read, write: if isAuthenticated() &&
           get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid;
       }
     }
-    
-    // Privacy settings - users can only access their own
+
     match /privacy_settings/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
-    
-    // Family access - controlled sharing
+
     match /family_access/{accessId} {
-      allow read: if request.auth != null && 
-        (request.auth.uid == resource.data.ownerId || 
-         request.auth.uid in resource.data.authorizedUsers);
-      allow write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == resource.data.owner_user_id ||
+         request.auth.uid == resource.data.user_id);
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isAuthenticated() &&
+        request.auth.uid == resource.data.owner_user_id;
+    }
+
+    match /family_invitations/{inviteId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.invited_by == request.auth.uid;
+      allow update, delete: if isDataOwner('invited_by');
+    }
+
+    match /symptoms/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /vital_signs/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /medical_visits/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /medication_reminders/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /notes/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /recipes/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /supplement_recipes/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /food_diary/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /symptom_ratings/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /file_uploads/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update, delete: if isDataOwner('user_id');
+    }
+
+    match /magic_links/{linkId} {
+      allow read: if isDataOwner('created_by');
+      allow create: if isAuthenticated() && request.resource.data.created_by == request.auth.uid;
+      allow update, delete: if isDataOwner('created_by');
+    }
+
+    match /magic_link_access/{accessId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+
+    match /privacy_audit_logs/{logId} {
+      allow read: if isDataOwner('userId');
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /hipaa_audit_logs/{logId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+    }
+
+    match /activity_logs/{logId} {
+      allow read: if isDataOwner('userId');
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /audit_failures/{docId} {
+      allow create: if isAuthenticated();
+    }
+
+    match /deletion_requests/{docId} {
+      allow read: if isDataOwner('userId');
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isDataOwner('userId');
+    }
+
+    match /deletion_confirmations/{docId} {
+      allow read: if isDataOwner('userId');
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /user_sessions/{sessionId} {
+      allow read: if isDataOwner('userId');
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isDataOwner('userId');
+    }
+
+    match /session_security_events/{eventId} {
+      allow read: if isDataOwner('userId');
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /provider_access/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /healthcare_providers/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /temporary_access/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /access_reviews/{docId} {
+      allow read: if isDataOwner('user_id');
+      allow create: if isAuthenticated() && newDataHasOwner('user_id');
+      allow update: if isDataOwner('user_id');
+    }
+
+    match /breach_notifications/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+
+    match /risk_assessments/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
     }
   }
 }
