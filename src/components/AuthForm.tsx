@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) => {
   const { signInAsGuest } = useAuth();
@@ -34,6 +34,30 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      onAuthSuccess();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    setError(null);
+    try {
+      const provider = new FacebookAuthProvider();
+      await signInWithPopup(auth, provider);
+      onAuthSuccess();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setError(null);
+    try {
+      const provider = new OAuthProvider('apple.com');
+      provider.addScope('email');
+      provider.addScope('name');
       await signInWithPopup(auth, provider);
       onAuthSuccess();
     } catch (err: any) {
@@ -93,6 +117,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           </div>
         </div>
         <Button variant="outline" onClick={handleGoogleSignIn} className="w-full">Sign in with Google</Button>
+        <Button variant="outline" onClick={handleFacebookSignIn} className="w-full">Sign in with Facebook</Button>
+        <Button variant="outline" onClick={handleAppleSignIn} className="w-full">Sign in with Apple</Button>
         <Button variant="secondary" onClick={handleGuestSignIn} className="w-full">Sign in as Guest</Button>
         <p className="text-center text-sm">
           {isSignUp ? 'Already have an account?' : 'Don\'t have an account?'}{' '}
