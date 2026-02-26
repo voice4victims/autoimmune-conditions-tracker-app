@@ -5,19 +5,10 @@ import { AppProvider } from './contexts/AppContext';
 import { PrivacyProvider } from './contexts/PrivacyContext';
 import { ThemeProvider } from './components/theme-provider';
 import { Toaster } from './components/ui/toaster';
-import AppLayout from './components/AppLayout';
+import Index from './pages/Index';
 import MobileOptimizations from './components/MobileOptimizations';
 import { ProviderAccessView } from './components/ProviderAccessView';
 import './App.css';
-
-const AppContent: React.FC = () => {
-  return (
-    <>
-      <MobileOptimizations />
-      <AppLayout />
-    </>
-  );
-};
 
 function App() {
   return (
@@ -28,7 +19,7 @@ function App() {
             <Router>
               <Routes>
                 <Route path="/provider-access/:token" element={<ProviderAccessView />} />
-                <Route path="*" element={<AppContent />} />
+                <Route path="*" element={<><MobileOptimizations /><Index /></>} />
               </Routes>
             </Router>
             <Toaster />
