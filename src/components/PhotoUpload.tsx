@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, X } from 'lucide-react';
-import { storage } from '@/lib/firebase';
+import { storage, auth } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -41,9 +41,11 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
 
     setUploading(true);
     try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) throw new Error('Not authenticated');
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `child-photos/${fileName}`;
+      const filePath = `users/${userId}/child-photos/${fileName}`;
       const storageRef = ref(storage, filePath);
 
       const uploadTask = await uploadBytes(storageRef, file);

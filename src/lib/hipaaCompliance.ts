@@ -25,19 +25,19 @@ export class HIPAAComplianceService {
         details?: string
     ): Promise<void> {
         try {
-            const auditLog: Omit<AuditLog, 'id'> = {
+            const auditLog: Record<string, any> = {
                 user_id: userId,
                 action,
                 resource_type: resourceType,
-                resource_id: resourceId,
+                resource_id: resourceId || 'unknown',
                 timestamp: new Date(),
-                ip_address: await this.getClientIP(),
+                ip_address: await this.getClientIP() || 'unknown',
                 user_agent: navigator.userAgent,
                 success: true,
-                details,
-                phi_accessed: phiAccessed,
-                patient_id: patientId
+                phi_accessed: phiAccessed
             };
+            if (details) auditLog.details = details;
+            if (patientId) auditLog.patient_id = patientId;
 
             await addDoc(collection(db, 'hipaa_audit_logs'), {
                 ...auditLog,

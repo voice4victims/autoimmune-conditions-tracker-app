@@ -3,6 +3,7 @@ import {
     doc,
     addDoc,
     updateDoc,
+    setDoc,
     deleteDoc,
     getDocs,
     getDoc,
@@ -297,7 +298,7 @@ export class PrivacyService implements PrivacyServiceInterface {
 
     private async savePrivacySettings(settings: PrivacySettings): Promise<void> {
         const privacyDoc = doc(db, 'privacy_settings', settings.userId);
-        await updateDoc(privacyDoc, {
+        await setDoc(privacyDoc, {
             ...settings,
             lastUpdated: Timestamp.fromDate(settings.lastUpdated)
         });
@@ -305,22 +306,22 @@ export class PrivacyService implements PrivacyServiceInterface {
 
     async logPrivacyAction(userId: string, action: PrivacyAction, details: Partial<AccessLog>): Promise<void> {
         try {
-            const logEntry: Omit<AccessLog, 'id'> = {
+            const logEntry: Record<string, any> = {
                 userId,
                 accessorId: userId,
-                accessorName: 'User', // This would be populated from user profile
+                accessorName: 'User',
                 accessorType: 'system',
                 action,
                 resourceType: details.resourceType || 'unknown',
-                resourceId: details.resourceId,
-                childId: details.childId,
+                resourceId: details.resourceId || 'unknown',
                 timestamp: new Date(),
-                ipAddress: await this.getClientIP(),
+                ipAddress: await this.getClientIP() || 'unknown',
                 userAgent: navigator.userAgent,
                 result: 'success',
-                details: details.details,
                 sessionId: this.generateSessionId()
             };
+            if (details.childId) logEntry.childId = details.childId;
+            if (details.details) logEntry.details = details.details;
 
             await addDoc(collection(db, 'privacy_audit_logs'), {
                 ...logEntry,

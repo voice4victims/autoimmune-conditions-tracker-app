@@ -97,12 +97,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const saveChildProfile = async (profile: Partial<ChildProfile>) => {
     if (!user) return;
+    const cleanProfile = Object.fromEntries(
+      Object.entries(profile).filter(([_, v]) => v !== undefined)
+    );
     if (profile.id) {
       const childRef = doc(db, 'children', profile.id);
-      await updateDoc(childRef, profile);
+      await updateDoc(childRef, cleanProfile);
     } else {
       await addDoc(collection(db, 'children'), {
-        ...profile,
+        ...cleanProfile,
         userId: user.uid,
         createdAt: serverTimestamp(),
       });

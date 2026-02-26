@@ -122,11 +122,24 @@ service firebase.storage {
 
 These rules enforce that users can only read and write their own data. Each document is tied to the authenticated user's ID, so no one can access another user's information.
 
-## 9. Verify
+## 9. Create Composite Indexes
+
+Some queries require composite indexes. The easiest way to create them is to run the app, open the browser console, and click the index creation links that appear in error messages. The following indexes are needed:
+
+- **user_sessions**: `isValid` (Asc), `userId` (Asc), `lastActivity` (Desc)
+- **activity_logs**: `userId` (Asc), `child_id` (Asc), `date` (Desc), `created_at` (Desc)
+- **food_diary**: `user_id` (Asc), `child_id` (Asc), `date` (Desc), `created_at` (Desc)
+
+Indexes take a few minutes to build. You can check their status in **Firestore Database > Indexes**.
+
+## 10. Verify
 
 Run the app locally and test:
 - Sign up with email/password
 - Sign in with Google
 - Sign in with Apple
 - Create a child profile
-- Verify that data saves and loads correctly
+- Upload a child photo
+- Add food diary entries
+- Add activity entries
+- Check the browser console for errors — there should be none besides dev warnings
