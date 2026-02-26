@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { symptomService } from '@/lib/firebaseService';
 import { SymptomRating } from '@/types/pandas';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -11,6 +12,7 @@ import SymptomDayDetails from './SymptomDayDetails';
 
 const SymptomHeatmap: React.FC = () => {
   const { childProfile } = useApp();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [symptoms, setSymptoms] = useState<SymptomRating[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ const SymptomHeatmap: React.FC = () => {
       const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
-      const data = await symptomService.getSymptoms(user?.id || '', childProfile.id, startOfMonth, endOfMonth);
+      const data = await symptomService.getSymptoms(user?.uid || '', childProfile.id, startOfMonth, endOfMonth);
 
       const formattedSymptoms = (data || []).map(item => ({
         id: item.id,

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +22,7 @@ interface Activity {
 
 const ActivityTracker: React.FC = () => {
   const { childProfile } = useApp();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ const ActivityTracker: React.FC = () => {
 
     try {
       const activitiesRef = collection(db, 'activity_logs');
-      const q = query(activitiesRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
+      const q = query(activitiesRef, where('userId', '==', user?.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setActivities(data as Activity[]);
@@ -61,6 +63,7 @@ const ActivityTracker: React.FC = () => {
 
     const newActivityData = {
       child_id: childProfile.id,
+      userId: user?.uid,
       ...activityData,
       created_at: serverTimestamp()
     };

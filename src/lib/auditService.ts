@@ -34,22 +34,22 @@ export class AuditService implements AuditServiceInterface {
 
     async logPrivacyAction(userId: string, action: PrivacyAction, details: Partial<AccessLog>): Promise<void> {
         try {
-            const logEntry: Omit<AccessLog, 'id'> = {
+            const logEntry: Record<string, any> = {
                 userId,
                 accessorId: details.accessorId || userId,
                 accessorName: details.accessorName || 'User',
                 accessorType: details.accessorType || 'system',
                 action,
                 resourceType: details.resourceType || 'unknown',
-                resourceId: details.resourceId,
-                childId: details.childId,
+                resourceId: details.resourceId || 'unknown',
                 timestamp: new Date(),
-                ipAddress: await this.getClientIP(),
+                ipAddress: await this.getClientIP() || 'unknown',
                 userAgent: navigator.userAgent,
                 result: details.result || 'success',
-                details: details.details,
                 sessionId: details.sessionId || this.generateSessionId()
             };
+            if (details.childId) logEntry.childId = details.childId;
+            if (details.details) logEntry.details = details.details;
 
             await addDoc(collection(db, 'privacy_audit_logs'), {
                 ...logEntry,

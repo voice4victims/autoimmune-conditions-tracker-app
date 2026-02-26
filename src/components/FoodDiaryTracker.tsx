@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import FoodDiaryForm from './FoodDiaryForm';
@@ -23,6 +24,7 @@ interface FoodEntry {
 
 const FoodDiaryTracker: React.FC = () => {
   const { childProfile } = useApp();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +42,7 @@ const FoodDiaryTracker: React.FC = () => {
     try {
       setIsLoadingEntries(true);
       const entriesRef = collection(db, 'food_diary');
-      const q = query(entriesRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
+      const q = query(entriesRef, where('user_id', '==', user?.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const entriesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setEntries(entriesData as FoodEntry[]);
@@ -59,6 +61,7 @@ const FoodDiaryTracker: React.FC = () => {
 
     const newEntry = {
       child_id: childProfile.id,
+      user_id: user?.uid,
       created_at: new Date().toISOString(),
       ...entryData
     };

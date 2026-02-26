@@ -206,11 +206,11 @@ export class SessionManager {
             // Check if session needs extension
             const shouldExtend = this.shouldExtendSession(sessionData.lastActivity.toDate(), expiresAt);
             if (shouldExtend) {
-                await this.extendSession(sessionId);
+                await this.extendSession(sessionId, userId);
             }
 
             // Update last activity
-            await this.updateSessionActivity(sessionId, ipAddress, userAgent);
+            await this.updateSessionActivity(sessionId, userId, ipAddress, userAgent);
 
             const sessionInfo: SessionInfo = {
                 sessionId,
@@ -496,11 +496,12 @@ export class SessionManager {
             timeUntilExpiry < (this.SESSION_EXTENSION_THRESHOLD_MINUTES * 60 * 1000);
     }
 
-    private async extendSession(sessionId: string): Promise<void> {
+    private async extendSession(sessionId: string, userId: string): Promise<void> {
         try {
             const sessionQuery = query(
                 collection(db, 'user_sessions'),
                 where('sessionId', '==', sessionId),
+                where('userId', '==', userId),
                 limit(1)
             );
 
@@ -527,6 +528,7 @@ export class SessionManager {
 
     private async updateSessionActivity(
         sessionId: string,
+        userId: string,
         ipAddress?: string,
         userAgent?: string
     ): Promise<void> {
@@ -534,6 +536,7 @@ export class SessionManager {
             const sessionQuery = query(
                 collection(db, 'user_sessions'),
                 where('sessionId', '==', sessionId),
+                where('userId', '==', userId),
                 limit(1)
             );
 
