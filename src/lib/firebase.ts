@@ -7,13 +7,13 @@ import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAEfYZd7XX7RNNVKsx2YKTfNums_Ewcu_4",
-  authDomain: "autoimmune-tracking.firebaseapp.com",
-  projectId: "autoimmune-tracking",
-  storageBucket: "autoimmune-tracking.firebasestorage.app",
-  messagingSenderId: "501064300574",
-  appId: "1:501064300574:web:831fee862c15f9fac9960f",
-  measurementId: "G-FYJPCJ58VS"
+  apiKey: "AIzaSyBlGsSeqm6JsGbt_-60pfMJ4EVrasvXpzI",
+  authDomain: "pandastracker.firebaseapp.com",
+  projectId: "pandastracker",
+  storageBucket: "pandastracker.firebasestorage.app",
+  messagingSenderId: "762054249819",
+  appId: "1:762054249819:web:9533358b27a47fb7d21e7e",
+  measurementId: "G-VEK2EPF1Y6"
 };
 
 const app = initializeApp(firebaseConfig);
