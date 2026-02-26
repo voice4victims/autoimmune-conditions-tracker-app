@@ -57,6 +57,76 @@ Note: Update security rules before the 30-day test mode expires.
 3. Select **Start in test mode**
 4. Click **Done**
 
-## 7. Verify
+## 7. Enable Additional Sign-In Providers
 
-Run the app locally and test sign-up/login to confirm everything is connected.
+### Apple
+
+1. Go to **Build > Authentication > Sign-in method > Add new provider**
+2. Select **Apple**
+3. Toggle it on
+4. You don't need to fill in the Services ID or OAuth code flow fields — leave them empty
+5. Click **Save**
+
+### Facebook
+
+1. Go to **Build > Authentication > Sign-in method > Add new provider**
+2. Select **Facebook**
+3. You'll need a Facebook App ID and App Secret:
+   - Go to [Facebook Developers](https://developers.facebook.com/) and create an app
+   - Add the **Facebook Login** product
+   - Copy the App ID and App Secret
+4. Paste them in the Firebase form
+5. Copy the **OAuth redirect URI** that Firebase shows you
+6. Go back to your Facebook app settings and add that redirect URI under **Valid OAuth Redirect URIs**
+7. Click **Save** in Firebase
+
+## 8. Deploy Security Rules
+
+The test mode rules expire after 30 days. Replace them with the project's security rules before that happens.
+
+### Firestore Rules
+
+1. Go to **Build > Firestore Database > Rules** tab
+2. Select all the existing rules and delete them
+3. Open the `firestore.rules` file from this project and copy the entire contents
+4. Paste it into the rules editor
+5. Click **Publish**
+
+### Storage Rules
+
+1. Go to **Build > Storage > Rules** tab
+2. Select all the existing rules and delete them
+3. Paste the following rules:
+
+```
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /shared/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /files/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+4. Click **Publish**
+
+These rules enforce that users can only read and write their own data. Each document is tied to the authenticated user's ID, so no one can access another user's information.
+
+## 9. Verify
+
+Run the app locally and test:
+- Sign up with email/password
+- Sign in with Google
+- Sign in with Apple
+- Create a child profile
+- Verify that data saves and loads correctly
