@@ -23,12 +23,12 @@ const SymptomChart: React.FC = () => {
   }, [childProfile]);
 
   const fetchSymptoms = async () => {
-    if (!childProfile) return;
+    if (!childProfile || !user) return;
 
     setLoading(true);
     try {
       const symptomsRef = collection(db, 'symptom_ratings');
-      const q = query(symptomsRef, where('user_id', '==', user?.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), limit(100));
+      const q = query(symptomsRef, where('user_id', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), limit(100));
       const querySnapshot = await getDocs(q);
       const symptomsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 

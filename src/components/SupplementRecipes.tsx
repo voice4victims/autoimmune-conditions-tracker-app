@@ -39,10 +39,10 @@ const SupplementRecipes: React.FC = () => {
   }, [childProfile]);
 
   const loadRecipes = async () => {
-    if (!childProfile) return;
+    if (!childProfile || !user) return;
 
     try {
-      const data = await recipeService.getRecipes(user?.uid || '', childProfile.id);
+      const data = await recipeService.getRecipes(user.uid, childProfile.id);
 
       const formattedRecipes = data?.map(recipe => ({
         id: recipe.id,
@@ -69,7 +69,7 @@ const SupplementRecipes: React.FC = () => {
   };
 
   const handleSaveRecipe = async (recipe: Recipe) => {
-    if (!childProfile) return;
+    if (!childProfile || !user) return;
 
     try {
       const recipeData = {
@@ -91,7 +91,7 @@ const SupplementRecipes: React.FC = () => {
       } else {
         await enhancedRecipeService.addRecipe({
           ...recipeData,
-          user_id: user?.uid,
+          user_id: user.uid,
           child_id: childProfile.id
         });
         toast({

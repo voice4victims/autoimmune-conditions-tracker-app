@@ -37,12 +37,12 @@ const FoodDiaryTracker: React.FC = () => {
   }, [childProfile?.id]);
 
   const fetchEntries = async () => {
-    if (!childProfile?.id) return;
+    if (!childProfile?.id || !user) return;
 
     try {
       setIsLoadingEntries(true);
       const entriesRef = collection(db, 'food_diary');
-      const q = query(entriesRef, where('user_id', '==', user?.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
+      const q = query(entriesRef, where('user_id', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const entriesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setEntries(entriesData as FoodEntry[]);
@@ -57,11 +57,11 @@ const FoodDiaryTracker: React.FC = () => {
   };
 
   const handleAddEntry = async (entryData: any) => {
-    if (!childProfile?.id) return;
+    if (!childProfile?.id || !user) return;
 
     const newEntry = {
       child_id: childProfile.id,
-      user_id: user?.uid,
+      user_id: user.uid,
       created_at: new Date().toISOString(),
       ...entryData
     };
