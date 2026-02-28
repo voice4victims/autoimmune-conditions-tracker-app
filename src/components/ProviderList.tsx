@@ -31,9 +31,10 @@ const ProviderList: React.FC<ProviderListProps> = ({ childId, refreshTrigger }) 
   const { user } = useAuth();
 
   const fetchProviders = async () => {
+    if (!user) return;
     try {
       const providersRef = collection(db, 'healthcare_providers');
-      const q = query(providersRef, where('user_id', '==', user?.uid), where('child_id', '==', childId), orderBy('created_at', 'desc'));
+      const q = query(providersRef, where('user_id', '==', user.uid), where('child_id', '==', childId), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const providersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setProviders(providersData as Provider[]);

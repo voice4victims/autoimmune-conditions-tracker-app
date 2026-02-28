@@ -29,14 +29,14 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
+    if (!user || !formData.name.trim()) {
       toast({ title: 'Error', description: 'Provider name is required', variant: 'destructive' });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, 'healthcare_providers'), { ...formData, child_id: childId, user_id: user?.uid, created_at: Timestamp.now() });
+      await addDoc(collection(db, 'healthcare_providers'), { ...formData, child_id: childId, user_id: user.uid, created_at: Timestamp.now() });
 
       toast({ title: 'Success', description: 'Provider added successfully' });
       setFormData({ name: '', title: '', role: '', specialty: '', contact_info: '', notes: '' });

@@ -34,11 +34,11 @@ const ActivityTracker: React.FC = () => {
   }, [childProfile]);
 
   const fetchActivities = async () => {
-    if (!childProfile) return;
+    if (!childProfile || !user) return;
 
     try {
       const activitiesRef = collection(db, 'activity_logs');
-      const q = query(activitiesRef, where('userId', '==', user?.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
+      const q = query(activitiesRef, where('userId', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setActivities(data as Activity[]);
@@ -59,11 +59,11 @@ const ActivityTracker: React.FC = () => {
     date: string;
     notes?: string;
   }) => {
-    if (!childProfile) return;
+    if (!childProfile || !user) return;
 
     const newActivityData = {
       child_id: childProfile.id,
-      userId: user?.uid,
+      userId: user.uid,
       ...activityData,
       created_at: serverTimestamp()
     };

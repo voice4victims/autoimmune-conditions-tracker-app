@@ -31,12 +31,12 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
   }, [childProfile]);
 
   const loadSymptoms = async () => {
-    if (!childProfile) return;
+    if (!childProfile || !user) return;
 
     setLoading(true);
     try {
       const symptomsRef = collection(db, 'symptom_ratings');
-      const q = query(symptomsRef, where('user_id', '==', user?.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'));
+      const q = query(symptomsRef, where('user_id', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
