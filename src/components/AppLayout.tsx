@@ -5,14 +5,14 @@ import { usePrivacy } from '@/contexts/PrivacyContext';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { User, Settings, Menu, Monitor, Smartphone, Tablet, Shield, AlertTriangle } from 'lucide-react';
+import { User, Settings, Menu, Monitor, Smartphone, Tablet, Shield, AlertTriangle, LogOut } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import PANDASApp from './PANDASApp';
 import ThemeToggle from './ThemeToggle';
 
 const AppLayout: React.FC = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { privacySettings, loading: privacyLoading, error: privacyError } = usePrivacy();
   const deviceInfo = useDeviceDetection();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -103,6 +103,11 @@ const AppLayout: React.FC = () => {
             <AlertTriangle className="w-4 h-4 ml-auto text-red-500" />
           )}
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={signOut} className="h-12 text-red-600 focus:text-red-600">
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -173,6 +178,16 @@ const AppLayout: React.FC = () => {
                     <AlertTriangle className="w-4 h-4 ml-auto text-red-500" />
                   )}
                 </Button>
+                <div className="border-t dark:border-gray-700 pt-4 mt-4">
+                  <Button
+                    variant="destructive"
+                    onClick={signOut}
+                    className="w-full justify-start h-14 text-base touch-manipulation"
+                  >
+                    <LogOut className="w-5 h-5 mr-3" />
+                    Sign Out
+                  </Button>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
