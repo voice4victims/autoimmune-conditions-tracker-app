@@ -35,7 +35,7 @@ const FileUploadForm: React.FC = () => {
 
     setUploading(true);
     try {
-      await fileService.uploadFile(file, user.id, childProfile.id, category, description);
+      await fileService.uploadFile(file, user.uid, childProfile.id, category, description);
 
       toast({ title: 'Success', description: 'File uploaded successfully' });
       setFile(null);

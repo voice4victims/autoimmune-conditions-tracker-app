@@ -35,7 +35,7 @@ const MedicalVisitList: React.FC<MedicalVisitListProps> = ({ refresh }) => {
     if (!childProfile || !user) return;
 
     try {
-      const visits = await medicalVisitService.getVisits(user.id, childProfile.id);
+      const visits = await medicalVisitService.getVisits(user.uid, childProfile.id);
       setVisits(visits);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to load medical visits', variant: 'destructive' });

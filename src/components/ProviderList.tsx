@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit, Phone, Mail, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
@@ -27,11 +28,12 @@ const ProviderList: React.FC<ProviderListProps> = ({ childId, refreshTrigger }) 
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchProviders = async () => {
     try {
       const providersRef = collection(db, 'healthcare_providers');
-      const q = query(providersRef, where('child_id', '==', childId), orderBy('created_at', 'desc'));
+      const q = query(providersRef, where('user_id', '==', user?.uid), where('child_id', '==', childId), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const providersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setProviders(providersData as Provider[]);

@@ -38,7 +38,7 @@ const FileList: React.FC = () => {
   const fetchFiles = async () => {
     try {
       const filesRef = collection(db, 'file_uploads');
-      const q = query(filesRef, where('child_id', '==', childProfile?.id), orderBy('uploaded_at', 'desc'));
+      const q = query(filesRef, where('user_id', '==', user?.uid), where('child_id', '==', childProfile?.id), orderBy('uploaded_at', 'desc'));
       const querySnapshot = await getDocs(q);
       const filesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setFiles(filesData as FileUpload[]);

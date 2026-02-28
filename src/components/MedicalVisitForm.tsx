@@ -39,7 +39,7 @@ const MedicalVisitForm: React.FC<MedicalVisitFormProps> = ({ onSuccess }) => {
     try {
       await medicalVisitService.addVisit({
         child_id: childProfile.id,
-        user_id: user.id,
+        user_id: user.uid,
         visit_type: formData.visitType,
         visit_date: formData.visitDate,
         provider_name: formData.providerName,

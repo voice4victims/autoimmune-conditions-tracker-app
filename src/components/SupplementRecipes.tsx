@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, ChefHat } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { recipeService, enhancedRecipeService } from '@/lib/firebaseService';
 import { toast } from '@/hooks/use-toast';
 import RecipeForm from './RecipeForm';
@@ -25,6 +26,7 @@ interface Recipe {
 
 const SupplementRecipes: React.FC = () => {
   const { childProfile } = useApp();
+  const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
@@ -40,7 +42,7 @@ const SupplementRecipes: React.FC = () => {
     if (!childProfile) return;
 
     try {
-      const data = await recipeService.getRecipes(user?.id || '', childProfile.id);
+      const data = await recipeService.getRecipes(user?.uid || '', childProfile.id);
 
       const formattedRecipes = data?.map(recipe => ({
         id: recipe.id,
@@ -89,7 +91,7 @@ const SupplementRecipes: React.FC = () => {
       } else {
         await enhancedRecipeService.addRecipe({
           ...recipeData,
-          user_id: user?.id,
+          user_id: user?.uid,
           child_id: childProfile.id
         });
         toast({

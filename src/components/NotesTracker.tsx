@@ -45,7 +45,7 @@ const NotesTracker: React.FC = () => {
     if (!childProfile || !user) return;
 
     try {
-      const notesData = await notesService.getNotes(user.id, childProfile.id);
+      const notesData = await notesService.getNotes(user.uid, childProfile.id);
       setNotes(notesData as Note[]);
     } catch (error) {
       console.error('Error fetching notes:', error);
@@ -71,7 +71,7 @@ const NotesTracker: React.FC = () => {
       } else {
         await notesService.addNote({
           child_id: childProfile.id,
-          user_id: user.id,
+          user_id: user.uid,
           date: formData.date,
           title: formData.title,
           content: formData.content

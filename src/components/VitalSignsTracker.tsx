@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { vitalSignsService, enhancedVitalSignsService } from '@/lib/firebaseService';
 import { Activity, List, Trash2 } from 'lucide-react';
@@ -25,6 +26,7 @@ interface VitalSign {
 
 const VitalSignsTracker: React.FC = () => {
   const { childProfile } = useApp();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [vitals, setVitals] = useState<VitalSign[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,7 +50,7 @@ const VitalSignsTracker: React.FC = () => {
   const fetchVitals = async () => {
     if (!childProfile) return;
     try {
-      const vitals = await vitalSignsService.getVitalSigns(user?.id || '', childProfile.id);
+      const vitals = await vitalSignsService.getVitalSigns(user?.uid || '', childProfile.id);
       setVitals(vitals);
     } catch (error) {
       console.log('Loading vitals from secure storage:', error);
@@ -62,19 +64,20 @@ const VitalSignsTracker: React.FC = () => {
     e.preventDefault();
     if (!childProfile) return;
 
-    const newVital = {
+    const newVital: Record<string, any> = {
       id: Date.now().toString(),
       child_id: childProfile.id,
-      temperature: formData.temperature ? parseFloat(formData.temperature) : undefined,
-      heart_rate: formData.heart_rate ? parseInt(formData.heart_rate) : undefined,
-      blood_pressure_systolic: formData.blood_pressure_systolic ? parseInt(formData.blood_pressure_systolic) : undefined,
-      blood_pressure_diastolic: formData.blood_pressure_diastolic ? parseInt(formData.blood_pressure_diastolic) : undefined,
-      weight: formData.weight ? parseFloat(formData.weight) : undefined,
-      height: formData.height ? parseFloat(formData.height) : undefined,
+      user_id: user?.uid || '',
       date: formData.date,
-      notes: formData.notes,
+      notes: formData.notes || '',
       created_at: new Date().toISOString()
     };
+    if (formData.temperature) newVital.temperature = parseFloat(formData.temperature);
+    if (formData.heart_rate) newVital.heart_rate = parseInt(formData.heart_rate);
+    if (formData.blood_pressure_systolic) newVital.blood_pressure_systolic = parseInt(formData.blood_pressure_systolic);
+    if (formData.blood_pressure_diastolic) newVital.blood_pressure_diastolic = parseInt(formData.blood_pressure_diastolic);
+    if (formData.weight) newVital.weight = parseFloat(formData.weight);
+    if (formData.height) newVital.height = parseFloat(formData.height);
 
     try {
       setLoading(true);

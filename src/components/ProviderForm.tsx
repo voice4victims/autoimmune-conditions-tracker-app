@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 interface ProviderFormProps {
   childId: string;
@@ -24,6 +25,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +36,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ childId, onProviderAdded })
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, 'healthcare_providers'), { ...formData, child_id: childId });
+      await addDoc(collection(db, 'healthcare_providers'), { ...formData, child_id: childId, user_id: user?.uid, created_at: Timestamp.now() });
 
       toast({ title: 'Success', description: 'Provider added successfully' });
       setFormData({ name: '', title: '', role: '', specialty: '', contact_info: '', notes: '' });
