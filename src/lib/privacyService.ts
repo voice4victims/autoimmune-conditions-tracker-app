@@ -78,13 +78,16 @@ export class PrivacyService implements PrivacyServiceInterface {
     async updatePrivacySettings(userId: string, settings: Partial<PrivacySettings>): Promise<void> {
         try {
             const privacyDoc = doc(db, 'privacy_settings', userId);
+            const cleanSettings = Object.fromEntries(
+                Object.entries(settings).filter(([_, v]) => v !== undefined)
+            );
             const updateData = {
-                ...settings,
+                ...cleanSettings,
                 lastUpdated: serverTimestamp(),
                 version: PRIVACY_SETTINGS_VERSION
             };
 
-            await updateDoc(privacyDoc, updateData);
+            await setDoc(privacyDoc, updateData, { merge: true });
 
             // Log the privacy settings change
             await this.logPrivacyAction(userId, 'update_privacy_settings', {
@@ -236,10 +239,14 @@ export class PrivacyService implements PrivacyServiceInterface {
     async revokeAccess(userId: string, accessId: string, accessType: 'family' | 'provider' | 'temporary'): Promise<void> {
         try {
             const collectionName = this.getAccessCollectionName(accessType);
-            const accessDoc = doc(db, collectionName, accessId);
+            const accessRef = doc(db, collectionName, accessId);
+            const accessSnap = await getDoc(accessRef);
 
-            // Update to inactive instead of deleting for audit trail
-            await updateDoc(accessDoc, {
+            if (!accessSnap.exists()) {
+                throw new Error(`Access record ${accessId} not found in ${collectionName}`);
+            }
+
+            await updateDoc(accessRef, {
                 isActive: false,
                 revokedAt: serverTimestamp(),
                 revokedBy: userId
