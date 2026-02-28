@@ -20,7 +20,7 @@ export const FamilyAcceptInvite: React.FC = () => {
 
     setLoading(true);
     try {
-      await familyService.acceptInvitation(inviteCode.trim(), user.id);
+      await familyService.acceptInvitation(inviteCode.trim(), user.uid);
 
       toast({
         title: 'Success!',

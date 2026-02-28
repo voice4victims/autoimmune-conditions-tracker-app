@@ -45,7 +45,7 @@ const MedicationReminders: React.FC = () => {
     if (!childProfile || !user) return;
 
     try {
-      const reminders = await medicationService.getReminders(user.id, childProfile.id);
+      const reminders = await medicationService.getReminders(user.uid, childProfile.id);
       setReminders(reminders as Reminder[]);
     } catch (error) {
       console.error('Error fetching reminders:', error);
@@ -67,7 +67,7 @@ const MedicationReminders: React.FC = () => {
         await medicationService.updateReminder(editingReminder.id, {
           ...reminderData,
           child_id: childProfile.id,
-          user_id: user.id
+          user_id: user.uid
         });
         toast({
           title: 'Success',
@@ -77,7 +77,7 @@ const MedicationReminders: React.FC = () => {
         await medicationService.addReminder({
           ...reminderData,
           child_id: childProfile.id,
-          user_id: user.id,
+          user_id: user.uid,
           is_active: true
         });
         toast({

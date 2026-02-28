@@ -7,6 +7,7 @@ import { SymptomRating } from '@/types/pandas';
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import SymptomGraphViews from './SymptomGraphViews';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +17,7 @@ interface SymptomHistoryDetailsProps {
 
 const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms = [] }) => {
   const { childProfile } = useApp();
+  const { user } = useAuth();
   const [selectedSymptom, setSelectedSymptom] = useState<string>('');
   const [timeRange, setTimeRange] = useState<string>('7');
   const [dbSymptoms, setDbSymptoms] = useState<SymptomRating[]>([]);
@@ -34,7 +36,7 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
     setLoading(true);
     try {
       const symptomsRef = collection(db, 'symptom_ratings');
-      const q = query(symptomsRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'));
+      const q = query(symptomsRef, where('user_id', '==', user?.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {

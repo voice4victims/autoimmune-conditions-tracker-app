@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { SymptomRating } from '@/types/pandas';
@@ -10,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const SymptomChart: React.FC = () => {
   const { childProfile } = useApp();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [symptoms, setSymptoms] = useState<SymptomRating[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,7 @@ const SymptomChart: React.FC = () => {
     setLoading(true);
     try {
       const symptomsRef = collection(db, 'symptom_ratings');
-      const q = query(symptomsRef, where('child_id', '==', childProfile.id), orderBy('date', 'desc'), limit(100));
+      const q = query(symptomsRef, where('user_id', '==', user?.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), limit(100));
       const querySnapshot = await getDocs(q);
       const symptomsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 

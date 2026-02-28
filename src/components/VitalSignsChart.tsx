@@ -41,12 +41,12 @@ const VitalSignsChart: React.FC<VitalSignsChartProps> = ({ refreshTrigger }) => 
     if (!childProfile || !user) return;
 
     try {
-      const vitals = await vitalSignsService.getVitalSigns(user.id, childProfile.id);
+      const vitals = await vitalSignsService.getVitalSigns(user.uid, childProfile.id);
       setVitals(vitals);
 
       // Set default selected vital if none selected
-      if (!selectedVital && data && data.length > 0) {
-        setSelectedVital(data[0].vital_type);
+      if (!selectedVital && vitals && vitals.length > 0) {
+        setSelectedVital(vitals[0].vital_type);
       }
     } catch (error) {
       console.error('Error fetching vitals:', error);

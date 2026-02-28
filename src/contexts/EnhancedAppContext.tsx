@@ -190,7 +190,10 @@ export const EnhancedAppProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 }
 
                 const childRef = doc(db, 'children', profile.id);
-                await updateDoc(childRef, profile);
+                const cleanProfile = Object.fromEntries(
+                    Object.entries(profile).filter(([_, v]) => v !== undefined)
+                );
+                await updateDoc(childRef, cleanProfile);
             } else {
                 // Creating new child - user always has permission for their own children
                 await addDoc(collection(db, 'children'), {

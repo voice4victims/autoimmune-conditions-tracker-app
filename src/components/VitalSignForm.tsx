@@ -84,7 +84,7 @@ const VitalSignForm: React.FC<VitalSignFormProps> = ({ onVitalAdded }) => {
       const vitalInfo = allVitals.find(v => v.type === vitalType);
       await vitalSignsService.addVitalSigns({
         child_id: childProfile.id,
-        user_id: user.id,
+        user_id: user.uid,
         vital_type: vitalType,
         value: parseFloat(value),
         unit: vitalInfo?.unit || '',
