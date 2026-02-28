@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Shield, Users, Database, FileText, MessageSquare, Baby, AlertTriangle, LogOut } from 'lucide-react';
+import { Loader2, Shield, Users, Database, FileText, MessageSquare, Baby, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import { privacyService } from '@/lib/privacyService';
@@ -85,7 +85,7 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({
     userId: propUserId,
     onSettingsChange
 }) => {
-    const { user, signOut } = useAuth();
+    const { user } = useAuth();
     const { children } = useApp();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -423,18 +423,6 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({
                     </Card>
                 )}
 
-                <Card>
-                    <CardContent className="pt-6">
-                        <Button
-                            variant="destructive"
-                            className="w-full"
-                            onClick={signOut}
-                        >
-                            <LogOut className="h-4 w-4 mr-2" />
-                            Sign Out
-                        </Button>
-                    </CardContent>
-                </Card>
             </div>
         </PrivacyErrorBoundary>
     );
