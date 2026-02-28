@@ -2,7 +2,7 @@ import {
     collection,
     doc,
     addDoc,
-    updateDoc,
+    setDoc,
     getDocs,
     query,
     where,
@@ -187,10 +187,13 @@ export class HIPAAComplianceService {
         settings: Partial<PrivacySettings>
     ): Promise<void> {
         const privacyDoc = doc(db, 'privacy_settings', userId);
-        await updateDoc(privacyDoc, {
-            ...settings,
+        const cleanSettings = Object.fromEntries(
+            Object.entries(settings).filter(([_, v]) => v !== undefined)
+        );
+        await setDoc(privacyDoc, {
+            ...cleanSettings,
             updated_at: Timestamp.now()
-        });
+        }, { merge: true });
 
         // Log privacy settings change
         await this.logAccess(
@@ -259,19 +262,19 @@ export class HIPAAComplianceService {
 
     private static async lockUserAccount(userId: string): Promise<void> {
         // Implement account locking logic
-        await updateDoc(doc(db, 'users', userId), {
+        await setDoc(doc(db, 'users', userId), {
             account_locked: true,
             locked_at: Timestamp.now(),
             lock_reason: 'Security incident - potential breach'
-        });
+        }, { merge: true });
     }
 
     private static async forceLogoutAllSessions(userId: string): Promise<void> {
         // Invalidate all active sessions for user
-        await updateDoc(doc(db, 'users', userId), {
+        await setDoc(doc(db, 'users', userId), {
             force_logout: true,
             logout_timestamp: Timestamp.now()
-        });
+        }, { merge: true });
     }
 
     // Data Retention and Disposal
