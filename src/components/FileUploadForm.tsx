@@ -20,10 +20,20 @@ const FileUploadForm: React.FC = () => {
   const { user } = useAuth();
   const { childProfile } = useApp();
 
+  const detectCategory = (fileName: string): string => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].includes(ext)) return 'photo';
+    if (['mp4', 'mov', 'avi', 'webm'].includes(ext)) return 'video';
+    if (['dcm', 'dicom'].includes(ext)) return 'imaging';
+    return '';
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      const detected = detectCategory(selectedFile.name);
+      if (detected) setCategory(detected);
     }
   };
 
@@ -92,36 +102,14 @@ const FileUploadForm: React.FC = () => {
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="photo">
-                <div className="flex items-center gap-2">
-                  <Image className="w-4 h-4" />
-                  Photo
-                </div>
-              </SelectItem>
-              <SelectItem value="video">
-                <div className="flex items-center gap-2">
-                  <Video className="w-4 h-4" />
-                  Video
-                </div>
-              </SelectItem>
-              <SelectItem value="lab_result">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Lab Result
-                </div>
-              </SelectItem>
-              <SelectItem value="document">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Document
-                </div>
-              </SelectItem>
-              <SelectItem value="other">
-                <div className="flex items-center gap-2">
-                  <Upload className="w-4 h-4" />
-                  Other
-                </div>
-              </SelectItem>
+              <SelectItem value="lab">Lab Result</SelectItem>
+              <SelectItem value="imaging">Imaging</SelectItem>
+              <SelectItem value="discharge">Discharge Summary</SelectItem>
+              <SelectItem value="referral">Referral</SelectItem>
+              <SelectItem value="insurance">Insurance Document</SelectItem>
+              <SelectItem value="photo">Photo</SelectItem>
+              <SelectItem value="video">Video</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
