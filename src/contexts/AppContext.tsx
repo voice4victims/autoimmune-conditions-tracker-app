@@ -27,12 +27,6 @@ interface Treatment {
   symptoms_improved: boolean;
   improvement_notes?: string;
   created_at: string | Timestamp;
-  status?: 'active' | 'discontinued' | 'failed';
-  helpRating?: number;
-  worsenedPans?: boolean;
-  sideEffects?: string[];
-  failReason?: string;
-  endDate?: string;
 }
 
 interface Note {

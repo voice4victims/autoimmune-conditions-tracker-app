@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Heart, Activity, Pill, Clock, ChefHat, FileText, BarChart3, Calendar, Stethoscope, FolderOpen, Mail, Shield, BookOpen, ClipboardCheck, Brain, FlaskConical, CreditCard, GraduationCap, Globe } from 'lucide-react';
+import { ArrowLeft, Heart, Activity, Pill, Clock, ChefHat, FileText, BarChart3, Calendar, Stethoscope, FolderOpen, Mail, Shield, BookOpen, ClipboardCheck, Brain } from 'lucide-react';
 
 
 interface MoreMenuProps {
@@ -42,11 +42,7 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
     { id: 'files', label: 'Files', icon: FolderOpen, description: 'Upload and manage documents' },
     { id: 'email', label: 'Email Records', icon: Mail, description: 'Send records to doctor' },
     { id: 'drug-safety', label: 'Drug Safety', icon: Shield, description: 'Check interactions & report side effects' },
-    { id: 'resources', label: 'Resources', icon: BookOpen, description: 'Trusted PANDAS/PANS resources' },
-    { id: 'lab-values', label: 'Lab Values', icon: FlaskConical, description: 'Track titers and lab results' },
-    { id: 'insurance', label: 'Insurance', icon: CreditCard, description: 'Store insurance information' },
-    { id: 'education', label: 'Education', icon: GraduationCap, description: 'Learn about PANS/PANDAS' },
-    { id: 'community', label: 'Community', icon: Globe, description: 'Find PANDAS providers' }
+    { id: 'resources', label: 'Resources', icon: BookOpen, description: 'Trusted PANDAS/PANS resources' }
   ];
 
 
