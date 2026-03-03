@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Image, Video, Download, Trash2, MoreVertical } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { FileText, Image, Video, Download, Trash2, MoreVertical, Search } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { db, storage } from '@/lib/firebase';
@@ -22,9 +23,13 @@ interface FileUpload {
   uploaded_at: string;
 }
 
+const CATEGORIES = ['all', 'lab', 'imaging', 'discharge', 'referral', 'insurance', 'photo', 'video', 'other'];
+
 const FileList: React.FC = () => {
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
   const { toast } = useToast();
   const { user } = useAuth();
   const { childProfile } = useApp();
@@ -92,11 +97,22 @@ const FileList: React.FC = () => {
     switch (category) {
       case 'photo': return 'bg-blue-100 text-blue-800';
       case 'video': return 'bg-purple-100 text-purple-800';
-      case 'lab_result': return 'bg-green-100 text-green-800';
-      case 'document': return 'bg-orange-100 text-orange-800';
+      case 'lab': case 'lab_result': return 'bg-green-100 text-green-800';
+      case 'imaging': return 'bg-cyan-100 text-cyan-800';
+      case 'discharge': return 'bg-orange-100 text-orange-800';
+      case 'referral': return 'bg-indigo-100 text-indigo-800';
+      case 'insurance': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const filteredFiles = useMemo(() => {
+    return files.filter(f => {
+      if (searchTerm && !f.file_name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (filterCategory !== 'all' && f.category !== filterCategory) return false;
+      return true;
+    });
+  }, [files, searchTerm, filterCategory]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -117,18 +133,46 @@ const FileList: React.FC = () => {
     return <div className="text-center py-8 text-gray-500">Loading files...</div>;
   }
 
+  const isImageFile = (fileType: string, category: string) =>
+    category === 'photo' || fileType.startsWith('image/');
+
   return (
     <div className="space-y-3">
-      {files.length === 0 ? (
+      {files.length > 0 && (
+        <div className="space-y-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search files..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {CATEGORIES.map(cat => (
+              <Badge
+                key={cat}
+                variant={filterCategory === cat ? 'default' : 'outline'}
+                className="cursor-pointer text-xs capitalize"
+                onClick={() => setFilterCategory(cat)}
+              >
+                {cat === 'all' ? 'All' : cat}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      {filteredFiles.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No files uploaded yet</p>
-            <p className="text-sm text-gray-400 mt-1">Upload your first file to get started</p>
+            <p className="text-gray-500">{files.length === 0 ? 'No files uploaded yet' : 'No files match your search'}</p>
+            {files.length === 0 && <p className="text-sm text-gray-400 mt-1">Upload your first file to get started</p>}
           </CardContent>
         </Card>
       ) : (
-        files.map((file) => (
+        filteredFiles.map((file) => (
           <Card key={file.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">

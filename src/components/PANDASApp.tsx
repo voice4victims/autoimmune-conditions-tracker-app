@@ -33,6 +33,10 @@ import FAQ from './FAQ';
 import MoreMenu from './MoreMenu';
 import PTECTracker from './PTECTracker';
 import AdvancedAnalyticsDashboard from './AdvancedAnalyticsDashboard';
+import LabValuesTracker from './LabValuesTracker';
+import InsuranceManager from './InsuranceManager';
+import EducationHub from './EducationHub';
+import CommunityDirectory from './CommunityDirectory';
 import { DiagnosisTracker } from './DiagnosisTracker';
 import ProfileAndSecurity from './ProfileAndSecurity';
 import PrivacySettings from './PrivacySettings';
@@ -222,17 +226,7 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
           </TabsContent>
 
           <TabsContent value="providers" className="mt-6">
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <Search className="w-16 h-16 text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                  Provider Search Unavailable
-                </h3>
-                <p className="text-gray-500 text-center px-4">
-                  This feature is temporarily disabled. Please check the "More" tab for provider tracking options.
-                </p>
-              </CardContent>
-            </Card>
+            <CommunityDirectory />
           </TabsContent>
 
           <TabsContent value="activities" className="mt-6">
@@ -309,6 +303,14 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
               {activeMoreTab === 'email' && <EmailRecordsForm />}
               {activeMoreTab === 'drug-safety' && <DrugInteractionChecker />}
               {activeMoreTab === 'resources' && <ResourcesTab />}
+              {activeMoreTab === 'lab-values' && (
+                <PermissionGuard permissions={['read_data']}>
+                  <LabValuesTracker />
+                </PermissionGuard>
+              )}
+              {activeMoreTab === 'insurance' && <InsuranceManager />}
+              {activeMoreTab === 'education' && <EducationHub />}
+              {activeMoreTab === 'community' && <CommunityDirectory />}
 
             </div>
           </TabsContent>
