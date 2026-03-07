@@ -26,9 +26,9 @@ const InfoCard: React.FC<{
         >
           {icon}
         </div>
-        <p className="font-sans font-extrabold text-[13px] text-neutral-800 m-0">{title}</p>
+        <p className="font-sans font-extrabold text-[13px] text-neutral-800 dark:text-neutral-100 m-0">{title}</p>
       </div>
-      <div className="font-sans text-[13px] text-neutral-600 leading-relaxed">{children}</div>
+      <div className="font-sans text-[13px] text-neutral-600 dark:text-neutral-300 leading-relaxed">{children}</div>
     </CardContent>
   </Card>
 );
@@ -65,7 +65,7 @@ const EducationScreen: React.FC = () => {
               'shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-[1.5px] font-sans font-extrabold text-[12px] cursor-pointer whitespace-nowrap transition-colors',
               tab === t.id
                 ? 'border-primary-400 bg-primary-50 text-primary-600'
-                : 'border-neutral-200 bg-transparent text-neutral-400'
+                : 'border-neutral-200 dark:border-neutral-700 bg-transparent text-neutral-400'
             )}
           >
             <span>{t.icon}</span>
@@ -82,7 +82,7 @@ const EducationScreen: React.FC = () => {
               style={{ background: 'linear-gradient(135deg, #EDF6F9, #F4F0FA)' }}
             >
               <p className="font-serif text-[22px] text-primary-700 mb-2">PANS & PANDAS</p>
-              <p className="font-sans text-[13px] text-neutral-600 leading-relaxed m-0">
+              <p className="font-sans text-[13px] text-neutral-600 dark:text-neutral-300 leading-relaxed m-0">
                 <strong>PANS</strong> (Pediatric Acute-onset Neuropsychiatric Syndrome) is a
                 clinical condition defined by the sudden onset of OCD and/or severe eating
                 restrictions, plus at least two concurrent neurological, behavioral, or cognitive
@@ -229,7 +229,7 @@ const EducationScreen: React.FC = () => {
               <p className="font-serif text-lg text-primary-700 mb-1.5">
                 Treatment Is Multi-Modal
               </p>
-              <p className="font-sans text-[13px] text-neutral-600 leading-relaxed m-0">
+              <p className="font-sans text-[13px] text-neutral-600 dark:text-neutral-300 leading-relaxed m-0">
                 PANS/PANDAS is treated by addressing the underlying cause, reducing
                 neuroinflammation, and managing psychiatric symptoms. No single treatment works
                 for everyone.
@@ -361,7 +361,7 @@ const EducationScreen: React.FC = () => {
                     <p className="font-sans font-extrabold text-[13px] text-primary-600 m-0">
                       {r.title}
                     </p>
-                    <p className="font-sans text-[12px] text-neutral-500 mt-0.5 leading-relaxed m-0">
+                    <p className="font-sans text-[12px] text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed m-0">
                       {r.desc}
                     </p>
                   </div>

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import ActivityForm from './ActivityForm';
 
@@ -32,10 +32,11 @@ const ActivityTracker: React.FC = () => {
     if (!childProfile || !user) return;
     try {
       const activitiesRef = collection(db, 'activity_logs');
-      const q = query(activitiesRef, where('userId', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
+      const q = query(activitiesRef, where('userId', '==', user.uid), where('child_id', '==', childProfile.id));
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setActivities(data as Activity[]);
+      const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Activity[];
+      data.sort((a, b) => (b.date || '').localeCompare(a.date || '') || String(b.created_at || '').localeCompare(String(a.created_at || '')));
+      setActivities(data);
     } catch (error) {
       const key = `pandas-activities-${childProfile.id}`;
       const stored = localStorage.getItem(key);
@@ -92,7 +93,7 @@ const ActivityTracker: React.FC = () => {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-4xl mb-3">🏃</p>
-          <p className="font-serif text-xl text-neutral-700 mb-2">No Child Selected</p>
+          <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">No Child Selected</p>
           <p className="font-sans text-[13px] text-neutral-400">Please select a child to track activities</p>
         </CardContent>
       </Card>
@@ -112,15 +113,15 @@ const ActivityTracker: React.FC = () => {
       ) : activities.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <p className="font-sans font-extrabold text-[11px] text-neutral-500 uppercase tracking-[0.07em] mb-3">
+            <p className="font-sans font-extrabold text-[11px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.07em] mb-3">
               Activity History
             </p>
-            <div className="divide-y divide-neutral-100">
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {activities.map((a) => (
                 <div key={a.id} className="py-3 first:pt-0 last:pb-0 flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-sans font-extrabold text-[13px] text-neutral-800">{a.activity_name}</span>
+                      <span className="font-sans font-extrabold text-[13px] text-neutral-800 dark:text-neutral-100">{a.activity_name}</span>
                       <span className="font-sans font-bold text-[10px] px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
                         {typeLabel(a.activity_type)}
                       </span>
@@ -128,7 +129,7 @@ const ActivityTracker: React.FC = () => {
                     <p className="font-sans text-[11px] text-neutral-400 mt-0.5">
                       {formatDuration(a.duration_minutes)} · {a.date}
                     </p>
-                    {a.notes && <p className="font-sans text-[12px] text-neutral-500 mt-1 italic">{a.notes}</p>}
+                    {a.notes && <p className="font-sans text-[12px] text-neutral-500 dark:text-neutral-400 mt-1 italic">{a.notes}</p>}
                   </div>
                   <button
                     onClick={() => handleDelete(a.id)}

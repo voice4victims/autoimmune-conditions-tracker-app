@@ -103,7 +103,7 @@ const TreatmentTracker: React.FC = () => {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-4xl mb-3">💊</p>
-          <p className="font-serif text-xl text-neutral-700 mb-2">No Child Selected</p>
+          <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">No Child Selected</p>
           <p className="font-sans text-[13px] text-neutral-400">Please select a child to track treatments</p>
         </CardContent>
       </Card>
@@ -112,7 +112,7 @@ const TreatmentTracker: React.FC = () => {
 
   const statusColors: Record<string, string> = {
     active: 'bg-success-50 text-success-600 border-success-200',
-    discontinued: 'bg-neutral-100 text-neutral-500 border-neutral-200',
+    discontinued: 'bg-neutral-100 text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700',
     failed: 'bg-danger-50 text-danger-500 border-danger-200',
   };
 
@@ -123,10 +123,10 @@ const TreatmentTracker: React.FC = () => {
           {editIdx !== null && (
             <div className="flex justify-between items-center bg-warning-50 border border-warning-200 rounded-lg px-3 py-2">
               <span className="font-sans font-extrabold text-[12px] text-warning-600">✏️ Editing treatment</span>
-              <button onClick={resetForm} className="font-sans font-extrabold text-[11px] text-neutral-500 bg-transparent border-none cursor-pointer">✕ Cancel</button>
+              <button onClick={resetForm} className="font-sans font-extrabold text-[11px] text-neutral-500 dark:text-neutral-400 bg-transparent border-none cursor-pointer">✕ Cancel</button>
             </div>
           )}
-          <h3 className="font-serif text-xl text-neutral-800 m-0">
+          <h3 className="font-serif text-xl text-neutral-800 dark:text-neutral-100 m-0">
             {editIdx !== null ? 'Edit Treatment' : 'Log Treatment'}
           </h3>
 
@@ -155,11 +155,11 @@ const TreatmentTracker: React.FC = () => {
           <FieldWrap label="Treatment Status">
             <div className="flex gap-2">
               {([['active', 'Active', 'bg-success-50 border-success-400 text-success-600'],
-                 ['discontinued', 'Stopped', 'bg-neutral-100 border-neutral-300 text-neutral-500'],
+                 ['discontinued', 'Stopped', 'bg-neutral-100 border-neutral-300 text-neutral-500 dark:text-neutral-400'],
                  ['failed', 'Failed', 'bg-danger-50 border-danger-400 text-danger-500']] as const).map(([v, l, cls]) => (
                 <button key={v} onClick={() => setTStatus(v)}
                   className={cn('flex-1 py-2 rounded-lg border-[1.5px] font-sans font-bold text-[12px] cursor-pointer transition-all',
-                    tStatus === v ? cls : 'border-neutral-200 text-neutral-400 bg-transparent')}>
+                    tStatus === v ? cls : 'border-neutral-200 dark:border-neutral-700 text-neutral-400 bg-transparent')}>
                   {l}
                 </button>
               ))}
@@ -177,7 +177,7 @@ const TreatmentTracker: React.FC = () => {
               {HELP_LEVELS.map((hl) => (
                 <button key={hl.v} onClick={() => setTHelpRating(hl.v)}
                   className={cn('flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-[1.5px] font-sans font-bold text-[11px] cursor-pointer transition-all',
-                    tHelpRating === hl.v ? 'border-primary-400 bg-primary-50 text-primary-600' : 'border-neutral-200 text-neutral-400')}>
+                    tHelpRating === hl.v ? 'border-primary-400 bg-primary-50 text-primary-600' : 'border-neutral-200 dark:border-neutral-700 text-neutral-400')}>
                   {hl.emoji} {hl.l}
                 </button>
               ))}
@@ -188,7 +188,7 @@ const TreatmentTracker: React.FC = () => {
             <button
               onClick={() => setTWorsenedPans((v) => !v)}
               className={cn('inline-flex items-center gap-2 px-3 py-2 rounded-lg border-[1.5px] font-sans font-bold text-[12px] cursor-pointer transition-all',
-                tWorsenedPans ? 'border-danger-400 bg-danger-50 text-danger-500' : 'border-neutral-200 text-neutral-400')}
+                tWorsenedPans ? 'border-danger-400 bg-danger-50 text-danger-500' : 'border-neutral-200 dark:border-neutral-700 text-neutral-400')}
             >
               ⚠️ {tWorsenedPans ? 'Worsened PANS symptoms' : 'Mark if it worsened PANS'}
             </button>
@@ -199,7 +199,7 @@ const TreatmentTracker: React.FC = () => {
               {SIDE_EFFECT_OPTIONS.map((se) => (
                 <button key={se} onClick={() => toggleSideEffect(se)}
                   className={cn('px-2.5 py-1 rounded-full border-[1.5px] font-sans font-bold text-[11px] cursor-pointer transition-all',
-                    tSideEffects.includes(se) ? 'border-secondary-400 bg-secondary-50 text-secondary-600' : 'border-neutral-200 text-neutral-400')}>
+                    tSideEffects.includes(se) ? 'border-secondary-400 bg-secondary-50 text-secondary-600' : 'border-neutral-200 dark:border-neutral-700 text-neutral-400')}>
                   {se}
                 </button>
               ))}
@@ -231,16 +231,16 @@ const TreatmentTracker: React.FC = () => {
       {treatments.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <p className="font-sans font-extrabold text-[11px] text-neutral-500 uppercase tracking-[0.07em] mb-3">
+            <p className="font-sans font-extrabold text-[11px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.07em] mb-3">
               Treatment History
             </p>
-            <div className="divide-y divide-neutral-100">
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {treatments.map((t, i) => (
                 <div key={t.id} className="py-3 first:pt-0 last:pb-0">
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-sans font-extrabold text-[13px] text-neutral-800">{t.medication_name}</span>
+                        <span className="font-sans font-extrabold text-[13px] text-neutral-800 dark:text-neutral-100">{t.medication_name}</span>
                         {t.status && (
                           <Badge className={cn('text-[10px] py-0 px-2 border', statusColors[t.status] || statusColors.active)}>
                             {t.status}
@@ -256,7 +256,7 @@ const TreatmentTracker: React.FC = () => {
                       {t.side_effects && t.side_effects.length > 0 && (
                         <p className="font-sans text-[11px] text-neutral-400 mt-0.5">Side effects: {t.side_effects.join(', ')}</p>
                       )}
-                      {t.improvement_notes && <p className="font-sans text-[12px] text-neutral-500 mt-1 italic">{t.improvement_notes}</p>}
+                      {t.improvement_notes && <p className="font-sans text-[12px] text-neutral-500 dark:text-neutral-400 mt-1 italic">{t.improvement_notes}</p>}
                     </div>
                     <button
                       onClick={() => {

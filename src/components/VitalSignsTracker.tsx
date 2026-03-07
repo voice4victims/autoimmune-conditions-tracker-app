@@ -123,7 +123,7 @@ const VitalSignsTracker: React.FC = () => {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-4xl mb-3">❤️</p>
-          <p className="font-serif text-xl text-neutral-700 mb-2">No Child Selected</p>
+          <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">No Child Selected</p>
           <p className="font-sans text-[13px] text-neutral-400">Please select a child to track vital signs</p>
         </CardContent>
       </Card>
@@ -142,7 +142,7 @@ const VitalSignsTracker: React.FC = () => {
     <div className="space-y-4">
       <Card>
         <CardContent className="p-4 space-y-3.5">
-          <h3 className="font-serif text-xl text-neutral-800 m-0">Vital Signs</h3>
+          <h3 className="font-serif text-xl text-neutral-800 dark:text-neutral-100 m-0">Vital Signs</h3>
 
           <FieldWrap label="Vital Type">
             <Select value={vType} onValueChange={setVType}>
@@ -181,14 +181,14 @@ const VitalSignsTracker: React.FC = () => {
       {vitals.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <p className="font-sans font-extrabold text-[11px] text-neutral-500 uppercase tracking-[0.07em] mb-3">
+            <p className="font-sans font-extrabold text-[11px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.07em] mb-3">
               Vital Signs History
             </p>
-            <div className="divide-y divide-neutral-100">
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {vitals.map((v) => (
                 <div key={v.id} className="py-3 first:pt-0 last:pb-0 flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
-                    <span className="font-sans font-extrabold text-[13px] text-neutral-800">
+                    <span className="font-sans font-extrabold text-[13px] text-neutral-800 dark:text-neutral-100">
                       {v.vital_type || 'Vital'}: {v.value || [
                         v.temperature && `${v.temperature}°F`,
                         v.heart_rate && `${v.heart_rate} BPM`,
@@ -198,7 +198,7 @@ const VitalSignsTracker: React.FC = () => {
                       ].filter(Boolean).join(', ')}
                     </span>
                     <p className="font-sans text-[11px] text-neutral-400 mt-0.5">{v.date}{v.time ? ` · ${v.time}` : ''}</p>
-                    {v.notes && <p className="font-sans text-[12px] text-neutral-500 mt-1 italic">{v.notes}</p>}
+                    {v.notes && <p className="font-sans text-[12px] text-neutral-500 dark:text-neutral-400 mt-1 italic">{v.notes}</p>}
                   </div>
                   <button
                     onClick={() => handleDelete(v.id)}

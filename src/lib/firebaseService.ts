@@ -8,7 +8,6 @@ import {
     getDoc,
     query,
     where,
-    orderBy,
     limit,
     increment,
     Timestamp
@@ -123,15 +122,16 @@ export const fileService = {
         const q = query(
             filesRef,
             where('user_id', '==', userId),
-            where('child_id', '==', childId),
-            orderBy('created_at', 'desc')
+            where('child_id', '==', childId)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.created_at || '').toString().localeCompare((a.created_at || '').toString()));
+        return results;
     }
 };
 
@@ -151,15 +151,16 @@ export const medicalVisitService = {
         const q = query(
             visitsRef,
             where('user_id', '==', userId),
-            where('child_id', '==', childId),
-            orderBy('visit_date', 'desc')
+            where('child_id', '==', childId)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.visit_date || '').toString().localeCompare((a.visit_date || '').toString()));
+        return results;
     }
 };
 
@@ -188,15 +189,16 @@ export const medicationService = {
         const q = query(
             remindersRef,
             where('user_id', '==', userId),
-            where('child_id', '==', childId),
-            orderBy('created_at', 'desc')
+            where('child_id', '==', childId)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.created_at || '').toString().localeCompare((a.created_at || '').toString()));
+        return results;
     },
 
     // Delete reminder
@@ -231,15 +233,16 @@ export const notesService = {
         const q = query(
             notesRef,
             where('user_id', '==', userId),
-            where('child_id', '==', childId),
-            orderBy('date', 'desc')
+            where('child_id', '==', childId)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.date || '').toString().localeCompare((a.date || '').toString()));
+        return results;
     },
 
     // Delete note
@@ -265,15 +268,16 @@ export const vitalSignsService = {
         const q = query(
             vitalsRef,
             where('user_id', '==', userId),
-            where('child_id', '==', childId),
-            orderBy('date', 'desc')
+            where('child_id', '==', childId)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.date || '').toString().localeCompare((a.date || '').toString()));
+        return results;
     }
 };
 
@@ -295,13 +299,13 @@ export const symptomService = {
             );
         }
 
-        q = query(q, orderBy('date', 'desc'));
-
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.date || '').toString().localeCompare((a.date || '').toString()));
+        return results;
     }
 };
 
@@ -313,15 +317,16 @@ export const recipeService = {
         const q = query(
             recipesRef,
             where('user_id', '==', userId),
-            where('child_id', '==', childId),
-            orderBy('created_at', 'desc')
+            where('child_id', '==', childId)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.created_at || '').toString().localeCompare((a.created_at || '').toString()));
+        return results;
     }
 };
 
@@ -397,15 +402,16 @@ export const roleService = {
         const q = query(
             accessRef,
             where('family_id', '==', familyId),
-            where('is_active', '==', true),
-            orderBy('accepted_at', 'desc')
+            where('is_active', '==', true)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.accepted_at || '').toString().localeCompare((a.accepted_at || '').toString()));
+        return results;
     },
 
     // Deactivate user access (soft delete)
@@ -541,16 +547,18 @@ export const magicLinkService = {
         // Get data based on permissions
         if (permissions.includes('view_symptoms')) {
             const symptomsRef = collection(db, 'children', childId, 'symptoms');
-            const symptomsQuery = query(symptomsRef, orderBy('date', 'desc'), limit(100));
+            const symptomsQuery = query(symptomsRef, limit(100));
             const symptomsSnapshot = await getDocs(symptomsQuery);
             data.symptoms = symptomsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.symptoms.sort((a: any, b: any) => (b.date || '').toString().localeCompare((a.date || '').toString()));
         }
 
         if (permissions.includes('view_treatments')) {
             const treatmentsRef = collection(db, 'children', childId, 'treatments');
-            const treatmentsQuery = query(treatmentsRef, orderBy('administration_date', 'desc'), limit(50));
+            const treatmentsQuery = query(treatmentsRef, limit(50));
             const treatmentsSnapshot = await getDocs(treatmentsQuery);
             data.treatments = treatmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.treatments.sort((a: any, b: any) => (b.administration_date || '').toString().localeCompare((a.administration_date || '').toString()));
         }
 
         if (permissions.includes('view_vitals')) {
@@ -558,18 +566,19 @@ export const magicLinkService = {
             const vitalsQuery = query(
                 vitalsRef,
                 where('child_id', '==', childId),
-                orderBy('date', 'desc'),
                 limit(50)
             );
             const vitalsSnapshot = await getDocs(vitalsQuery);
             data.vitals = vitalsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.vitals.sort((a: any, b: any) => (b.date || '').toString().localeCompare((a.date || '').toString()));
         }
 
         if (permissions.includes('view_notes')) {
             const notesRef = collection(db, 'children', childId, 'notes');
-            const notesQuery = query(notesRef, orderBy('date', 'desc'), limit(50));
+            const notesQuery = query(notesRef, limit(50));
             const notesSnapshot = await getDocs(notesQuery);
             data.notes = notesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.notes.sort((a: any, b: any) => (b.date || '').toString().localeCompare((a.date || '').toString()));
         }
 
         if (permissions.includes('view_files')) {
@@ -577,11 +586,11 @@ export const magicLinkService = {
             const filesQuery = query(
                 filesRef,
                 where('child_id', '==', childId),
-                orderBy('created_at', 'desc'),
                 limit(20)
             );
             const filesSnapshot = await getDocs(filesQuery);
             data.files = filesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.files.sort((a: any, b: any) => (b.created_at || '').toString().localeCompare((a.created_at || '').toString()));
         }
 
         return data;
@@ -592,15 +601,16 @@ export const magicLinkService = {
         const linksRef = collection(db, 'magic_links');
         const q = query(
             linksRef,
-            where('family_id', '==', familyId),
-            orderBy('created_at', 'desc')
+            where('family_id', '==', familyId)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.created_at || '').toString().localeCompare((a.created_at || '').toString()));
+        return results;
     },
 
     // Deactivate magic link
@@ -617,14 +627,15 @@ export const magicLinkService = {
         const logsRef = collection(db, 'magic_link_access');
         const q = query(
             logsRef,
-            where('magic_link_id', '==', linkId),
-            orderBy('accessed_at', 'desc')
+            where('magic_link_id', '==', linkId)
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
+        const results = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        results.sort((a: any, b: any) => (b.accessed_at || '').toString().localeCompare((a.accessed_at || '').toString()));
+        return results;
     }
 };

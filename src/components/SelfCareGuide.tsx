@@ -44,7 +44,7 @@ const SelfCareGuide: React.FC = () => {
                 <Icon className="w-5 h-5 mt-1" style={{ color }} />
                 <div>
                   <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
-                  <p className="text-sm text-gray-600">{item.desc}</p>
+                  <p className="text-sm text-gray-600 dark:text-neutral-300">{item.desc}</p>
                 </div>
               </div>
             </CardContent>

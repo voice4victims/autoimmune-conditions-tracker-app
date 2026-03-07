@@ -112,7 +112,7 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-3.5">
-        <div className="flex gap-1.5 bg-neutral-100 rounded-xl p-0.5">
+        <div className="flex gap-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-0.5">
           {([['7d', '7 Days'], ['14d', '14 Days'], ['30d', '30 Days']] as const).map(([v, l]) => (
             <button
               key={v}
@@ -120,7 +120,7 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
               className={cn(
                 'flex-1 py-2 rounded-lg border-none font-sans font-extrabold text-[12px] cursor-pointer transition-all',
                 range === v
-                  ? 'bg-white text-primary-600 shadow-sm'
+                  ? 'bg-white dark:bg-neutral-900 text-primary-600 shadow-sm'
                   : 'bg-transparent text-neutral-400'
               )}
             >
@@ -146,7 +146,7 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
         {dailyAvgs.length >= 2 && (
           <Card>
             <CardContent className="p-4">
-              <p className="font-sans font-extrabold text-[11px] text-neutral-500 uppercase tracking-[0.07em] mb-1.5">
+              <p className="font-sans font-extrabold text-[11px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.07em] mb-1.5">
                 Overall Severity
               </p>
               <Sparkline data={dailyAvgs} color="#1F8DB5" height={70} />
@@ -162,7 +162,7 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
           </Card>
         )}
 
-        <div className="flex gap-1.5 bg-neutral-100 rounded-xl p-0.5">
+        <div className="flex gap-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-0.5">
           {([['chart', 'Charts'], ['heatmap', 'Heatmap']] as const).map(([v, l]) => (
             <button
               key={v}
@@ -170,7 +170,7 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
               className={cn(
                 'flex-1 py-2 rounded-lg border-none font-sans font-extrabold text-[12px] cursor-pointer transition-all',
                 view === v
-                  ? 'bg-white text-primary-600 shadow-sm'
+                  ? 'bg-white dark:bg-neutral-900 text-primary-600 shadow-sm'
                   : 'bg-transparent text-neutral-400'
               )}
             >

@@ -5,7 +5,6 @@ import {
     getDocs,
     query,
     where,
-    orderBy,
     limit,
     Timestamp,
     and,
@@ -92,15 +91,16 @@ export class AuditService implements AuditServiceInterface {
                 }
             }
 
-            // Order by timestamp descending and limit to prevent excessive data retrieval
-            q = query(q, orderBy('timestamp', 'desc'), limit(1000));
+            q = query(q, limit(1000));
 
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({
+            const results = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 timestamp: doc.data().timestamp.toDate()
             } as AccessLog));
+            results.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+            return results;
         } catch (error) {
             console.error('Error getting access logs:', error);
             throw new Error('Failed to retrieve access logs');

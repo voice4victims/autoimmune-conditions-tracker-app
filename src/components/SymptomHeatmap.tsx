@@ -50,7 +50,7 @@ const SymptomHeatmap: React.FC = () => {
   };
 
   const getIntensityColor = (intensity: number) => {
-    if (intensity === 0) return 'bg-neutral-100';
+    if (intensity === 0) return 'bg-neutral-100 dark:bg-neutral-800';
     if (intensity <= 2) return 'bg-success-100';
     if (intensity <= 4) return 'bg-warning-50';
     if (intensity <= 6) return 'bg-warning-100';
@@ -69,7 +69,7 @@ const SymptomHeatmap: React.FC = () => {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-4xl mb-3">🗓️</p>
-          <p className="font-serif text-xl text-neutral-700 mb-2">No Child Selected</p>
+          <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">No Child Selected</p>
           <p className="font-sans text-[13px] text-neutral-400">Select a child profile to view heatmap</p>
         </CardContent>
       </Card>
@@ -85,14 +85,14 @@ const SymptomHeatmap: React.FC = () => {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="font-sans font-extrabold text-[11px] text-neutral-500 uppercase tracking-[0.07em] m-0">
+            <p className="font-sans font-extrabold text-[11px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.07em] m-0">
               Symptom Heatmap
             </p>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => navigateMonth('prev')} className="h-7 w-7 p-0">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="font-sans font-bold text-[12px] text-neutral-700 min-w-[110px] text-center">{monthYear}</span>
+              <span className="font-sans font-bold text-[12px] text-neutral-700 dark:text-neutral-200 min-w-[110px] text-center">{monthYear}</span>
               <Button variant="outline" size="sm" onClick={() => navigateMonth('next')} className="h-7 w-7 p-0">
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -125,7 +125,7 @@ const SymptomHeatmap: React.FC = () => {
 
           <div className="flex gap-2.5 mt-3 justify-center flex-wrap">
             {[
-              ['bg-neutral-100', 'None'],
+              ['bg-neutral-100 dark:bg-neutral-800', 'None'],
               ['bg-success-100', 'Mild'],
               ['bg-warning-100', 'Moderate'],
               ['bg-danger-100', 'Flare'],

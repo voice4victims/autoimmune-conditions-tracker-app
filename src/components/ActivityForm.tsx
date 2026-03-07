@@ -62,7 +62,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit }) => {
   return (
     <Card>
       <CardContent className="p-4 space-y-3.5">
-        <h3 className="font-serif text-xl text-neutral-800 m-0">Log Activity</h3>
+        <h3 className="font-serif text-xl text-neutral-800 dark:text-neutral-100 m-0">Log Activity</h3>
 
         <FieldWrap label="Activity Name">
           <Input value={activityName} onChange={(e) => setActivityName(e.target.value)} placeholder="e.g. 30 min walk, Lego time..." />

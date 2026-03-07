@@ -6,7 +6,7 @@ import { FileText, Image, Video, Download, Trash2, MoreVertical } from 'lucide-r
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { db, storage } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
@@ -39,10 +39,11 @@ const FileList: React.FC = () => {
     if (!user || !childProfile) return;
     try {
       const filesRef = collection(db, 'file_uploads');
-      const q = query(filesRef, where('user_id', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('uploaded_at', 'desc'));
+      const q = query(filesRef, where('user_id', '==', user.uid), where('child_id', '==', childProfile.id));
       const querySnapshot = await getDocs(q);
-      const filesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setFiles(filesData as FileUpload[]);
+      const filesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as FileUpload[];
+      filesData.sort((a, b) => (b.uploaded_at || '').localeCompare(a.uploaded_at || ''));
+      setFiles(filesData);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch files', variant: 'destructive' });
     } finally {

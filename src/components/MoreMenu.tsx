@@ -115,7 +115,7 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
               onClick={() => setOpenFaq(openFaq === i ? null : i)}
               className="w-full flex justify-between items-start gap-3 p-4 text-left cursor-pointer bg-transparent border-none"
             >
-              <span className="font-sans font-bold text-[13px] text-neutral-700 leading-snug">
+              <span className="font-sans font-bold text-[13px] text-neutral-700 dark:text-neutral-200 leading-snug">
                 {faq.q}
               </span>
               <span
@@ -129,7 +129,7 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
             </button>
             {openFaq === i && (
               <div className="px-4 pb-4">
-                <p className="font-sans text-[13px] text-neutral-600 leading-relaxed m-0">
+                <p className="font-sans text-[13px] text-neutral-600 dark:text-neutral-300 leading-relaxed m-0">
                   {faq.a}
                 </p>
               </div>

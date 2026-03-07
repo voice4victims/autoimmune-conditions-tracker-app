@@ -43,7 +43,7 @@ const RecordsScreen: React.FC<RecordsScreenProps> = ({ initialTab = 'files' }) =
               'shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-[1.5px] font-sans font-extrabold text-[12px] cursor-pointer whitespace-nowrap transition-colors',
               tab === t.id
                 ? 'border-primary-400 bg-primary-50 text-primary-600'
-                : 'border-neutral-200 bg-transparent text-neutral-400'
+                : 'border-neutral-200 dark:border-neutral-700 bg-transparent text-neutral-400'
             )}
           >
             <span>{t.icon}</span>

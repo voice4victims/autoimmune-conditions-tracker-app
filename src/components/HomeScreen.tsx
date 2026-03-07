@@ -117,7 +117,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onQuickLog, onNavigate }) => {
         <Card>
           <CardContent className="p-4">
             <div className="flex justify-between items-center mb-3">
-              <p className="font-sans font-extrabold text-[12px] text-neutral-500 uppercase tracking-[0.07em] m-0">
+              <p className="font-sans font-extrabold text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.07em] m-0">
                 Recent Entries
               </p>
               <button
@@ -136,15 +136,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onQuickLog, onNavigate }) => {
                   key={entry.id}
                   onClick={() => onNavigate('log')}
                   className={`flex items-center gap-2.5 py-2.5 cursor-pointer ${
-                    i > 0 ? 'border-t border-neutral-50' : ''
+                    i > 0 ? 'border-t border-neutral-50 dark:border-neutral-800' : ''
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-neutral-50 flex items-center justify-center text-[17px] shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center text-[17px] shrink-0">
                     🔍
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
-                      <p className="font-sans font-bold text-[13px] text-neutral-700 m-0 truncate">
+                      <p className="font-sans font-bold text-[13px] text-neutral-700 dark:text-neutral-200 m-0 truncate">
                         {entry.symptomType}
                       </p>
                     </div>
@@ -167,7 +167,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onQuickLog, onNavigate }) => {
           </CardContent>
         </Card>
 
-        <p className="font-sans font-extrabold text-[12px] text-neutral-500 uppercase tracking-[0.07em] mb-2">
+        <p className="font-sans font-extrabold text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.07em] mb-2">
           Quick Access
         </p>
         <div className="grid grid-cols-2 gap-2.5">
@@ -180,7 +180,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onQuickLog, onNavigate }) => {
               <CardContent className="p-3 flex items-center gap-2.5">
                 <span className="text-xl shrink-0">{action.icon}</span>
                 <div>
-                  <p className="font-sans font-extrabold text-[13px] text-neutral-700 m-0">
+                  <p className="font-sans font-extrabold text-[13px] text-neutral-700 dark:text-neutral-200 m-0">
                     {action.label}
                   </p>
                   <p className="font-sans text-[11px] text-neutral-400 m-0">{action.sub}</p>

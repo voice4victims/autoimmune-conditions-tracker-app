@@ -162,7 +162,7 @@ const MedicationReminders: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-center mb-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-neutral-300">
               Set up reminders for medications and supplements
             </p>
             <Button onClick={() => setShowForm(true)} size="sm">

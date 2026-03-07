@@ -15,7 +15,6 @@ import {
     deleteDoc,
     serverTimestamp,
     Timestamp,
-    orderBy,
 } from 'firebase/firestore';
 
 interface Treatment {
@@ -320,14 +319,14 @@ export const EnhancedAppProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }
 
             const q = query(
-                collection(db, 'children', childProfile.id, 'treatments'),
-                orderBy('administration_date', 'desc')
+                collection(db, 'children', childProfile.id, 'treatments')
             );
             const querySnapshot = await getDocs(q);
             const loadedTreatments = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data(),
             } as Treatment));
+            loadedTreatments.sort((a, b) => (b.administration_date || '').localeCompare(a.administration_date || ''));
 
             setTreatments(loadedTreatments);
         } catch (err) {
