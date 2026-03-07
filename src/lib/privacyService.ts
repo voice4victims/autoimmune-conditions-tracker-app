@@ -9,7 +9,6 @@ import {
     getDoc,
     query,
     where,
-    orderBy,
     limit,
     Timestamp,
     writeBatch,
@@ -410,12 +409,11 @@ export class PrivacyService implements PrivacyServiceInterface {
         try {
             const deletionQuery = query(
                 collection(db, 'deletion_requests'),
-                where('userId', '==', userId),
-                orderBy('requestedAt', 'desc')
+                where('userId', '==', userId)
             );
 
             const querySnapshot = await getDocs(deletionQuery);
-            return querySnapshot.docs.map(doc => {
+            const results = querySnapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
                     id: doc.id,
@@ -431,6 +429,8 @@ export class PrivacyService implements PrivacyServiceInterface {
                     affectedRecords: data.affectedRecords || []
                 };
             });
+            results.sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());
+            return results;
         } catch (error) {
             console.error('Error getting deletion requests:', error);
             throw new Error('Failed to retrieve deletion requests');
@@ -646,14 +646,17 @@ export class PrivacyService implements PrivacyServiceInterface {
             const activityQuery = query(
                 collection(db, 'privacy_audit_logs'),
                 where('userId', '==', userId),
-                where('action', 'in', ['view_data', 'edit_data', 'login']),
-                orderBy('timestamp', 'desc'),
-                limit(1)
+                where('action', 'in', ['view_data', 'edit_data', 'login'])
             );
 
             const activityDocs = await getDocs(activityQuery);
             if (activityDocs.docs.length > 0) {
-                return activityDocs.docs[0].data().timestamp.toDate();
+                const sorted = activityDocs.docs.sort((a, b) => {
+                    const aTime = a.data().timestamp?.toDate?.()?.getTime?.() || 0;
+                    const bTime = b.data().timestamp?.toDate?.()?.getTime?.() || 0;
+                    return bTime - aTime;
+                });
+                return sorted[0].data().timestamp.toDate();
             }
             return null;
         } catch (error) {

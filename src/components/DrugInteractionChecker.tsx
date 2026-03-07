@@ -16,8 +16,8 @@ const DrugInteractionChecker: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Drug Safety Resources</h2>
-        <p className="text-gray-600">Important tools for medication safety and reporting</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-2">Drug Safety Resources</h2>
+        <p className="text-gray-600 dark:text-neutral-300">Important tools for medication safety and reporting</p>
       </div>
 
       <Alert>
@@ -37,11 +37,11 @@ const DrugInteractionChecker: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-neutral-300">
               Check for potential interactions between medications your child is taking.
               This tool helps identify possible drug interactions that could affect treatment.
             </p>
-            <ul className="text-sm text-gray-500 space-y-1">
+            <ul className="text-sm text-gray-500 dark:text-neutral-400 space-y-1">
               <li>• Check multiple medications at once</li>
               <li>• Comprehensive interaction database</li>
               <li>• Severity ratings for interactions</li>
@@ -65,11 +65,11 @@ const DrugInteractionChecker: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-neutral-300">
               Report adverse reactions or side effects from medications to the FDA.
               Your reports help improve medication safety for everyone.
             </p>
-            <ul className="text-sm text-gray-500 space-y-1">
+            <ul className="text-sm text-gray-500 dark:text-neutral-400 space-y-1">
               <li>• Report serious side effects</li>
               <li>• Help improve drug safety</li>
               <li>• Confidential reporting system</li>
@@ -94,8 +94,8 @@ const DrugInteractionChecker: React.FC = () => {
         <CardContent>
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Drug Interaction Checker:</h4>
-              <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+              <h4 className="font-semibold text-gray-900 dark:text-neutral-100 mb-2">Drug Interaction Checker:</h4>
+              <ol className="text-sm text-gray-600 dark:text-neutral-300 space-y-1 list-decimal list-inside">
                 <li>Click the "Check Drug Interactions" button above</li>
                 <li>Enter all medications your child is currently taking</li>
                 <li>Review the interaction results carefully</li>
@@ -103,8 +103,8 @@ const DrugInteractionChecker: React.FC = () => {
               </ol>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Reporting Side Effects:</h4>
-              <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+              <h4 className="font-semibold text-gray-900 dark:text-neutral-100 mb-2">Reporting Side Effects:</h4>
+              <ol className="text-sm text-gray-600 dark:text-neutral-300 space-y-1 list-decimal list-inside">
                 <li>Click the "Report to FDA MedWatch" button above</li>
                 <li>Complete the online form with details about the side effect</li>
                 <li>Include medication name, dosage, and reaction details</li>

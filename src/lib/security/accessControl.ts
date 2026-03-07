@@ -782,9 +782,7 @@ export class AccessControlService {
                 where('userId', '==', userId),
                 where('action', '==', 'login'),
                 where('result', '==', 'success'),
-                where('timestamp', '>=', Timestamp.fromDate(thresholdTime)),
-                orderBy('timestamp', 'desc'),
-                limit(1)
+                where('timestamp', '>=', Timestamp.fromDate(thresholdTime))
             );
 
             const recentAuth = await getDocs(recentAuthQuery);

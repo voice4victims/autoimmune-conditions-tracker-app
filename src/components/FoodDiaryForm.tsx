@@ -48,7 +48,7 @@ const FoodDiaryForm: React.FC<FoodDiaryFormProps> = ({ onAddEntry, isLoading }) 
   return (
     <Card>
       <CardContent className="p-4 space-y-3.5">
-        <h3 className="font-serif text-xl text-neutral-800 m-0">Food Journal</h3>
+        <h3 className="font-serif text-xl text-neutral-800 dark:text-neutral-100 m-0">Food Journal</h3>
 
         <FieldWrap label="Food / Meal">
           <Input value={foodName} onChange={(e) => setFoodName(e.target.value)} placeholder="e.g. Oatmeal with blueberries..." />

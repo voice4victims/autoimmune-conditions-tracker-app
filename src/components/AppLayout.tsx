@@ -4,6 +4,7 @@ import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import SplashScreen from './SplashScreen';
+import ChildManager from './ChildManager';
 import MedicalDisclaimer from './MedicalDisclaimer';
 import SelfCareBanner from './SelfCareBanner';
 import ChildProfileForm from './ChildProfileForm';
@@ -48,7 +49,7 @@ const NAV_TABS = [
 const CommunityPlaceholder: React.FC = () => (
   <div className="flex flex-col items-center justify-center py-16 text-center">
     <p className="text-4xl mb-3">🌍</p>
-    <p className="font-serif text-xl text-neutral-700 mb-2">Community Provider Map</p>
+    <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">Community Provider Map</p>
     <p className="font-sans text-[13px] text-neutral-400 leading-relaxed px-4">
       Find PANDAS-literate doctors worldwide. Community-curated and updated. Coming soon.
     </p>
@@ -58,7 +59,7 @@ const CommunityPlaceholder: React.FC = () => (
 const InsurancePlaceholder: React.FC = () => (
   <div className="flex flex-col items-center justify-center py-16 text-center">
     <p className="text-4xl mb-3">🪪</p>
-    <p className="font-serif text-xl text-neutral-700 mb-2">Insurance Info</p>
+    <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">Insurance Info</p>
     <p className="font-sans text-[13px] text-neutral-400 leading-relaxed px-4">
       Store your insurance details, policy numbers, and pre-authorization information. Coming soon.
     </p>
@@ -68,7 +69,7 @@ const InsurancePlaceholder: React.FC = () => (
 const ComorbidPlaceholder: React.FC = () => (
   <div className="flex flex-col items-center justify-center py-16 text-center">
     <p className="text-4xl mb-3">🩻</p>
-    <p className="font-serif text-xl text-neutral-700 mb-2">Co-Morbidities</p>
+    <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">Co-Morbidities</p>
     <p className="font-sans text-[13px] text-neutral-400 leading-relaxed px-4">
       Track prior and post-infection conditions, co-occurring diagnoses, and related health history. Coming soon.
     </p>
@@ -171,8 +172,8 @@ const AppLayout: React.FC = () => {
         <div className="max-w-lg mx-auto p-4 pt-6">
           <MedicalDisclaimer />
           <div className="text-center mb-6 mt-2">
-            <h2 className="font-serif text-xl text-neutral-800 mb-2">Create Child Profile</h2>
-            <p className="font-sans text-[13px] text-neutral-500">
+            <h2 className="font-serif text-xl text-neutral-800 dark:text-neutral-100 mb-2">Create Child Profile</h2>
+            <p className="font-sans text-[13px] text-neutral-500 dark:text-neutral-400">
               Start by creating a profile for your child to begin tracking
             </p>
           </div>
@@ -251,13 +252,19 @@ const AppLayout: React.FC = () => {
             </button>
           )}
           <button
-            onClick={() => {
-              setScreen('more');
-              setActiveMoreTab('profile');
-            }}
+            onClick={() => setShowChildManager(true)}
             className="font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2.5 py-1 cursor-pointer"
           >
             + Add
+          </button>
+          <button
+            onClick={() => {
+              setScreen('more');
+              setActiveMoreTab('reminders');
+            }}
+            className="relative font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 py-1 cursor-pointer"
+          >
+            ⏰
           </button>
           <button
             onClick={() => {
@@ -362,6 +369,11 @@ const AppLayout: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <ChildManager
+        isOpen={showChildManager}
+        onClose={() => setShowChildManager(false)}
+      />
     </div>
   );
 };

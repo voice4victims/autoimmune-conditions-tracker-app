@@ -23,7 +23,6 @@ import {
     getDoc,
     query,
     where,
-    orderBy,
     limit,
     Timestamp,
     serverTimestamp,
@@ -370,15 +369,18 @@ export class SessionManager {
         const activeSessionsQuery = query(
             collection(db, 'user_sessions'),
             where('userId', '==', userId),
-            where('isValid', '==', true),
-            orderBy('lastActivity', 'desc')
+            where('isValid', '==', true)
         );
 
         const activeSessions = await getDocs(activeSessionsQuery);
+        const sortedDocs = [...activeSessions.docs].sort((a, b) => {
+            const aTime = a.data().lastActivity?.toDate?.()?.getTime?.() || 0;
+            const bTime = b.data().lastActivity?.toDate?.()?.getTime?.() || 0;
+            return bTime - aTime;
+        });
 
-        if (activeSessions.docs.length >= this.MAX_CONCURRENT_SESSIONS) {
-            // Invalidate oldest sessions
-            const sessionsToInvalidate = activeSessions.docs.slice(this.MAX_CONCURRENT_SESSIONS - 1);
+        if (sortedDocs.length >= this.MAX_CONCURRENT_SESSIONS) {
+            const sessionsToInvalidate = sortedDocs.slice(this.MAX_CONCURRENT_SESSIONS - 1);
 
             for (const sessionDoc of sessionsToInvalidate) {
                 await updateDoc(sessionDoc.ref, {

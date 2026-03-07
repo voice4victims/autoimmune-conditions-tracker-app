@@ -14,7 +14,6 @@ import {
   deleteDoc,
   serverTimestamp,
   Timestamp,
-  orderBy,
 } from 'firebase/firestore';
 
 interface Treatment {
@@ -143,11 +142,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSymptoms([]);
       return;
     }
-    const q = query(collection(db, 'children', childProfile.id, 'symptoms'), orderBy('date', 'desc'));
+    const q = query(collection(db, 'children', childProfile.id, 'symptoms'));
     const querySnapshot = await getDocs(q);
     const loadedSymptoms = querySnapshot.docs.map(
       (doc) => ({ id: doc.id, ...doc.data() } as SymptomRating)
     );
+    loadedSymptoms.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     setSymptoms(loadedSymptoms);
   };
 
@@ -156,12 +156,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setTreatments([]);
         return;
     };
-    const q = query(collection(db, 'children', childProfile.id, 'treatments'), orderBy('administration_date', 'desc'));
+    const q = query(collection(db, 'children', childProfile.id, 'treatments'));
     const querySnapshot = await getDocs(q);
     const loadedTreatments = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     } as Treatment));
+    loadedTreatments.sort((a, b) => (b.administration_date || '').localeCompare(a.administration_date || ''));
     setTreatments(loadedTreatments);
   };
 
@@ -180,11 +181,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setNotes([]);
       return;
     }
-    const q = query(collection(db, 'children', childProfile.id, 'notes'), orderBy('date', 'desc'));
+    const q = query(collection(db, 'children', childProfile.id, 'notes'));
     const querySnapshot = await getDocs(q);
     const loadedNotes = querySnapshot.docs.map(
       (doc) => ({ id: doc.id, ...doc.data() } as Note)
     );
+    loadedNotes.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     setNotes(loadedNotes);
   };
 

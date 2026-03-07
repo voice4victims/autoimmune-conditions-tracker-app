@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Clock, TrendingUp, TrendingDown, Minus, Star } from 'lucide-react';
 import { SymptomRating } from '@/types/pandas';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import SymptomGraphViews from './SymptomGraphViews';
@@ -36,7 +36,7 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
     setLoading(true);
     try {
       const symptomsRef = collection(db, 'symptom_ratings');
-      const q = query(symptomsRef, where('user_id', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'));
+      const q = query(symptomsRef, where('user_id', '==', user.uid), where('child_id', '==', childProfile.id));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -50,6 +50,7 @@ const SymptomHistoryDetails: React.FC<SymptomHistoryDetailsProps> = ({ symptoms 
           isImportant: item.is_important
         }));
 
+        formattedSymptoms.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
         setDbSymptoms(formattedSymptoms as SymptomRating[]);
 
         const uniqueSymptoms = [...new Set(data.map(item => item.symptom_type))]

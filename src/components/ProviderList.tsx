@@ -6,7 +6,7 @@ import { Trash2, Edit, Phone, Mail, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
 interface Provider {
   id: string;
@@ -34,10 +34,11 @@ const ProviderList: React.FC<ProviderListProps> = ({ childId, refreshTrigger }) 
     if (!user) return;
     try {
       const providersRef = collection(db, 'healthcare_providers');
-      const q = query(providersRef, where('user_id', '==', user.uid), where('child_id', '==', childId), orderBy('created_at', 'desc'));
+      const q = query(providersRef, where('user_id', '==', user.uid), where('child_id', '==', childId));
       const querySnapshot = await getDocs(q);
-      const providersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setProviders(providersData as Provider[]);
+      const providersData = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Provider[];
+      providersData.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+      setProviders(providersData);
     } catch (error) {
       console.error('Error fetching providers:', error);
       toast({ title: 'Error', description: 'Failed to load providers', variant: 'destructive' });

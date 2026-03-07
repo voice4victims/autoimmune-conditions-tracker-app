@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Copy, RefreshCw, Key } from 'lucide-react';
 
@@ -27,10 +27,11 @@ export const InviteCodeRetrieval: React.FC = () => {
 
     try {
       const invitationsRef = collection(db, 'family_invitations');
-      const q = query(invitationsRef, where('invited_by', '==', user.uid), orderBy('created_at', 'desc'));
+      const q = query(invitationsRef, where('invited_by', '==', user.uid));
       const querySnapshot = await getDocs(q);
-      const invitationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setInvitations(invitationsData as Invitation[]);
+      const invitationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Invitation[];
+      invitationsData.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+      setInvitations(invitationsData);
     } catch (error) {
       console.error('Error fetching invitations:', error);
       toast({

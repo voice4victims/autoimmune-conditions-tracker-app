@@ -19,8 +19,7 @@ const SelfCareBanner: React.FC = () => {
 
   return (
     <div
-      className="border-b px-4 py-2.5 flex gap-2.5 items-center shrink-0"
-      style={{ background: '#FFF0F7', borderBottomColor: '#F9C6DF' }}
+      className="border-b px-4 py-2.5 flex gap-2.5 items-center shrink-0 bg-[#FFF0F7] dark:bg-[#2D1525] border-[#F9C6DF] dark:border-[#4A2040]"
     >
       <div className="w-7 h-7 rounded-full bg-[#FF6B9D] flex items-center justify-center text-[14px] shrink-0">
         💜

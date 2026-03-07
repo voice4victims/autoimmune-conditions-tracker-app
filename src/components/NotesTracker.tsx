@@ -192,7 +192,7 @@ const NotesTracker: React.FC = () => {
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 className="font-semibold">{note.title}</h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-neutral-400">
                     {format(new Date(note.date), 'PPP')}
                   </p>
                 </div>
@@ -217,7 +217,7 @@ const NotesTracker: React.FC = () => {
                   </ConditionalRender>
                 </div>
               </div>
-              <p className="text-gray-700 whitespace-pre-wrap">{note.content}</p>
+              <p className="text-gray-700 dark:text-neutral-200 whitespace-pre-wrap">{note.content}</p>
             </CardContent>
           </Card>
         ))}
@@ -226,7 +226,7 @@ const NotesTracker: React.FC = () => {
       {notes.length === 0 && !loading && (
         <Card>
           <CardContent className="text-center py-8">
-            <p className="text-gray-500">No notes yet. Add your first note above.</p>
+            <p className="text-gray-500 dark:text-neutral-400">No notes yet. Add your first note above.</p>
           </CardContent>
         </Card>
       )}
