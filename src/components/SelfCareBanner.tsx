@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { X, Heart } from 'lucide-react';
 
 const SelfCareBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -21,32 +18,28 @@ const SelfCareBanner: React.FC = () => {
   if (!isVisible) return null;
 
   return (
-    <Card className="mb-4 bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1">
-            <Heart className="w-6 h-6 text-pink-500 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-1">
-                Remember to Take Care of Yourself Too!
-              </h3>
-              <p className="text-sm text-gray-600">
-                Caring for a child with PANDAS is challenging. Don't forget that your well-being matters too. 
-                Check out our Self Care section for tips on managing stress and maintaining your health.
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDismiss}
-            className="flex-shrink-0 h-8 w-8 p-0 hover:bg-pink-100"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div
+      className="border-b px-4 py-2.5 flex gap-2.5 items-center shrink-0"
+      style={{ background: '#FFF0F7', borderBottomColor: '#F9C6DF' }}
+    >
+      <div className="w-7 h-7 rounded-full bg-[#FF6B9D] flex items-center justify-center text-[14px] shrink-0">
+        💜
+      </div>
+      <div className="flex-1">
+        <p className="font-sans font-extrabold text-[12px] text-[#C2185B] m-0 mb-0.5">
+          Remember to Take Care of Yourself Too
+        </p>
+        <p className="font-sans text-[11px] text-[#E91E80]/75 m-0">
+          Caring for a child with PANDAS is challenging. Your wellbeing matters.
+        </p>
+      </div>
+      <button
+        onClick={handleDismiss}
+        className="bg-transparent border-none text-[16px] text-neutral-400 cursor-pointer shrink-0 p-0 leading-none"
+      >
+        ×
+      </button>
+    </div>
   );
 };
 

@@ -8,15 +8,27 @@ const Index: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div
+        className="min-h-screen flex flex-col items-center justify-center"
+        style={{ background: 'linear-gradient(160deg, #0E1F6A 0%, #1a3585 50%, #0D4A72 100%)' }}
+      >
+        <img
+          src="/owl-mascot.png"
+          alt="Loading..."
+          className="w-16 h-16 object-contain mb-4 animate-pulse"
+          style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.3))' }}
+        />
+        <p className="font-sans text-[13px] text-white/50">Loading...</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div
+        className="min-h-screen flex items-center justify-center py-10"
+        style={{ background: 'linear-gradient(160deg, #0E1F6A 0%, #1a3585 50%, #0D4A72 100%)' }}
+      >
         <AuthForm onAuthSuccess={() => {}} />
       </div>
     );

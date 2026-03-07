@@ -23,9 +23,15 @@ interface Treatment {
   medication_name: string;
   dosage: string;
   administration_date: string;
-  administration_time: string;
-  symptoms_improved: boolean;
+  administration_time?: string;
+  symptoms_improved?: boolean;
   improvement_notes?: string;
+  status?: 'active' | 'discontinued' | 'failed';
+  help_rating?: number | null;
+  worsened_pans?: boolean;
+  side_effects?: string[];
+  fail_reason?: string;
+  end_date?: string;
   created_at: string | Timestamp;
 }
 
