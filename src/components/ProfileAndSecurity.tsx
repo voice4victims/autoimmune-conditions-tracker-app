@@ -9,7 +9,6 @@ import PrivacyStatusIndicator from '@/components/PrivacyStatusIndicator';
 import { RoleDashboard } from '@/components/RoleDashboard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import ChildManager from './ChildManager';
 import { Button } from './ui/button';
 import { useTheme } from '@/components/theme-provider';
 import { useAuth } from '@/contexts/AuthContext';
@@ -103,10 +102,6 @@ const ProfileAndSecurity: React.FC<ProfileAndSecurityProps> = ({ showChildManage
         Sign Out
       </button>
 
-      <ChildManager
-        isOpen={showChildManager}
-        onClose={() => setShowChildManager(false)}
-      />
     </div>
   );
 };
