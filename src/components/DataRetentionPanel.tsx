@@ -37,6 +37,7 @@ import { DataRetentionSettings, DeletionScope, DeletionRequest, LegalHold } from
 import { privacyService } from '@/lib/privacyService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
+import { toDate } from '@/lib/utils';
 
 interface DataRetentionPanelProps {
     dataRetention: DataRetentionSettings;
@@ -309,8 +310,8 @@ const DataRetentionPanel: React.FC<DataRetentionPanelProps> = ({
                                         <div className="space-y-1">
                                             <p className="font-medium">{hold.reason}</p>
                                             <p className="text-sm text-muted-foreground">
-                                                Applied on {hold.appliedAt.toLocaleDateString()}
-                                                {hold.expiresAt && ` • Expires ${hold.expiresAt.toLocaleDateString()}`}
+                                                Applied on {toDate(hold.appliedAt).toLocaleDateString()}
+                                                {hold.expiresAt && ` • Expires ${toDate(hold.expiresAt).toLocaleDateString()}`}
                                             </p>
                                             <div className="flex flex-wrap gap-1 mt-2">
                                                 {hold.affectedDataTypes.map((type) => (
@@ -514,9 +515,9 @@ const DataRetentionPanel: React.FC<DataRetentionPanelProps> = ({
                                                 {getStatusBadge(request.status)}
                                             </div>
                                             <p className="text-sm text-muted-foreground">
-                                                Requested on {request.requestedAt.toLocaleDateString()}
-                                                {request.scheduledFor && ` • Scheduled for ${request.scheduledFor.toLocaleDateString()}`}
-                                                {request.completedAt && ` • Completed on ${request.completedAt.toLocaleDateString()}`}
+                                                Requested on {toDate(request.requestedAt).toLocaleDateString()}
+                                                {request.scheduledFor && ` • Scheduled for ${toDate(request.scheduledFor).toLocaleDateString()}`}
+                                                {request.completedAt && ` • Completed on ${toDate(request.completedAt).toLocaleDateString()}`}
                                             </p>
                                             {request.reason && (
                                                 <p className="text-sm text-muted-foreground">

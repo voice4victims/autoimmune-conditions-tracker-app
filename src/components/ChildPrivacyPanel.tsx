@@ -29,6 +29,7 @@ import {
     PERMISSION_GROUPS
 } from '@/types/privacy';
 import { privacyService } from '@/lib/privacyService';
+import { toDate } from '@/lib/utils';
 
 interface ChildPrivacyPanelProps {
     childSpecific: Record<string, ChildPrivacySettings>;
@@ -328,7 +329,7 @@ const ChildPrivacyPanel: React.FC<ChildPrivacyPanelProps> = ({
                                     <div>
                                         <p className="font-medium">{candidate.childName}</p>
                                         <p className="text-sm text-muted-foreground">
-                                            Age: {candidate.age} | Eligible since: {candidate.transferDate.toLocaleDateString()}
+                                            Age: {candidate.age} | Eligible since: {toDate(candidate.transferDate).toLocaleDateString()}
                                         </p>
                                     </div>
                                     <Button

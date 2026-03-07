@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { privacyService } from '@/lib/privacyService';
+import { toDate } from '@/lib/utils';
 
 interface DataCategory {
     name: string;
@@ -513,7 +514,7 @@ const DataProcessingPanel: React.FC = () => {
                                                             {request.format.toUpperCase()} Export
                                                         </p>
                                                         <p className="text-sm text-muted-foreground">
-                                                            Requested on {request.requestedAt.toLocaleDateString()}
+                                                            Requested on {toDate(request.requestedAt).toLocaleDateString()}
                                                         </p>
                                                     </div>
                                                 </div>

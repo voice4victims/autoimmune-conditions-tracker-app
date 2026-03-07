@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -58,6 +58,7 @@ import {
     ROLE_PERMISSIONS
 } from '@/types/privacy';
 import { toast } from 'sonner';
+import { toDate } from '@/lib/utils';
 
 interface AccessControlPanelProps {
     accessControl: AccessControlSettings;
@@ -482,9 +483,9 @@ const AccessControlPanel: React.FC<AccessControlPanelProps> = ({
                                                     <div className="font-medium">{member.name}</div>
                                                     <div className="text-sm text-muted-foreground">{member.email}</div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        Role: {member.role} • Granted: {member.grantedAt.toLocaleDateString()}
+                                                        Role: {member.role} • Granted: {toDate(member.grantedAt).toLocaleDateString()}
                                                         {member.lastAccessed && (
-                                                            <span> • Last accessed: {member.lastAccessed.toLocaleDateString()}</span>
+                                                            <span> • Last accessed: {toDate(member.lastAccessed).toLocaleDateString()}</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -648,12 +649,12 @@ const AccessControlPanel: React.FC<AccessControlPanelProps> = ({
                                                         <div className="text-sm text-muted-foreground">{provider.organization}</div>
                                                     )}
                                                     <div className="text-xs text-muted-foreground">
-                                                        Granted: {provider.grantedAt.toLocaleDateString()}
+                                                        Granted: {toDate(provider.grantedAt).toLocaleDateString()}
                                                         {provider.expiresAt && (
-                                                            <span> • Expires: {provider.expiresAt.toLocaleDateString()}</span>
+                                                            <span> • Expires: {toDate(provider.expiresAt).toLocaleDateString()}</span>
                                                         )}
                                                         {provider.lastAccessed && (
-                                                            <span> • Last accessed: {provider.lastAccessed.toLocaleDateString()}</span>
+                                                            <span> • Last accessed: {toDate(provider.lastAccessed).toLocaleDateString()}</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -810,11 +811,11 @@ const AccessControlPanel: React.FC<AccessControlPanelProps> = ({
                                                     <div className="text-sm text-muted-foreground">{temp.grantedToEmail}</div>
                                                     <div className="text-sm text-muted-foreground">{temp.purpose}</div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        Granted: {temp.grantedAt.toLocaleDateString()} •
-                                                        Expires: {temp.expiresAt.toLocaleDateString()} •
+                                                        Granted: {toDate(temp.grantedAt).toLocaleDateString()} •
+                                                        Expires: {toDate(temp.expiresAt).toLocaleDateString()} •
                                                         Used: {temp.accessCount}/{temp.maxAccessCount || '∞'}
                                                         {temp.lastAccessed && (
-                                                            <span> • Last accessed: {temp.lastAccessed.toLocaleDateString()}</span>
+                                                            <span> • Last accessed: {toDate(temp.lastAccessed).toLocaleDateString()}</span>
                                                         )}
                                                     </div>
                                                 </div>

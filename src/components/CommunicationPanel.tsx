@@ -26,6 +26,7 @@ import {
 import { privacyService } from '@/lib/privacyService';
 import { communicationService } from '@/lib/communicationService';
 import { useAuth } from '@/contexts/AuthContext';
+import { toDate } from '@/lib/utils';
 
 interface CommunicationPanelProps {
     communications: CommunicationPreferences;
@@ -247,7 +248,7 @@ const CommunicationPanel: React.FC<CommunicationPanelProps> = ({
                 <Alert>
                     <CheckCircle className="h-4 w-4" />
                     <AlertDescription>
-                        Communication preferences updated successfully at {lastUpdate.toLocaleTimeString()}
+                        Communication preferences updated successfully at {toDate(lastUpdate).toLocaleTimeString()}
                     </AlertDescription>
                 </Alert>
             )}
@@ -358,7 +359,7 @@ const CommunicationPanel: React.FC<CommunicationPanelProps> = ({
                                                         {setting?.label || record.type}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {record.changedAt.toLocaleDateString()} at {record.changedAt.toLocaleTimeString()}
+                                                        {toDate(record.changedAt).toLocaleDateString()} at {toDate(record.changedAt).toLocaleTimeString()}
                                                     </p>
                                                 </div>
                                             </div>
