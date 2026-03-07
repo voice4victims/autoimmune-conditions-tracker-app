@@ -89,11 +89,11 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
           <button
             key={item.id}
             onClick={() => onMoreTabClick(item.id)}
-            className="flex items-center gap-2.5 p-3 rounded-2xl border border-neutral-100 bg-white hover:bg-neutral-50 text-left cursor-pointer transition-colors"
+            className="flex items-center gap-2.5 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-left cursor-pointer transition-colors"
           >
             <span className="text-lg shrink-0">{item.i}</span>
             <div className="min-w-0 flex-1">
-              <p className="font-sans font-extrabold text-[12px] text-neutral-700 m-0 truncate">
+              <p className="font-sans font-extrabold text-[12px] text-neutral-700 dark:text-neutral-200 m-0 truncate">
                 {item.l}
               </p>
               <p className="font-sans text-[10px] text-neutral-400 m-0 truncate">{item.s}</p>
