@@ -1,25 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { vitalSignsService, enhancedVitalSignsService } from '@/lib/firebaseService';
-import { Activity, List, Trash2 } from 'lucide-react';
 import { setSecureItem, getSecureItem } from '@/lib/encryption';
+
+const VITAL_TYPES = ['Temperature', 'Heart Rate', 'Blood Pressure', 'Weight', 'Other'];
+
+const FieldWrap: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className="space-y-1.5">
+    <label className="font-sans font-extrabold text-[11px] text-neutral-400 uppercase tracking-[0.07em]">
+      {label}
+    </label>
+    {children}
+  </div>
+);
 
 interface VitalSign {
   id: string;
+  vital_type?: string;
   temperature?: number;
   heart_rate?: number;
   blood_pressure_systolic?: number;
   blood_pressure_diastolic?: number;
   weight?: number;
   height?: number;
+  value?: string;
   date: string;
+  time?: string;
   notes?: string;
   created_at: string;
 }
@@ -30,246 +42,176 @@ const VitalSignsTracker: React.FC = () => {
   const { toast } = useToast();
   const [vitals, setVitals] = useState<VitalSign[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    temperature: '',
-    heart_rate: '',
-    blood_pressure_systolic: '',
-    blood_pressure_diastolic: '',
-    weight: '',
-    height: '',
-    date: new Date().toISOString().split('T')[0],
-    notes: ''
-  });
+  const [saved, setSaved] = useState(false);
+
+  const [vType, setVType] = useState('Temperature');
+  const [vVal, setVVal] = useState('');
+  const [vDate, setVDate] = useState(new Date().toISOString().split('T')[0]);
+  const [vTime, setVTime] = useState('');
 
   useEffect(() => {
-    if (childProfile) {
-      fetchVitals();
-    }
+    if (childProfile) fetchVitals();
   }, [childProfile]);
 
   const fetchVitals = async () => {
     if (!childProfile) return;
     try {
-      const vitals = await vitalSignsService.getVitalSigns(user?.uid || '', childProfile.id);
-      setVitals(vitals);
+      const data = await vitalSignsService.getVitalSigns(user?.uid || '', childProfile.id);
+      setVitals(data);
     } catch (error) {
-      console.log('Loading vitals from secure storage:', error);
       const key = `pandas-vitals-${childProfile.id}`;
       const stored = getSecureItem<VitalSign[]>(key);
       setVitals(stored || []);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!childProfile) return;
+  const handleSubmit = async () => {
+    if (!childProfile || !vVal) return;
 
     const newVital: Record<string, any> = {
       id: Date.now().toString(),
       child_id: childProfile.id,
       user_id: user?.uid || '',
-      date: formData.date,
-      notes: formData.notes || '',
+      vital_type: vType,
+      value: vVal,
+      date: vDate,
+      time: vTime,
       created_at: new Date().toISOString()
     };
-    if (formData.temperature) newVital.temperature = parseFloat(formData.temperature);
-    if (formData.heart_rate) newVital.heart_rate = parseInt(formData.heart_rate);
-    if (formData.blood_pressure_systolic) newVital.blood_pressure_systolic = parseInt(formData.blood_pressure_systolic);
-    if (formData.blood_pressure_diastolic) newVital.blood_pressure_diastolic = parseInt(formData.blood_pressure_diastolic);
-    if (formData.weight) newVital.weight = parseFloat(formData.weight);
-    if (formData.height) newVital.height = parseFloat(formData.height);
+
+    if (vType === 'Temperature') newVital.temperature = parseFloat(vVal);
+    else if (vType === 'Heart Rate') newVital.heart_rate = parseInt(vVal);
+    else if (vType === 'Weight') newVital.weight = parseFloat(vVal);
 
     try {
       setLoading(true);
       await vitalSignsService.addVitalSigns(newVital);
-      setVitals(prev => [newVital, ...prev]);
+      setVitals((prev) => [newVital as VitalSign, ...prev]);
     } catch (error) {
-      console.log('Saving vital to secure storage:', error);
-      setVitals(prev => [newVital, ...prev]);
+      setVitals((prev) => [newVital as VitalSign, ...prev]);
       const key = `pandas-vitals-${childProfile.id}`;
       const stored = getSecureItem<VitalSign[]>(key) || [];
-      stored.unshift(newVital);
+      stored.unshift(newVital as VitalSign);
       setSecureItem(key, stored);
     } finally {
       setLoading(false);
     }
 
-    setFormData({
-      temperature: '',
-      heart_rate: '',
-      blood_pressure_systolic: '',
-      blood_pressure_diastolic: '',
-      weight: '',
-      height: '',
-      date: new Date().toISOString().split('T')[0],
-      notes: ''
-    });
-
-    toast({ title: 'Success', description: 'Vital signs recorded successfully' });
+    setVVal('');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
   };
 
   const handleDelete = async (vitalId: string) => {
     try {
       await enhancedVitalSignsService.deleteVitalSigns(vitalId);
-    } catch (error) {
-      console.log('Deleting vital from secure storage:', error);
-    }
+    } catch (error) {}
 
-    setVitals(prev => {
-      const updated = prev.filter(vital => vital.id !== vitalId);
+    setVitals((prev) => {
+      const updated = prev.filter((v) => v.id !== vitalId);
       if (childProfile) {
         const key = `pandas-vitals-${childProfile.id}`;
         setSecureItem(key, updated);
       }
       return updated;
     });
-
-    toast({ title: 'Success', description: 'Vital sign deleted successfully' });
+    toast({ title: 'Deleted', description: 'Vital sign removed' });
   };
 
   if (!childProfile) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center justify-center py-8">
-          <Activity className="w-12 h-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">No Child Selected</h3>
-          <p className="text-gray-500 text-center">Please select a child to track vital signs</p>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-4xl mb-3">❤️</p>
+          <p className="font-serif text-xl text-neutral-700 mb-2">No Child Selected</p>
+          <p className="font-sans text-[13px] text-neutral-400">Please select a child to track vital signs</p>
         </CardContent>
       </Card>
     );
   }
 
+  const getPlaceholder = () => {
+    if (vType === 'Temperature') return 'e.g. 98.6';
+    if (vType === 'Blood Pressure') return 'e.g. 110/70';
+    if (vType === 'Heart Rate') return 'e.g. 80';
+    if (vType === 'Weight') return 'e.g. 50';
+    return 'Enter value';
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-xl font-semibold mb-2">Vital Signs Tracker</h3>
-        <p className="text-gray-600">Monitor and track vital signs for {childProfile.name}</p>
-      </div>
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-4 space-y-3.5">
+          <h3 className="font-serif text-xl text-neutral-800 m-0">Vital Signs</h3>
 
-      <Tabs defaultValue="record" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="record" className="flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            Record
-          </TabsTrigger>
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <List className="w-4 h-4" />
-            History
-          </TabsTrigger>
-        </TabsList>
+          <FieldWrap label="Vital Type">
+            <Select value={vType} onValueChange={setVType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {VITAL_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </FieldWrap>
 
-        <TabsContent value="record">
-          <Card>
-            <CardHeader>
-              <CardTitle>Record Vital Signs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="temperature">Temperature (°F)</Label>
-                    <Input
-                      id="temperature"
-                      type="number"
-                      step="0.1"
-                      value={formData.temperature}
-                      onChange={(e) => setFormData(prev => ({ ...prev, temperature: e.target.value }))}
-                      placeholder="98.6"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="heart_rate">Heart Rate (BPM)</Label>
-                    <Input
-                      id="heart_rate"
-                      type="number"
-                      value={formData.heart_rate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, heart_rate: e.target.value }))}
-                      placeholder="80"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="weight">Weight (lbs)</Label>
-                    <Input
-                      id="weight"
-                      type="number"
-                      step="0.1"
-                      value={formData.weight}
-                      onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
-                      placeholder="50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="height">Height (inches)</Label>
-                    <Input
-                      id="height"
-                      type="number"
-                      step="0.1"
-                      value={formData.height}
-                      onChange={(e) => setFormData(prev => ({ ...prev, height: e.target.value }))}
-                      placeholder="48"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="date">Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Recording...' : 'Record Vital Signs'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <FieldWrap label="Value">
+            <Input value={vVal} onChange={(e) => setVVal(e.target.value)} placeholder={getPlaceholder()} />
+          </FieldWrap>
 
-        <TabsContent value="list">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vital Signs History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {vitals.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No vital signs recorded yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {vitals.map((vital) => (
-                    <div key={vital.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-medium">{vital.date}</div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(vital.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        {vital.temperature && <div>Temp: {vital.temperature}°F</div>}
-                        {vital.heart_rate && <div>HR: {vital.heart_rate} BPM</div>}
-                        {vital.weight && <div>Weight: {vital.weight} lbs</div>}
-                        {vital.height && <div>Height: {vital.height} in</div>}
-                      </div>
-                      {vital.notes && (
-                        <div className="mt-2 text-sm text-gray-600">
-                          Notes: {vital.notes}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+          <div className="grid grid-cols-2 gap-3">
+            <FieldWrap label="Date">
+              <Input type="date" value={vDate} onChange={(e) => setVDate(e.target.value)} />
+            </FieldWrap>
+            <FieldWrap label="Time">
+              <Input type="time" value={vTime} onChange={(e) => setVTime(e.target.value)} />
+            </FieldWrap>
+          </div>
+
+          {saved ? (
+            <div className="p-3.5 bg-success-50 rounded-xl border border-success-100 text-center">
+              <span className="font-sans font-extrabold text-[14px] text-success-600">✓ Vital recorded</span>
+            </div>
+          ) : (
+            <Button className="w-full" onClick={handleSubmit} disabled={loading || !vVal}>
+              {loading ? 'Recording...' : 'Record Vital'}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {vitals.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <p className="font-sans font-extrabold text-[11px] text-neutral-500 uppercase tracking-[0.07em] mb-3">
+              Vital Signs History
+            </p>
+            <div className="divide-y divide-neutral-100">
+              {vitals.map((v) => (
+                <div key={v.id} className="py-3 first:pt-0 last:pb-0 flex justify-between items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className="font-sans font-extrabold text-[13px] text-neutral-800">
+                      {v.vital_type || 'Vital'}: {v.value || [
+                        v.temperature && `${v.temperature}°F`,
+                        v.heart_rate && `${v.heart_rate} BPM`,
+                        v.weight && `${v.weight} lbs`,
+                        v.height && `${v.height} in`,
+                        v.blood_pressure_systolic && `${v.blood_pressure_systolic}/${v.blood_pressure_diastolic}`,
+                      ].filter(Boolean).join(', ')}
+                    </span>
+                    <p className="font-sans text-[11px] text-neutral-400 mt-0.5">{v.date}{v.time ? ` · ${v.time}` : ''}</p>
+                    {v.notes && <p className="font-sans text-[12px] text-neutral-500 mt-1 italic">{v.notes}</p>}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(v.id)}
+                    className="text-[11px] text-danger-500 bg-danger-50 border border-danger-200 rounded-lg px-2 py-1 font-bold cursor-pointer"
+                  >
+                    🗑️
+                  </button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

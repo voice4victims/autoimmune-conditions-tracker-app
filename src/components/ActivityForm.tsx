@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Plus } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+
+const ACTIVITY_TYPES = ['Screen Time', 'Physical Activity', 'Social Interaction', 'School/Learning', 'Therapy', 'Outdoor Activity', 'Other'];
+
+const FieldWrap: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className="space-y-1.5">
+    <label className="font-sans font-extrabold text-[11px] text-neutral-400 uppercase tracking-[0.07em]">
+      {label}
+    </label>
+    {children}
+  </div>
+);
 
 interface ActivityFormProps {
   onSubmit: (activity: {
@@ -19,10 +28,17 @@ interface ActivityFormProps {
 
 const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit }) => {
   const [activityName, setActivityName] = useState('');
-  const [activityType, setActivityType] = useState<'screen_time' | 'outdoor' | 'indoor'>('screen_time');
+  const [activityType, setActivityType] = useState('Screen Time');
   const [duration, setDuration] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  const typeToValue = (t: string): 'screen_time' | 'outdoor' | 'indoor' => {
+    if (t === 'Screen Time') return 'screen_time';
+    if (t === 'Outdoor Activity') return 'outdoor';
+    return 'indoor';
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,104 +46,59 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit }) => {
 
     onSubmit({
       activity_name: activityName,
-      activity_type: activityType,
+      activity_type: typeToValue(activityType),
       duration_minutes: parseInt(duration),
       date,
       notes: notes || undefined
     });
 
-    // Reset form
     setActivityName('');
     setDuration('');
     setNotes('');
-  };
-
-  const getActivityTypeLabel = (type: string) => {
-    switch (type) {
-      case 'screen_time': return 'Screen Time';
-      case 'outdoor': return 'Outdoor Activity';
-      case 'indoor': return 'Indoor Activity';
-      default: return type;
-    }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
   };
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          Log Activity
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="activity-name">Activity Name</Label>
-              <Input
-                id="activity-name"
-                value={activityName}
-                onChange={(e) => setActivityName(e.target.value)}
-                placeholder="e.g., iPad games, Soccer, Reading"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="activity-type">Activity Type</Label>
-              <Select value={activityType} onValueChange={(value: 'screen_time' | 'outdoor' | 'indoor') => setActivityType(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="screen_time">Screen Time</SelectItem>
-                  <SelectItem value="outdoor">Outdoor Activity</SelectItem>
-                  <SelectItem value="indoor">Indoor Activity</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <CardContent className="p-4 space-y-3.5">
+        <h3 className="font-serif text-xl text-neutral-800 m-0">Log Activity</h3>
+
+        <FieldWrap label="Activity Name">
+          <Input value={activityName} onChange={(e) => setActivityName(e.target.value)} placeholder="e.g. 30 min walk, Lego time..." />
+        </FieldWrap>
+
+        <FieldWrap label="Activity Type">
+          <Select value={activityType} onValueChange={setActivityType}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {ACTIVITY_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </FieldWrap>
+
+        <div className="grid grid-cols-2 gap-3">
+          <FieldWrap label="Duration (min)">
+            <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} min="1" />
+          </FieldWrap>
+          <FieldWrap label="Date">
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          </FieldWrap>
+        </div>
+
+        <FieldWrap label="Notes">
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any observations..." className="min-h-[68px] resize-none" />
+        </FieldWrap>
+
+        {saved ? (
+          <div className="p-3.5 bg-success-50 rounded-xl border border-success-100 text-center">
+            <span className="font-sans font-extrabold text-[14px] text-success-600">✓ Activity logged</span>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="duration">Duration (minutes)</Label>
-              <Input
-                id="duration"
-                type="number"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="30"
-                min="1"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="notes">Notes (optional)</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional details..."
-              rows={2}
-            />
-          </div>
-          
-          <Button type="submit" className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
+        ) : (
+          <Button type="submit" className="w-full" onClick={handleSubmit} disabled={!activityName || !duration}>
             Log Activity
           </Button>
-        </form>
+        )}
       </CardContent>
     </Card>
   );

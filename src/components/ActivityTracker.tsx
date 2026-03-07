@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import ActivityForm from './ActivityForm';
-import ActivityList from './ActivityList';
-import { Clock, BarChart3 } from 'lucide-react';
 
 interface Activity {
   id: string;
@@ -28,22 +25,18 @@ const ActivityTracker: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (childProfile) {
-      fetchActivities();
-    }
+    if (childProfile) fetchActivities();
   }, [childProfile]);
 
   const fetchActivities = async () => {
     if (!childProfile || !user) return;
-
     try {
       const activitiesRef = collection(db, 'activity_logs');
       const q = query(activitiesRef, where('userId', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), orderBy('created_at', 'desc'));
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setActivities(data as Activity[]);
     } catch (error) {
-      console.log('Error fetching from Firestore, falling back to localStorage', error);
       const key = `pandas-activities-${childProfile.id}`;
       const stored = localStorage.getItem(key);
       setActivities(stored ? JSON.parse(stored) : []);
@@ -60,126 +53,95 @@ const ActivityTracker: React.FC = () => {
     notes?: string;
   }) => {
     if (!childProfile || !user) return;
-
-    const newActivityData = {
-      child_id: childProfile.id,
-      userId: user.uid,
-      ...activityData,
-      created_at: serverTimestamp()
-    };
-
+    const newActivityData = { child_id: childProfile.id, userId: user.uid, ...activityData, created_at: serverTimestamp() };
     try {
       const docRef = await addDoc(collection(db, 'activity_logs'), newActivityData);
-      const newActivity = { ...newActivityData, id: docRef.id, created_at: new Date() };
-      setActivities(prev => [newActivity, ...prev]);
+      setActivities(prev => [{ ...newActivityData, id: docRef.id, created_at: new Date() }, ...prev]);
     } catch (error) {
-      console.log('Saving activity to localStorage:', error);
-      const newActivity = {
-        id: Date.now().toString(),
-        child_id: childProfile.id,
-        created_at: new Date().toISOString(),
-        ...activityData
-      };
+      const newActivity = { id: Date.now().toString(), child_id: childProfile.id, created_at: new Date().toISOString(), ...activityData };
       setActivities(prev => [newActivity, ...prev]);
       const key = `pandas-activities-${childProfile.id}`;
       const stored = localStorage.getItem(key);
-      const activities = stored ? JSON.parse(stored) : [];
-      activities.unshift(newActivity);
-      localStorage.setItem(key, JSON.stringify(activities));
+      const list = stored ? JSON.parse(stored) : [];
+      list.unshift(newActivity);
+      localStorage.setItem(key, JSON.stringify(list));
     }
-
-    toast({
-      title: 'Success',
-      description: 'Activity logged successfully'
-    });
   };
 
-  const handleDeleteActivity = async (activityId: string) => {
-    try {
-      await deleteDoc(doc(db, 'activity_logs', activityId));
-    } catch (error) {
-      console.log('Error deleting from Firestore, deleting from localStorage', error);
-    }
-
+  const handleDelete = async (activityId: string) => {
+    try { await deleteDoc(doc(db, 'activity_logs', activityId)); } catch (error) {}
     setActivities(prev => {
-      const updated = prev.filter(activity => activity.id !== activityId);
-      if (childProfile) {
-        const key = `pandas-activities-${childProfile.id}`;
-        localStorage.setItem(key, JSON.stringify(updated));
-      }
+      const updated = prev.filter(a => a.id !== activityId);
+      if (childProfile) localStorage.setItem(`pandas-activities-${childProfile.id}`, JSON.stringify(updated));
       return updated;
     });
-
-    toast({
-      title: 'Success',
-      description: 'Activity deleted successfully'
-    });
+    toast({ title: 'Deleted', description: 'Activity removed' });
   };
+
+  const formatDuration = (min: number) => {
+    if (min < 60) return `${min}m`;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
+
+  const typeLabel = (t: string) => t === 'screen_time' ? 'Screen Time' : t === 'outdoor' ? 'Outdoor' : 'Indoor';
 
   if (!childProfile) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Clock className="w-16 h-16 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
-            No Child Selected
-          </h3>
-          <p className="text-gray-500 text-center">
-            Please select a child to track their activities
-          </p>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-4xl mb-3">🏃</p>
+          <p className="font-serif text-xl text-neutral-700 mb-2">No Child Selected</p>
+          <p className="font-sans text-[13px] text-neutral-400">Please select a child to track activities</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Activity Tracker
-        </h2>
-        <p className="text-gray-600">
-          Track screen time and activities for {childProfile.name}
-        </p>
-      </div>
+    <div className="space-y-4">
+      <ActivityForm onSubmit={handleAddActivity} />
 
-      <Tabs defaultValue="log" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="log" className="flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            Log Activity
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            History
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="log">
-          <ActivityForm onSubmit={handleAddActivity} />
-        </TabsContent>
-
-        <TabsContent value="history">
-          <Card>
-            <CardHeader>
-              <CardTitle>Activity History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Loading activities...</p>
+      {loading ? (
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
+          </CardContent>
+        </Card>
+      ) : activities.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <p className="font-sans font-extrabold text-[11px] text-neutral-500 uppercase tracking-[0.07em] mb-3">
+              Activity History
+            </p>
+            <div className="divide-y divide-neutral-100">
+              {activities.map((a) => (
+                <div key={a.id} className="py-3 first:pt-0 last:pb-0 flex justify-between items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-sans font-extrabold text-[13px] text-neutral-800">{a.activity_name}</span>
+                      <span className="font-sans font-bold text-[10px] px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
+                        {typeLabel(a.activity_type)}
+                      </span>
+                    </div>
+                    <p className="font-sans text-[11px] text-neutral-400 mt-0.5">
+                      {formatDuration(a.duration_minutes)} · {a.date}
+                    </p>
+                    {a.notes && <p className="font-sans text-[12px] text-neutral-500 mt-1 italic">{a.notes}</p>}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(a.id)}
+                    className="text-[11px] text-danger-500 bg-danger-50 border border-danger-200 rounded-lg px-2 py-1 font-bold cursor-pointer"
+                  >
+                    🗑️
+                  </button>
                 </div>
-              ) : (
-                <ActivityList
-                  activities={activities}
-                  onDelete={handleDeleteActivity}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

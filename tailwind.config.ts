@@ -28,15 +28,52 @@ export default {
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
+          foreground: 'hsl(var(--primary-foreground))',
+          50: '#EDF6F9',
+          100: '#D1EBF1',
+          200: '#A3D7E3',
+          400: '#47AFD0',
+          500: '#1F8DB5',
+          600: '#176F91',
+          700: '#105270',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
+          foreground: 'hsl(var(--secondary-foreground))',
+          50: '#F4F0FA',
+          100: '#E9E1F5',
+          200: '#D3C3EB',
+          400: '#A78BD6',
+          500: '#8A6DD2',
+          600: '#6E50C3',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))'
+        },
+        danger: {
+          50: '#FFF0F0',
+          100: '#FFD6D6',
+          200: '#FFB3B3',
+          400: '#FF4545',
+          500: '#E82020',
+          600: '#B81818',
+        },
+        success: {
+          50: '#EDFAF3',
+          100: '#D1F4E1',
+          200: '#A3E9C3',
+          400: '#3CB371',
+          500: '#28BC79',
+          600: '#1E9A5F',
+        },
+        warning: {
+          50: '#FFF8E6',
+          100: '#FFE0A0',
+          200: '#FFD580',
+          400: '#F5A81A',
+          500: '#E09600',
+          600: '#A06000',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
@@ -66,8 +103,9 @@ export default {
         }
       },
       fontFamily: {
+        serif: ['DM Serif Display', 'Georgia', 'serif'],
+        sans: ['Nunito', 'Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
-        sans: ['Inter', 'sans-serif'],
       },
       borderRadius: {
         lg: 'calc(var(--radius) + 2px)',
