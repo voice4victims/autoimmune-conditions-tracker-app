@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Heart, Activity, Pill, Clock, ChefHat, FileText, BarChart3, Calendar, Stethoscope, FolderOpen, Mail, Shield, BookOpen, ClipboardCheck, Brain } from 'lucide-react';
+import { ArrowLeft, Heart, Activity, Pill, Clock, ChefHat, FileText, BarChart3, Calendar, Stethoscope, FolderOpen, Mail, Shield, BookOpen, ClipboardCheck, Brain, AlertTriangle } from 'lucide-react';
 
 
 interface MoreMenuProps {
@@ -27,6 +27,7 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
   }
 
   const menuItems = [
+    { id: 'triggers', label: 'Trigger Log', icon: AlertTriangle, description: 'Log strep exposures, illness & triggers' },
     { id: 'analytics', label: 'Analytics', icon: Brain, description: 'Advanced treatment analysis' },
     { id: 'ptec', label: 'PTEC', icon: ClipboardCheck, description: 'Treatment evaluation checklist' },
     { id: 'selfcare', label: 'Self Care', icon: Heart, description: 'Wellness tips and guidance' },

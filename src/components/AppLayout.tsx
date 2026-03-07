@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrivacy } from '@/contexts/PrivacyContext';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
@@ -9,6 +9,7 @@ import { User, Settings, Menu, Monitor, Smartphone, Tablet, Shield, AlertTriangl
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import PANDASApp from './PANDASApp';
+import SplashScreen from './SplashScreen';
 import ThemeToggle from './ThemeToggle';
 
 const AppLayout: React.FC = () => {
@@ -16,8 +17,14 @@ const AppLayout: React.FC = () => {
   const { privacySettings, loading: privacyLoading, error: privacyError } = usePrivacy();
   const deviceInfo = useDeviceDetection();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [currentTab, setCurrentTab] = useState('track');
+  const [currentTab, setCurrentTab] = useState('home');
   const [showChildManager, setShowChildManager] = useState(false);
+  const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem('pandas_splash_shown'));
+
+  const handleSplashDone = useCallback(() => {
+    sessionStorage.setItem('pandas_splash_shown', '1');
+    setShowSplash(false);
+  }, []);
 
   const handleAppSettingsClick = () => {
     setCurrentTab('profile');
@@ -111,6 +118,10 @@ const AppLayout: React.FC = () => {
       </DropdownMenuContent>
     </DropdownMenu>
   );
+
+  if (showSplash) {
+    return <SplashScreen onDone={handleSplashDone} />;
+  }
 
   return (
     <div className={`min-h-screen android-fix bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 ${deviceInfo.isMobile ? 'mobile-layout' : deviceInfo.isTablet ? 'tablet-layout' : 'desktop-layout'

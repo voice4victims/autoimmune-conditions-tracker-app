@@ -38,7 +38,9 @@ import ProfileAndSecurity from './ProfileAndSecurity';
 import PrivacySettings from './PrivacySettings';
 import PrivacyNotifications from './PrivacyNotifications';
 import { ProviderAccessManager } from './ProviderAccessManager';
-import { Activity, User, Settings, Utensils, Users, Clock, HelpCircle, MoreHorizontal, Search, ListTree, Shield } from 'lucide-react';
+import HomeScreen from './HomeScreen';
+import TriggerTracker from './TriggerTracker';
+import { Activity, User, Settings, Utensils, Users, Clock, HelpCircle, MoreHorizontal, Search, ListTree, Shield, Home } from 'lucide-react';
 
 interface PANDASAppProps {
   currentTab: string;
@@ -151,7 +153,11 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
           <div className="sticky top-20 bg-background/95 backdrop-blur-sm z-40 pb-2">
             <ScrollArea className="w-full">
               <TabsList className="inline-flex h-auto p-1.5 bg-muted rounded-lg w-full">
-                <div className="grid grid-cols-10 gap-0.5 sm:gap-1 w-full">
+                <div className="grid grid-cols-11 gap-0.5 sm:gap-1 w-full">
+                  <TabsTrigger value="home" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
+                    <Home className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                    <span className="truncate">Home</span>
+                  </TabsTrigger>
                   <TabsTrigger value="profile" className="flex flex-col items-center gap-1 py-2 px-1 sm:py-3 sm:px-2 text-[10px] sm:text-xs touch-manipulation min-w-0">
                     <User className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="truncate">Profile</span>
@@ -196,6 +202,34 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
               </TabsList>
             </ScrollArea>
           </div>
+
+          <TabsContent value="home" className="mt-6">
+            <HomeScreen
+              onQuickLog={() => handleTabChange('track')}
+              onNavigate={(tab: string) => {
+                if (tab === 'triggers') {
+                  setCurrentTab('more');
+                  setActiveMoreTab('triggers');
+                } else if (tab === 'symptoms' || tab === 'chart' || tab === 'treatment' || tab === 'export') {
+                  const tabMap: Record<string, string> = {
+                    symptoms: 'track',
+                    chart: 'more',
+                    treatment: 'more',
+                    export: 'more',
+                  };
+                  const moreMap: Record<string, string> = {
+                    chart: 'history',
+                    treatment: 'treatments',
+                    export: 'email',
+                  };
+                  setCurrentTab(tabMap[tab] || tab);
+                  if (moreMap[tab]) setActiveMoreTab(moreMap[tab]);
+                } else {
+                  setCurrentTab(tab);
+                }
+              }}
+            />
+          </TabsContent>
 
           <TabsContent value="profile" className="mt-6">
             <ProfileAndSecurity showChildManager={showChildManager} setShowChildManager={setShowChildManager} />
@@ -309,6 +343,11 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
               {activeMoreTab === 'email' && <EmailRecordsForm />}
               {activeMoreTab === 'drug-safety' && <DrugInteractionChecker />}
               {activeMoreTab === 'resources' && <ResourcesTab />}
+              {activeMoreTab === 'triggers' && (
+                <PermissionGuard permissions={['read_data']}>
+                  <TriggerTracker />
+                </PermissionGuard>
+              )}
 
             </div>
           </TabsContent>
