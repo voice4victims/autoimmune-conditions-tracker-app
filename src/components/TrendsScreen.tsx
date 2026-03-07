@@ -96,12 +96,12 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="bg-white px-5 py-3.5 border-b border-neutral-100 flex justify-between items-center shrink-0">
+      <div className="bg-white dark:bg-neutral-900 px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center shrink-0">
         <div>
           <p className="font-sans text-[11px] font-bold uppercase tracking-[0.07em] text-neutral-400 mb-0.5">
             {childProfile?.name ?? 'Child'} · {range} view
           </p>
-          <h2 className="font-serif text-[22px] text-neutral-800 m-0 tracking-[-0.2px]">Trends</h2>
+          <h2 className="font-serif text-[22px] text-neutral-800 dark:text-neutral-100 m-0 tracking-[-0.2px]">Trends</h2>
         </div>
         <button
           onClick={() => onOpenMore('email')}

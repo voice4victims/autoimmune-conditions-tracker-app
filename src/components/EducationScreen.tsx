@@ -56,7 +56,7 @@ const EducationScreen: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex overflow-x-auto gap-1 px-4 py-2.5 bg-white border-b border-neutral-100 shrink-0">
+      <div className="flex overflow-x-auto gap-1 px-4 py-2.5 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
         {EDU_TABS.map((t) => (
           <button
             key={t.id}

@@ -150,7 +150,7 @@ const AppLayout: React.FC = () => {
 
   if (children.length === 0) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
         <div
           className="px-5 py-4 flex items-center gap-3"
           style={{ background: 'linear-gradient(135deg, #176F91, #573F9E)' }}
@@ -222,11 +222,11 @@ const AppLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col relative">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col relative">
       <MedicalDisclaimer />
       <SelfCareBanner />
 
-      <div className="bg-white px-4 py-2.5 border-b border-neutral-100 flex items-center justify-between shrink-0">
+      <div className="bg-white dark:bg-neutral-900 px-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-[14px]"
@@ -235,7 +235,7 @@ const AppLayout: React.FC = () => {
             👦
           </div>
           <div>
-            <p className="font-sans font-extrabold text-[13px] text-neutral-800 m-0">
+            <p className="font-sans font-extrabold text-[13px] text-neutral-800 dark:text-neutral-100 m-0">
               Tracking: {childProfile?.name ?? 'Select child'}
             </p>
             <p className="font-sans text-[10px] text-neutral-400 m-0">Active profile</p>
@@ -245,7 +245,7 @@ const AppLayout: React.FC = () => {
           {children.length > 1 && (
             <button
               onClick={switchChild}
-              className="font-sans font-bold text-[11px] text-primary-500 bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1 cursor-pointer"
+              className="font-sans font-bold text-[11px] text-primary-500 bg-primary-50 dark:bg-primary-600/20 border border-primary-200 dark:border-primary-700 rounded-lg px-2.5 py-1 cursor-pointer"
             >
               Switch
             </button>
@@ -255,7 +255,7 @@ const AppLayout: React.FC = () => {
               setScreen('more');
               setActiveMoreTab('profile');
             }}
-            className="font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 cursor-pointer"
+            className="font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2.5 py-1 cursor-pointer"
           >
             + Add
           </button>
@@ -264,7 +264,7 @@ const AppLayout: React.FC = () => {
               setScreen('more');
               setActiveMoreTab('profile');
             }}
-            className="font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 cursor-pointer"
+            className="font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2.5 py-1 cursor-pointer"
           >
             ⚙️
           </button>
@@ -306,11 +306,11 @@ const AppLayout: React.FC = () => {
         {screen === 'more' && activeMoreTab !== 'learn' && (
           <div className="flex-1 flex flex-col overflow-hidden">
             {!activeMoreTab && (
-              <div className="bg-white px-5 py-3.5 border-b border-neutral-100 shrink-0">
+              <div className="bg-white dark:bg-neutral-900 px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
                 <p className="font-sans text-[11px] font-bold uppercase tracking-[0.07em] text-neutral-400 mb-0.5">
                   All features
                 </p>
-                <h2 className="font-serif text-[22px] text-neutral-800 m-0 tracking-[-0.2px]">
+                <h2 className="font-serif text-[22px] text-neutral-800 dark:text-neutral-100 m-0 tracking-[-0.2px]">
                   More
                 </h2>
               </div>
@@ -327,7 +327,7 @@ const AppLayout: React.FC = () => {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 flex pb-[env(safe-area-inset-bottom,8px)] pt-2 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex pb-[env(safe-area-inset-bottom,8px)] pt-2 z-50">
         {NAV_TABS.map((t) => (
           <div
             key={t.id}

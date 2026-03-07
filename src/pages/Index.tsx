@@ -9,7 +9,7 @@ const Index: React.FC = () => {
   if (loading) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center"
+        className="fixed inset-0 flex flex-col items-center justify-center"
         style={{ background: 'linear-gradient(160deg, #0E1F6A 0%, #1a3585 50%, #0D4A72 100%)' }}
       >
         <img
@@ -26,10 +26,12 @@ const Index: React.FC = () => {
   if (!user) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center py-10"
+        className="fixed inset-0 flex items-center justify-center overflow-y-auto"
         style={{ background: 'linear-gradient(160deg, #0E1F6A 0%, #1a3585 50%, #0D4A72 100%)' }}
       >
-        <AuthForm onAuthSuccess={() => {}} />
+        <div className="py-10 w-full">
+          <AuthForm onAuthSuccess={() => {}} />
+        </div>
       </div>
     );
   }

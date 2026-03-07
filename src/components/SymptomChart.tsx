@@ -1,91 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
-import { SymptomRating } from '@/types/pandas';
 import SymptomHistoryDetails from './SymptomHistoryDetails';
-import { BarChart3 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 const SymptomChart: React.FC = () => {
-  const { childProfile } = useApp();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [symptoms, setSymptoms] = useState<SymptomRating[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (childProfile) {
-      fetchSymptoms();
-    }
-  }, [childProfile]);
-
-  const fetchSymptoms = async () => {
-    if (!childProfile || !user) return;
-
-    setLoading(true);
-    try {
-      const symptomsRef = collection(db, 'symptom_ratings');
-      const q = query(symptomsRef, where('user_id', '==', user.uid), where('child_id', '==', childProfile.id), orderBy('date', 'desc'), limit(100));
-      const querySnapshot = await getDocs(q);
-      const symptomsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      // Transform database data to match SymptomRating interface
-      const formattedSymptoms = (symptomsData || []).map(item => ({
-        id: item.id,
-        symptomType: item.symptom_type,
-        severity: item.severity,
-        date: item.date,
-        notes: item.notes
-      }));
-
-      setSymptoms(formattedSymptoms as SymptomRating[]);
-    } catch (error) {
-      console.error('Error fetching symptoms:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load symptom history',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { childProfile, symptoms } = useApp();
 
   if (!childProfile) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <p className="text-gray-500">Please select a child profile to view symptom history</p>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-4xl mb-3">📊</p>
+          <p className="font-serif text-xl text-neutral-700 mb-2">No Child Selected</p>
+          <p className="font-sans text-[13px] text-neutral-400">Select a child profile to view symptom history</p>
         </CardContent>
       </Card>
     );
   }
 
+  if (symptoms.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-4xl mb-3">📈</p>
+          <p className="font-serif text-xl text-neutral-700 mb-2">No Symptoms Recorded</p>
+          <p className="font-sans text-[13px] text-neutral-400">Start tracking symptoms to see history here</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const sorted = [...symptoms].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-          <BarChart3 className="w-5 h-5" />
+    <Card>
+      <CardContent className="p-4">
+        <p className="font-sans font-extrabold text-[11px] text-neutral-500 uppercase tracking-[0.07em] mb-3">
           Symptom History
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="text-center py-8 sm:py-12">
-            <p className="text-gray-500 text-sm sm:text-base">Loading symptoms...</p>
-          </div>
-        ) : symptoms.length === 0 ? (
-          <div className="text-center py-8 sm:py-12">
-            <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 text-sm sm:text-base">No symptoms recorded yet</p>
-            <p className="text-gray-400 text-xs sm:text-sm mt-2">Start tracking symptoms to see history here</p>
-          </div>
-        ) : (
-          <SymptomHistoryDetails symptoms={symptoms} />
-        )}
+        </p>
+        <SymptomHistoryDetails symptoms={sorted} />
       </CardContent>
     </Card>
   );

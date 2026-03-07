@@ -27,14 +27,14 @@ const RecordsScreen: React.FC<RecordsScreenProps> = ({ initialTab = 'files' }) =
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="bg-white px-5 py-3.5 border-b border-neutral-100 shrink-0">
+      <div className="bg-white dark:bg-neutral-900 px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
         <p className="font-sans text-[11px] font-bold uppercase tracking-[0.07em] text-neutral-400 mb-0.5">
           {childProfile?.name ?? 'Child'}
         </p>
-        <h2 className="font-serif text-[22px] text-neutral-800 m-0 tracking-[-0.2px]">Records</h2>
+        <h2 className="font-serif text-[22px] text-neutral-800 dark:text-neutral-100 m-0 tracking-[-0.2px]">Records</h2>
       </div>
 
-      <div className="flex overflow-x-auto gap-1 px-4 py-2.5 bg-white border-b border-neutral-100 shrink-0">
+      <div className="flex overflow-x-auto gap-1 px-4 py-2.5 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
         {RECORD_TABS.map((t) => (
           <button
             key={t.id}
