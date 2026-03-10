@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Heart, Users, BookOpen, Shield } from 'lucide-react';
+import { openUrl } from '@/lib/capacitor';
 
 const ResourcesTab: React.FC = () => {
   const resources = [
@@ -59,7 +60,7 @@ const ResourcesTab: React.FC = () => {
 
 
   const handleLinkClick = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    openUrl(url);
   };
 
   return (

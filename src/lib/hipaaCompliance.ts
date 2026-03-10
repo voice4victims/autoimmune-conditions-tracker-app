@@ -159,7 +159,7 @@ export class HIPAAComplianceService {
         this.clearSensitiveData();
 
         // Redirect to login
-        window.location.href = '/login?reason=timeout';
+        location.href = '/login?reason=timeout';
     }
 
     private static getCurrentUserId(): string | null {

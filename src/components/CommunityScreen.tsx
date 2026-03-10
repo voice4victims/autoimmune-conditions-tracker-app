@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
+import { openUrl } from '@/lib/capacitor';
 
 const TABS = [
   { id: 'orgs', icon: '🏛️', label: 'Organizations' },
@@ -20,7 +21,7 @@ const LinkCard: React.FC<{
 }> = ({ icon, title, description, url, color, tag }) => (
   <Card
     className={cn('mb-3', url && 'cursor-pointer hover:shadow-md transition-shadow')}
-    onClick={() => url && window.open(url, '_blank')}
+    onClick={() => url && openUrl(url)}
   >
     <CardContent className="p-4">
       <div className="flex items-start gap-3">

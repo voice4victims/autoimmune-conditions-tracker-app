@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import { useAuth } from '@/contexts/AuthContext';
+import { copyToClipboard } from '@/lib/capacitor';
 
 const MfaSetup: React.FC = () => {
   const { toast } = useToast();
@@ -64,7 +65,7 @@ const MfaSetup: React.FC = () => {
               </div>
             ))}
           </div>
-          <Button className="mt-4" onClick={() => navigator.clipboard.writeText(recoveryCodes.join('\n'))}>
+          <Button className="mt-4" onClick={() => copyToClipboard(recoveryCodes.join('\n'))}>
             Copy Codes
           </Button>
         </CardContent>

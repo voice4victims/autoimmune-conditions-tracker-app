@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { SymptomRating, ChildProfile } from '@/types/pandas';
 import { toast } from '@/components/ui/use-toast';
 import { Mail } from 'lucide-react';
+import { openMailto } from '@/lib/capacitor';
 
 interface EmailChartProps {
   childProfile: ChildProfile;
@@ -58,7 +59,7 @@ const EmailChart: React.FC<EmailChartProps> = ({ childProfile }) => {
     
     const mailtoLink = `mailto:${doctorEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
-    window.open(mailtoLink);
+    openMailto(mailtoLink);
     toast({ title: 'Success', description: 'Email client opened with symptom report' });
   };
 

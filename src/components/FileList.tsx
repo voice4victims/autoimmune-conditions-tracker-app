@@ -10,6 +10,7 @@ import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/fire
 import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
+import { openUrl } from '@/lib/capacitor';
 
 interface FileUpload {
   id: string;
@@ -56,10 +57,7 @@ const FileList: React.FC = () => {
       const fileRef = ref(storage, file.storage_path);
       const url = await getDownloadURL(fileRef);
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.file_name;
-      a.click();
+      await openUrl(url);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to download file', variant: 'destructive' });
     }

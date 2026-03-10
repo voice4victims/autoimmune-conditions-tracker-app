@@ -29,7 +29,7 @@ export const FamilyAcceptInvite: React.FC = () => {
 
       setInviteCode('');
       // Refresh the page to update access
-      window.location.reload();
+      location.reload();
     } catch (error) {
       console.error('Error accepting invitation:', error);
       toast({

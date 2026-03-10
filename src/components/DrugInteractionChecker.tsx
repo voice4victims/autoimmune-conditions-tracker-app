@@ -3,14 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, AlertTriangle, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { openUrl } from '@/lib/capacitor';
 
 const DrugInteractionChecker: React.FC = () => {
   const handleDrugsComClick = () => {
-    window.open('https://www.drugs.com/drug_interactions.html', '_blank', 'noopener,noreferrer');
+    openUrl('https://www.drugs.com/drug_interactions.html');
   };
 
   const handleFDAClick = () => {
-    window.open('https://www.fda.gov/safety/medwatch-fda-safety-information-and-adverse-event-reporting-program', '_blank', 'noopener,noreferrer');
+    openUrl('https://www.fda.gov/safety/medwatch-fda-safety-information-and-adverse-event-reporting-program');
   };
 
   return (

@@ -17,6 +17,7 @@ import { auditService } from '@/lib/auditService';
 import { AccessLog, LogFilters, SuspiciousActivity, PrivacyAction, AccessResult } from '@/types/privacy';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { saveBlobFile } from '@/lib/capacitor';
 
 // Extend jsPDF type to include autoTable
 declare module 'jspdf' {
@@ -174,8 +175,8 @@ const AuditLogPanel: React.FC<AuditLogPanelProps> = ({ className }) => {
                 headStyles: { fillColor: [66, 139, 202] }
             });
 
-            // Save PDF
-            pdf.save(`privacy-audit-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+            const pdfBlob = pdf.output('blob');
+            await saveBlobFile(`privacy-audit-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`, pdfBlob);
 
         } catch (err) {
             console.error('Error exporting PDF:', err);
