@@ -67,14 +67,43 @@ export interface SessionSecurityEvent {
  * Provides comprehensive session management with security controls
  * to prevent session-based attacks and ensure HIPAA compliance.
  */
+export const SESSION_TIMEOUT_OPTIONS = [
+    { label: '5 minutes', value: 5 },
+    { label: '15 minutes', value: 15 },
+    { label: '30 minutes', value: 30 },
+    { label: '1 hour', value: 60 },
+    { label: '2 hours', value: 120 },
+    { label: '4 hours', value: 240 },
+    { label: '8 hours', value: 480 },
+    { label: '12 hours', value: 720 },
+    { label: '24 hours', value: 1440 },
+] as const;
+
+const SESSION_TIMEOUT_KEY = 'pandas_session_timeout_minutes';
+
+export function getSessionTimeoutMinutes(): number {
+    const stored = localStorage.getItem(SESSION_TIMEOUT_KEY);
+    if (stored) {
+        const val = parseInt(stored, 10);
+        if (SESSION_TIMEOUT_OPTIONS.some(o => o.value === val)) return val;
+    }
+    return 15;
+}
+
+export function setSessionTimeoutMinutes(minutes: number): void {
+    localStorage.setItem(SESSION_TIMEOUT_KEY, String(minutes));
+}
+
 export class SessionManager {
     private static instance: SessionManager;
 
-    // HIPAA compliance requires 15-minute timeout for unattended systems
-    private readonly SESSION_TIMEOUT_MINUTES = 15;
-    private readonly ELEVATED_SESSION_TIMEOUT_MINUTES = 5; // For sensitive operations
+    private readonly ELEVATED_SESSION_TIMEOUT_MINUTES = 5;
     private readonly MAX_CONCURRENT_SESSIONS = 3;
-    private readonly SESSION_EXTENSION_THRESHOLD_MINUTES = 5; // Extend session if activity within 5 minutes of expiry
+    private readonly SESSION_EXTENSION_THRESHOLD_MINUTES = 5;
+
+    private get SESSION_TIMEOUT_MINUTES(): number {
+        return getSessionTimeoutMinutes();
+    }
 
     public static getInstance(): SessionManager {
         if (!SessionManager.instance) {

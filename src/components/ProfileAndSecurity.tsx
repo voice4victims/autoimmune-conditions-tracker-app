@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MfaSetup from '@/components/MfaSetup';
 import DataDeletion from '@/components/DataDeletion';
 import AuditTrail from '@/components/AuditTrail';
@@ -12,8 +12,9 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from './ui/button';
 import { useTheme } from '@/components/theme-provider';
 import { useAuth } from '@/contexts/AuthContext';
-import { Moon, Sun, LogOut } from 'lucide-react';
+import { Moon, Sun, LogOut, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SESSION_TIMEOUT_OPTIONS, getSessionTimeoutMinutes, setSessionTimeoutMinutes } from '@/lib/security/sessionManager';
 
 interface ProfileAndSecurityProps {
   showChildManager: boolean;
@@ -23,6 +24,12 @@ interface ProfileAndSecurityProps {
 const ProfileAndSecurity: React.FC<ProfileAndSecurityProps> = ({ showChildManager, setShowChildManager }) => {
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
+  const [sessionTimeout, setSessionTimeout] = useState(getSessionTimeoutMinutes);
+
+  const handleTimeoutChange = (minutes: number) => {
+    setSessionTimeoutMinutes(minutes);
+    setSessionTimeout(minutes);
+  };
 
   return (
     <div className="space-y-4">
@@ -76,6 +83,41 @@ const ProfileAndSecurity: React.FC<ProfileAndSecurityProps> = ({ showChildManage
               />
             </button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <Timer className="w-5 h-5 text-primary-500" />
+            <div>
+              <p className="font-sans font-bold text-[13px] text-neutral-800 dark:text-neutral-100 m-0">
+                Session Duration
+              </p>
+              <p className="font-sans text-[11px] text-neutral-400 dark:text-neutral-500 m-0">
+                How long the app stays logged in
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {SESSION_TIMEOUT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => handleTimeoutChange(opt.value)}
+                className={cn(
+                  'font-sans text-[12px] font-semibold py-2 px-2 rounded-lg border cursor-pointer transition-colors',
+                  sessionTimeout === opt.value
+                    ? 'bg-primary-500 text-white border-primary-500'
+                    : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <p className="font-sans text-[11px] text-neutral-400 dark:text-neutral-500 m-0">
+            Takes effect on next login or session refresh.
+          </p>
         </CardContent>
       </Card>
 

@@ -24,7 +24,7 @@ import {
 } from 'firebase/firestore';
 import { Save, User, Stethoscope, Clock } from 'lucide-react';
 
-const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Other'];
+const GENDER_OPTIONS = ['Male', 'Female'];
 
 const INFECTION_TYPES = [
   'Streptococcal (Group A Strep / PANDAS)',
