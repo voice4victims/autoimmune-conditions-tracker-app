@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, OAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
 
 const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) => {
   const { signInAsGuest } = useAuth();
@@ -28,12 +29,28 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
     }
   };
 
+  const signInWithProvider = async (provider: GoogleAuthProvider | OAuthProvider) => {
+    if (Capacitor.isNativePlatform()) {
+      await signInWithRedirect(auth, provider);
+    } else {
+      await signInWithPopup(auth, provider);
+      onAuthSuccess();
+    }
+  };
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      getRedirectResult(auth).then((result) => {
+        if (result?.user) onAuthSuccess();
+      }).catch((err) => setError(err.message));
+    }
+  }, []);
+
   const handleGoogleSignIn = async () => {
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      onAuthSuccess();
+      await signInWithProvider(provider);
     } catch (err: any) {
       setError(err.message);
     }
@@ -45,8 +62,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
       const provider = new OAuthProvider('apple.com');
       provider.addScope('email');
       provider.addScope('name');
-      await signInWithPopup(auth, provider);
-      onAuthSuccess();
+      await signInWithProvider(provider);
     } catch (err: any) {
       setError(err.message);
     }

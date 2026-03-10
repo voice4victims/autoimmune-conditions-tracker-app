@@ -8,6 +8,7 @@ import { UnifiedProvider } from '@/types/provider';
 import ProviderReviews from './ProviderReviews';
 import AppointmentBooking from './AppointmentBooking';
 import ProviderShare from './ProviderShare';
+import { openUrl } from '@/lib/capacitor';
 
 interface ProviderCardProps {
   provider: UnifiedProvider;
@@ -79,10 +80,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider }) => {
             {provider.website && (
               <div className="flex items-center gap-2 text-sm">
                 <Globe className="h-4 w-4 text-gray-500" />
-                <a href={provider.website} target="_blank" rel="noopener noreferrer" 
-                   className="text-blue-600 hover:underline">
+                <button onClick={() => openUrl(provider.website!)}
+                   className="text-blue-600 hover:underline bg-transparent border-none cursor-pointer p-0 text-sm">
                   Website
-                </a>
+                </button>
               </div>
             )}
           </div>

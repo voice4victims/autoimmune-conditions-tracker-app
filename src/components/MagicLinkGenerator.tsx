@@ -14,6 +14,7 @@ import { usePermissions } from '@/hooks/useRoleAccess';
 import { magicLinkService } from '@/lib/firebaseService';
 import { MagicLinkConfig, MagicLinkPermission, MAGIC_LINK_PERMISSIONS } from '@/types/magicLink';
 import { Link2, Copy, Clock, Shield, Eye, FileText } from 'lucide-react';
+import { APP_URL, copyToClipboard } from '@/lib/capacitor';
 
 export const MagicLinkGenerator: React.FC = () => {
     const { user } = useAuth();
@@ -49,8 +50,7 @@ export const MagicLinkGenerator: React.FC = () => {
         try {
             const result = await magicLinkService.createMagicLink(config, user.uid, childProfile.id);
 
-            const baseUrl = window.location.origin;
-            const magicUrl = `${baseUrl}/provider-access/${result.access_token}`;
+            const magicUrl = `${APP_URL}/provider-access/${result.access_token}`;
             setGeneratedLink(magicUrl);
 
             toast({
@@ -83,7 +83,7 @@ export const MagicLinkGenerator: React.FC = () => {
         if (!generatedLink) return;
 
         try {
-            await navigator.clipboard.writeText(generatedLink);
+            await copyToClipboard(generatedLink);
             toast({
                 title: 'Copied!',
                 description: 'Magic link copied to clipboard',

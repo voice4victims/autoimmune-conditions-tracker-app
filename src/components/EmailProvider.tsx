@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { openMailto } from '@/lib/capacitor';
 
 const EmailProvider: React.FC = () => {
   const { childProfile, treatments, symptoms, notes } = useApp();
@@ -92,7 +93,7 @@ const EmailProvider: React.FC = () => {
     const body = generateEmailBody();
 
     const mailtoLink = `mailto:${providerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoLink);
+    openMailto(mailtoLink);
   };
 
   return (

@@ -146,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (validation.requiresReauth) {
             // Redirect to login with message about security
-            window.location.href = '/login?reason=security';
+            location.href = '/login?reason=security';
           }
         }
       } catch (error) {

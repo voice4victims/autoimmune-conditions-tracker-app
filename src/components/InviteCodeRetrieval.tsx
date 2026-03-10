@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Copy, RefreshCw, Key } from 'lucide-react';
+import { copyToClipboard } from '@/lib/capacitor';
 
 interface Invitation {
   id: string;
@@ -48,8 +49,8 @@ export const InviteCodeRetrieval: React.FC = () => {
     fetchInvitations();
   }, [user]);
 
-  const copyToClipboard = (code: string) => {
-    navigator.clipboard.writeText(code);
+  const handleCopy = (code: string) => {
+    copyToClipboard(code);
     toast({
       title: 'Copied!',
       description: 'Invitation code copied to clipboard.',
@@ -115,7 +116,7 @@ export const InviteCodeRetrieval: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => copyToClipboard(invitation.invitation_code)}
+                  onClick={() => handleCopy(invitation.invitation_code)}
                   className="h-8 w-8 p-0 flex-shrink-0"
                 >
                   <Copy className="h-3 w-3" />

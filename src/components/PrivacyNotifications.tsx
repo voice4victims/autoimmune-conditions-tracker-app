@@ -52,7 +52,7 @@ const PrivacyNotifications: React.FC<PrivacyNotificationsProps> = ({
                 message: 'Unable to load your privacy settings. Some features may not work correctly.',
                 action: {
                     label: 'Retry',
-                    onClick: () => window.location.reload()
+                    onClick: () => location.reload()
                 },
                 dismissible: true
             });

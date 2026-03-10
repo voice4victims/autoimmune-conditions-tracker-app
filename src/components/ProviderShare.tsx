@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Copy, Mail, MessageSquare, Link, Check } from 'lucide-react';
 import { UnifiedProvider } from '@/types/provider';
+import { openMailto, openSms, copyToClipboard, APP_URL } from '@/lib/capacitor';
 
 interface ProviderShareProps {
   provider: UnifiedProvider;
@@ -29,39 +30,31 @@ ${provider.requiresReferral ? 'Referral Required' : ''}
 
 Shared via PANDAS Health Tracker`;
 
-  const shareUrl = `${window.location.origin}/provider/${provider.id}`;
+  const shareUrl = `${APP_URL}/provider/${provider.id}`;
 
   const handleCopyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(shareText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
+    await copyToClipboard(shareText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy link: ', err);
-    }
+    await copyToClipboard(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleEmailShare = () => {
     const subject = `Provider Recommendation: ${provider.name}`;
     const body = `${emailMessage}\n\n${shareText}`;
     const mailtoUrl = `mailto:${emailRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoUrl);
+    openMailto(mailtoUrl);
   };
 
   const handleSMSShare = () => {
     const smsText = `Check out this provider: ${provider.name} - ${provider.location}. ${shareUrl}`;
     const smsUrl = `sms:?body=${encodeURIComponent(smsText)}`;
-    window.open(smsUrl);
+    openSms(smsUrl);
   };
 
   return (

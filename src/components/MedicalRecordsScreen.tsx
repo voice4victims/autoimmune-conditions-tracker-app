@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Plus, Trash2, Pencil, X, FileUp, Eye } from 'lucide-react';
+import { openUrl } from '@/lib/capacitor';
 import { useToast } from '@/hooks/use-toast';
 import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
@@ -635,15 +636,13 @@ const MedicalRecordsScreen: React.FC = () => {
                   )}
 
                   {selectedRecord.download_url && (
-                    <a
-                      href={selectedRecord.download_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 font-sans font-bold text-[12px] text-primary-600 hover:text-primary-700"
+                    <button
+                      onClick={() => openUrl(selectedRecord.download_url!)}
+                      className="inline-flex items-center gap-1.5 font-sans font-bold text-[12px] text-primary-600 hover:text-primary-700 bg-transparent border-none cursor-pointer p-0"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       View / Download File
-                    </a>
+                    </button>
                   )}
                 </div>
                 <DialogFooter className="gap-2 sm:gap-0">

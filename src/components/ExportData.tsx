@@ -4,12 +4,14 @@ import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 import { jsPDF } from 'jspdf';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
-import { saveAs } from 'file-saver';
+import { saveFile, saveBlobFile } from '@/lib/capacitor';
+import { useToast } from '@/hooks/use-toast';
 
 const ExportData: React.FC = () => {
   const { children, treatments, childProfile } = useApp();
+  const { toast } = useToast();
 
-  const exportToTxt = () => {
+  const exportToTxt = async () => {
     let text = '';
     text += 'Children Data:\n';
     children.forEach(child => {
@@ -31,12 +33,12 @@ const ExportData: React.FC = () => {
         text += '--------------------\n';
     });
 
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, 'export.txt');
+    await saveFile('export.txt', text, 'text/plain;charset=utf-8');
+    toast({ title: 'Success', description: 'File exported successfully' });
   };
 
-  const exportToCsv = () => {
-    let csv = 'data:text/csv;charset=utf-8,';
+  const exportToCsv = async () => {
+    let csv = '';
     csv += 'Children Data\n';
     csv += 'ID,Name,Date of Birth,Diagnosis Date\n';
     children.forEach(child => {
@@ -49,16 +51,11 @@ const ExportData: React.FC = () => {
         csv += `${treatment.id},${treatment.treatment_type},${treatment.medication_name},${treatment.dosage},${treatment.administration_date},${treatment.administration_time}\n`;
     });
 
-    const encodedUri = encodeURI(csv);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'export.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    await saveFile('export.csv', csv, 'text/csv;charset=utf-8');
+    toast({ title: 'Success', description: 'File exported successfully' });
   };
 
-  const exportToPdf = () => {
+  const exportToPdf = async () => {
     const doc = new jsPDF();
     let y = 10;
 
@@ -97,10 +94,12 @@ const ExportData: React.FC = () => {
         y += 10;
     });
 
-    doc.save('export.pdf');
+    const pdfBlob = doc.output('blob');
+    await saveBlobFile('export.pdf', pdfBlob);
+    toast({ title: 'Success', description: 'File exported successfully' });
   };
 
-  const exportToWord = () => {
+  const exportToWord = async () => {
     const doc = new Document({
         sections: [{
             children: [
@@ -140,9 +139,9 @@ const ExportData: React.FC = () => {
         }],
     });
 
-    Packer.toBlob(doc).then(blob => {
-        saveAs(blob, 'export.docx');
-    });
+    const blob = await Packer.toBlob(doc);
+    await saveBlobFile('export.docx', blob);
+    toast({ title: 'Success', description: 'File exported successfully' });
   };
 
   return (
