@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
 import SplashScreen from './SplashScreen';
 import ChildManager from './ChildManager';
 import MedicalDisclaimer from './MedicalDisclaimer';
@@ -254,6 +254,13 @@ const AppLayout: React.FC = () => {
             className="font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2.5 py-1 cursor-pointer"
           >
             ⚙️
+          </button>
+          <button
+            onClick={signOut}
+            className="font-sans font-bold text-[11px] text-red-500 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg px-2 py-1 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
+            title="Sign Out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
