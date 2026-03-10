@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { HIPAAComplianceService } from '@/lib/hipaaCompliance';
@@ -39,17 +39,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionValid, setIsSessionValid] = useState(false);
 
-  // Get client information for session management
+  const sessionIdRef = useRef<string | null>(null);
+  const validationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const signingOutRef = useRef(false);
+
   const getClientInfo = () => {
     return {
-      ipAddress: undefined, // Will be determined server-side
+      ipAddress: undefined,
       userAgent: navigator.userAgent,
       deviceFingerprint: generateDeviceFingerprint()
     };
   };
 
   const generateDeviceFingerprint = (): string => {
-    // Simple device fingerprinting (in production, use a more sophisticated approach)
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     ctx?.fillText('fingerprint', 10, 10);
@@ -61,110 +63,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       platform: navigator.platform,
       screen: `${screen.width}x${screen.height}`,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      canvas: canvasFingerprint.substring(0, 50) // Truncate for storage
+      canvas: canvasFingerprint.substring(0, 50)
     }));
 
     return fingerprint;
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      setDemoMode(user?.isAnonymous || false);
-
-      if (user) {
-        try {
-          // Create secure session
-          const clientInfo = getClientInfo();
-          const newSessionId = await sessionManager.createSession(
-            user,
-            clientInfo.ipAddress,
-            clientInfo.userAgent,
-            clientInfo.deviceFingerprint,
-            'standard'
-          );
-
-          setSessionId(newSessionId);
-          setIsSessionValid(true);
-
-          // HIPAA Audit Logging
-          await HIPAAComplianceService.logAccess(
-            user.uid,
-            'login',
-            'authentication',
-            undefined,
-            false,
-            undefined,
-            user.isAnonymous ? 'Anonymous login' : 'User login'
-          );
-
-          // Store session info for session management
-          localStorage.setItem('currentUserId', user.uid);
-          localStorage.setItem('currentSessionId', newSessionId);
-
-          // Start session validation interval
-          startSessionValidation(user.uid, newSessionId);
-
-        } catch (error) {
-          console.error('Error creating secure session:', error);
-          setIsSessionValid(false);
-        }
-      } else {
-        // Clear session on logout
-        if (sessionId) {
-          await sessionManager.invalidateSession(sessionId, 'User logout');
-        }
-        setSessionId(null);
-        setIsSessionValid(false);
-        localStorage.removeItem('currentUserId');
-        localStorage.removeItem('currentSessionId');
-      }
-
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+  const clearValidationInterval = useCallback(() => {
+    if (validationIntervalRef.current) {
+      clearInterval(validationIntervalRef.current);
+      validationIntervalRef.current = null;
+    }
   }, []);
 
-  // Session validation interval
-  const startSessionValidation = (userId: string, sessionId: string) => {
-    const validateSession = async () => {
-      try {
-        const clientInfo = getClientInfo();
-        const validation = await sessionManager.validateSession(
-          sessionId,
-          userId,
-          clientInfo.ipAddress,
-          clientInfo.userAgent
-        );
+  const signOut = useCallback(async () => {
+    if (signingOutRef.current) return;
+    signingOutRef.current = true;
 
-        setIsSessionValid(validation.isValid);
-
-        if (!validation.isValid) {
-          // Session invalid, force logout
-          await signOut();
-
-          if (validation.requiresReauth) {
-            // Redirect to login with message about security
-            location.href = '/login?reason=security';
-          }
-        }
-      } catch (error) {
-        console.error('Session validation error:', error);
-        setIsSessionValid(false);
-      }
-    };
-
-    // Validate session every 30 seconds
-    const interval = setInterval(validateSession, 30000);
-
-    // Cleanup interval on unmount
-    return () => clearInterval(interval);
-  };
-
-  const signOut = async () => {
     try {
-      // HIPAA Audit Logging
+      clearValidationInterval();
+
       if (user) {
         await HIPAAComplianceService.logAccess(
           user.uid,
@@ -174,18 +92,139 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           false,
           undefined,
           'User initiated logout'
-        );
+        ).catch(() => {});
       }
 
-      // Invalidate session
-      if (sessionId) {
-        await sessionManager.invalidateSession(sessionId, 'User initiated logout');
+      if (sessionIdRef.current) {
+        await sessionManager.invalidateSession(sessionIdRef.current, 'User initiated logout').catch(() => {});
       }
+
+      sessionIdRef.current = null;
+      setSessionId(null);
+      setIsSessionValid(false);
+      localStorage.removeItem('currentUserId');
+      localStorage.removeItem('currentSessionId');
 
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Error signing out: ", error);
+    } finally {
+      signingOutRef.current = false;
     }
+  }, [user, clearValidationInterval]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!mounted) return;
+
+      setUser(firebaseUser);
+      setDemoMode(firebaseUser?.isAnonymous || false);
+
+      if (firebaseUser) {
+        const existingSessionId = localStorage.getItem('currentSessionId');
+        const existingUserId = localStorage.getItem('currentUserId');
+
+        if (existingSessionId && existingUserId === firebaseUser.uid) {
+          sessionIdRef.current = existingSessionId;
+          setSessionId(existingSessionId);
+          setIsSessionValid(true);
+          startValidationInterval(firebaseUser.uid, existingSessionId);
+        } else {
+          try {
+            const clientInfo = getClientInfo();
+            const newSessionId = await sessionManager.createSession(
+              firebaseUser,
+              clientInfo.ipAddress,
+              clientInfo.userAgent,
+              clientInfo.deviceFingerprint,
+              'standard'
+            );
+
+            if (!mounted) return;
+
+            sessionIdRef.current = newSessionId;
+            setSessionId(newSessionId);
+            setIsSessionValid(true);
+
+            localStorage.setItem('currentUserId', firebaseUser.uid);
+            localStorage.setItem('currentSessionId', newSessionId);
+
+            await HIPAAComplianceService.logAccess(
+              firebaseUser.uid,
+              'login',
+              'authentication',
+              undefined,
+              false,
+              undefined,
+              firebaseUser.isAnonymous ? 'Anonymous login' : 'User login'
+            ).catch(() => {});
+
+            startValidationInterval(firebaseUser.uid, newSessionId);
+          } catch (error) {
+            console.error('Error creating secure session:', error);
+            if (mounted) {
+              sessionIdRef.current = null;
+              setSessionId(null);
+              setIsSessionValid(true);
+            }
+          }
+        }
+      } else {
+        clearValidationInterval();
+        const oldSessionId = sessionIdRef.current;
+        sessionIdRef.current = null;
+        setSessionId(null);
+        setIsSessionValid(false);
+        localStorage.removeItem('currentUserId');
+        localStorage.removeItem('currentSessionId');
+
+        if (oldSessionId) {
+          await sessionManager.invalidateSession(oldSessionId, 'User logout').catch(() => {});
+        }
+      }
+
+      if (mounted) setLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+      clearValidationInterval();
+    };
+  }, []);
+
+  const startValidationInterval = (userId: string, sid: string) => {
+    clearValidationInterval();
+
+    const validate = async () => {
+      if (signingOutRef.current) return;
+      if (sessionIdRef.current !== sid) return;
+
+      try {
+        const clientInfo = getClientInfo();
+        const validation = await sessionManager.validateSession(
+          sid,
+          userId,
+          clientInfo.ipAddress,
+          clientInfo.userAgent
+        );
+
+        if (sessionIdRef.current !== sid) return;
+
+        if (validation.isValid) {
+          setIsSessionValid(true);
+        } else if (validation.reason === 'Session expired' || validation.reason === 'Session invalidated') {
+          clearValidationInterval();
+          await signOut();
+        }
+      } catch (error) {
+        console.error('Session validation error:', error);
+      }
+    };
+
+    validationIntervalRef.current = setInterval(validate, 30000);
   };
 
   const signInAsGuest = async () => {
@@ -197,10 +236,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const elevateSession = async (): Promise<boolean> => {
-    if (!user || !sessionId) return false;
+    if (!user || !sessionIdRef.current) return false;
 
     try {
-      const success = await sessionManager.elevateSessionSecurity(sessionId, user.uid);
+      const success = await sessionManager.elevateSessionSecurity(sessionIdRef.current, user.uid);
       return success;
     } catch (error) {
       console.error('Error elevating session:', error);
@@ -209,12 +248,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshSession = async (): Promise<boolean> => {
-    if (!user || !sessionId) return false;
+    if (!user || !sessionIdRef.current) return false;
 
     try {
       const clientInfo = getClientInfo();
       const validation = await sessionManager.validateSession(
-        sessionId,
+        sessionIdRef.current,
         user.uid,
         clientInfo.ipAddress,
         clientInfo.userAgent
@@ -224,7 +263,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return validation.isValid;
     } catch (error) {
       console.error('Error refreshing session:', error);
-      setIsSessionValid(false);
       return false;
     }
   };
