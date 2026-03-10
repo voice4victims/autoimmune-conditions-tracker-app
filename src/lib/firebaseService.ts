@@ -639,3 +639,56 @@ export const magicLinkService = {
         return results;
     }
 };
+
+export const triggerService = {
+    async addTrigger(userId: string, childId: string, data: {
+        type: string;
+        date: string;
+        source: string;
+        worsened: boolean | null;
+        note: string;
+    }) {
+        const docRef = await addDoc(collection(db, 'trigger_events'), {
+            user_id: userId,
+            child_id: childId,
+            ...data,
+            created_at: Timestamp.now()
+        });
+        return docRef.id;
+    },
+
+    async updateTrigger(triggerId: string, data: {
+        type: string;
+        date: string;
+        source: string;
+        worsened: boolean | null;
+        note: string;
+    }) {
+        const triggerRef = doc(db, 'trigger_events', triggerId);
+        await updateDoc(triggerRef, {
+            ...data,
+            updated_at: Timestamp.now()
+        });
+    },
+
+    async getTriggers(userId: string, childId: string) {
+        const triggersRef = collection(db, 'trigger_events');
+        const q = query(
+            triggersRef,
+            where('user_id', '==', userId),
+            where('child_id', '==', childId)
+        );
+        const snapshot = await getDocs(q);
+        const results = snapshot.docs.map(d => ({
+            id: d.id,
+            ...d.data()
+        }));
+        results.sort((a: any, b: any) => (b.date || '').toString().localeCompare((a.date || '').toString()));
+        return results;
+    },
+
+    async deleteTrigger(triggerId: string) {
+        const triggerRef = doc(db, 'trigger_events', triggerId);
+        await deleteDoc(triggerRef);
+    }
+};

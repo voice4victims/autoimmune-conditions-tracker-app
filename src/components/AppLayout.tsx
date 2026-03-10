@@ -13,6 +13,7 @@ import LogScreen from './LogScreen';
 import TrendsScreen from './TrendsScreen';
 import RecordsScreen from './RecordsScreen';
 import EducationScreen from './EducationScreen';
+import CommunityScreen from './CommunityScreen';
 import MoreMenu from './MoreMenu';
 import SymptomChart from './SymptomChart';
 import SymptomHeatmap from './SymptomHeatmap';
@@ -28,6 +29,7 @@ import { FamilyManager } from './FamilyManager';
 import AdvancedAnalyticsDashboard from './AdvancedAnalyticsDashboard';
 import { DiagnosisTracker } from './DiagnosisTracker';
 import ProfileAndSecurity from './ProfileAndSecurity';
+import PatientProfile from './PatientProfile';
 import PrivacySettings from './PrivacySettings';
 import PTECTracker from './PTECTracker';
 import { ProviderAccessManager } from './ProviderAccessManager';
@@ -35,6 +37,9 @@ import FileManager from './FileManager';
 import ProviderTracker from './ProviderTracker';
 import EmailRecordsForm from './EmailRecordsForm';
 import MedicalVisitTracker from './MedicalVisitTracker';
+import InsuranceTracker from './InsuranceTracker';
+import AllergyTracker from './AllergyTracker';
+import MedicalRecordsScreen from './MedicalRecordsScreen';
 
 type ScreenId = 'home' | 'log' | 'trends' | 'records' | 'more';
 
@@ -46,35 +51,7 @@ const NAV_TABS = [
   { id: 'more' as ScreenId, icon: '⋯', label: 'More' },
 ];
 
-const CommunityPlaceholder: React.FC = () => (
-  <div className="flex flex-col items-center justify-center py-16 text-center">
-    <p className="text-4xl mb-3">🌍</p>
-    <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">Community Provider Map</p>
-    <p className="font-sans text-[13px] text-neutral-400 leading-relaxed px-4">
-      Find PANDAS-literate doctors worldwide. Community-curated and updated. Coming soon.
-    </p>
-  </div>
-);
 
-const InsurancePlaceholder: React.FC = () => (
-  <div className="flex flex-col items-center justify-center py-16 text-center">
-    <p className="text-4xl mb-3">🪪</p>
-    <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">Insurance Info</p>
-    <p className="font-sans text-[13px] text-neutral-400 leading-relaxed px-4">
-      Store your insurance details, policy numbers, and pre-authorization information. Coming soon.
-    </p>
-  </div>
-);
-
-const ComorbidPlaceholder: React.FC = () => (
-  <div className="flex flex-col items-center justify-center py-16 text-center">
-    <p className="text-4xl mb-3">🩻</p>
-    <p className="font-serif text-xl text-neutral-700 dark:text-neutral-200 mb-2">Co-Morbidities</p>
-    <p className="font-sans text-[13px] text-neutral-400 leading-relaxed px-4">
-      Track prior and post-infection conditions, co-occurring diagnoses, and related health history. Coming soon.
-    </p>
-  </div>
-);
 
 const AppLayout: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -196,10 +173,11 @@ const AppLayout: React.FC = () => {
       notes: <NotesTracker />,
       history: <SymptomChart />,
       heatmap: <SymptomHeatmap />,
+      allergies: <AllergyTracker />,
       'drug-safety': <DrugInteractionChecker />,
       resources: <ResourcesTab />,
       family: <FamilyManager />,
-      community: <CommunityPlaceholder />,
+      community: <CommunityScreen />,
       analytics: <AdvancedAnalyticsDashboard />,
       diagnosis: <DiagnosisTracker />,
       privacy: <PrivacySettings />,
@@ -214,9 +192,11 @@ const AppLayout: React.FC = () => {
       providers: <ProviderTracker />,
       files: <FileManager />,
       email: <EmailRecordsForm />,
-      insurance: <InsurancePlaceholder />,
-      'medical-records': <MedicalVisitTracker />,
-      comorbidities: <ComorbidPlaceholder />,
+      insurance: <InsuranceTracker />,
+      'medical-visits': <MedicalVisitTracker />,
+      'medical-records': <MedicalRecordsScreen />,
+      comorbidities: <PatientProfile />,
+      'patient-profile': <PatientProfile />,
     };
 
     return contentMap[activeMoreTab] || null;
@@ -310,7 +290,22 @@ const AppLayout: React.FC = () => {
           </div>
         )}
 
-        {screen === 'more' && activeMoreTab !== 'learn' && (
+        {screen === 'more' && activeMoreTab === 'community' && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="px-4 pt-4 pb-2 shrink-0">
+              <button
+                onClick={() => setActiveMoreTab(null)}
+                className="inline-flex items-center gap-2 font-sans font-bold text-[13px] text-primary-600 bg-primary-50 border border-primary-200 rounded-xl px-4 py-2 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Menu
+              </button>
+            </div>
+            <CommunityScreen />
+          </div>
+        )}
+
+        {screen === 'more' && activeMoreTab !== 'learn' && activeMoreTab !== 'community' && (
           <div className="flex-1 flex flex-col overflow-hidden">
             {!activeMoreTab && (
               <div className="bg-white dark:bg-neutral-900 px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
