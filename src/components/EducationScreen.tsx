@@ -117,10 +117,10 @@ const EducationScreen: React.FC = () => {
                 their child as a completely different person overnight.
               </p>
             </InfoCard>
-            <InfoCard icon="⏰" title="Clinical Urgency" color="#E82020">
-              Early identification and treatment significantly affects long-term outcomes. Delays in
-              diagnosis allow neuroinflammation to persist. If you suspect PANS/PANDAS, seek
-              evaluation promptly.
+            <InfoCard icon="⏰" title="Early Evaluation Matters" color="#E82020">
+              Many families and doctors believe that early identification is important. If you suspect
+              PANS/PANDAS, talk to your child's doctor or seek a specialist evaluation as soon as
+              possible.
             </InfoCard>
           </>
         )}
@@ -240,13 +240,13 @@ const EducationScreen: React.FC = () => {
                 icon: '💊',
                 title: 'Antibiotics',
                 color: '#28BC79',
-                desc: 'First-line for strep-triggered PANDAS. Amoxicillin, Azithromycin, or Augmentin. Prophylactic antibiotics may prevent recurrence.',
+                desc: 'Often used when strep is identified as a trigger. Your doctor may consider options like Amoxicillin or Azithromycin based on your child\'s needs.',
               },
               {
                 icon: '🧪',
                 title: 'Immunomodulation',
                 color: '#8A6DD2',
-                desc: 'IVIG and therapeutic plasma exchange (TPE/plasmapheresis) are used for severe or refractory cases. Can provide dramatic improvement.',
+                desc: 'IVIG and therapeutic plasma exchange (TPE/plasmapheresis) may be considered by specialists for cases that haven\'t responded to other approaches. Families have reported varying degrees of improvement.',
               },
               {
                 icon: '🔥',
@@ -258,7 +258,7 @@ const EducationScreen: React.FC = () => {
                 icon: '🧠',
                 title: 'Psychiatric / Behavioral',
                 color: '#1F8DB5',
-                desc: 'CBT, ERP for OCD, SSRI medications. Important: SSRIs may need lower doses and careful titration in PANS.',
+                desc: 'CBT and ERP therapy for OCD. Some doctors may also consider medication options. Discuss all behavioral and psychiatric approaches with your child\'s care team.',
               },
               {
                 icon: '🌿',

@@ -12,6 +12,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [parentConsent, setParentConsent] = useState(false);
   const auth = getAuth();
 
   const handleEmailPasswordAuth = async (e: React.FormEvent) => {
@@ -106,6 +107,20 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           </div>
         )}
 
+        {isSignUp && (
+          <label className="flex items-start gap-2.5 p-3 rounded-xl border border-primary-200 bg-primary-50/50 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={parentConsent}
+              onChange={(e) => setParentConsent(e.target.checked)}
+              className="mt-0.5 accent-primary-600 w-4 h-4 shrink-0"
+            />
+            <span className="font-sans text-[12px] text-neutral-600 leading-relaxed">
+              I am a <strong>parent or legal guardian</strong> (18 years or older) and I am creating this account to track my child's health information. I understand this app is <strong>not a medical device</strong> and does not provide medical advice.
+            </span>
+          </label>
+        )}
+
         <form onSubmit={handleEmailPasswordAuth} className="space-y-3">
           <div>
             <Label className="font-sans font-extrabold text-[11px] uppercase tracking-wider text-neutral-500">
@@ -137,6 +152,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
             type="submit"
             className="w-full font-sans font-bold"
             style={{ background: 'linear-gradient(135deg, #176F91, #573F9E)' }}
+            disabled={isSignUp && !parentConsent}
           >
             {isSignUp ? 'Create Account' : 'Sign In'}
           </Button>

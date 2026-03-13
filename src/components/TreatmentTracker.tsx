@@ -41,61 +41,61 @@ const FieldWrap: React.FC<{ label: string; children: React.ReactNode }> = ({ lab
 
 const ESCALATION_TIERS = [
   {
-    level: 1, icon: '💊', label: 'Tier 1 — Prophylactic Antibiotic',
-    treatment: 'Amoxicillin 250mg',
+    level: 1, icon: '💊', label: 'Step 1 — Antibiotic Trial',
+    treatment: 'Amoxicillin',
     periodMain: 'Mar – Jun 2025', periodSub: '14 weeks',
     colorClass: 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-950/30',
     iconBg: 'bg-green-600',
     labelColor: 'text-green-600 dark:text-green-400',
-    rationale: 'First-line standard of care for PANDAS. Low-dose prophylactic antibiotic to prevent strep reinfection and reduce neuroinflammatory trigger.',
+    rationale: 'The family\'s doctor prescribed a prophylactic antibiotic to address a confirmed strep infection and monitor for symptom changes.',
     outcome: 'Partial response',
     outcomeColor: 'text-amber-600',
-    outcomeDetail: 'OCD and anxiety reduced ~30%. Sleep and tics unchanged. Strep titers remained elevated (ASO 620 IU/mL). Pediatrician recommended antibiotic switch.',
-    decisionToEscalate: 'Incomplete symptom control after full trial period. Persistent elevated titers despite compliance. Decision: trial alternate antibiotic class.',
+    outcomeDetail: 'Some behavioral symptoms improved, but tics and sleep remained unchanged. The pediatrician discussed trying a different approach.',
+    decisionToEscalate: 'After completing the trial period, the family and their doctor agreed to try a different medication.',
     connector: true,
     connectorColor: 'from-green-500 to-red-500',
   },
   {
-    level: 2, icon: '⚠️', label: 'Tier 2 — Alternate Antibiotic Class',
-    treatment: 'Azithromycin 250mg',
+    level: 2, icon: '⚠️', label: 'Step 2 — Different Antibiotic',
+    treatment: 'Azithromycin',
     periodMain: 'Jul – Oct 2025', periodSub: '15 weeks',
     colorClass: 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-950/30',
     iconBg: 'bg-red-500',
     labelColor: 'text-red-500 dark:text-red-400',
-    rationale: 'Macrolide antibiotic with anti-inflammatory properties in addition to antimicrobial action. Often used when beta-lactams provide incomplete response.',
-    outcome: 'Treatment failure',
+    rationale: 'The doctor switched to a different antibiotic class to see if the child would respond better.',
+    outcome: 'Did not help',
     outcomeColor: 'text-red-500',
-    outcomeDetail: 'Significant PANS worsening by week 2. OCD intensified, rage episodes increased. Suspected Herxheimer reaction or yeast overgrowth. Anti-DNase B rose to 640 U/mL.',
-    decisionToEscalate: 'Discontinued after 15 weeks due to active worsening. PANDAS symptoms at worst point since onset. Immunology referral placed. Decision: escalate to immunomodulatory therapy.',
+    outcomeDetail: 'Symptoms worsened during this period. The family reported increased behavioral difficulties and contacted the doctor.',
+    decisionToEscalate: 'The medication was discontinued due to worsening symptoms. The family was referred to a specialist for further evaluation.',
     connector: true,
     connectorColor: 'from-red-500 to-purple-500',
   },
   {
-    level: 3, icon: '🧪', label: 'Tier 3 — Anti-Inflammatory Bridge',
-    treatment: 'Ibuprofen 400mg 3x/day + NSAIDs',
+    level: 3, icon: '🧪', label: 'Step 3 — Anti-Inflammatory',
+    treatment: 'NSAID therapy',
     periodMain: 'Oct – Nov 2025', periodSub: '6 weeks',
     colorClass: 'border-purple-300 bg-purple-50 dark:border-purple-700 dark:bg-purple-950/30',
     iconBg: 'bg-purple-600',
     labelColor: 'text-purple-600 dark:text-purple-400',
-    rationale: 'Short-course NSAID therapy to reduce neuroinflammation while awaiting immunology evaluation and IVIG insurance authorization. Published PANDAS literature supports NSAID response as a diagnostic indicator.',
-    outcome: 'Modest improvement',
+    rationale: 'While waiting for the specialist appointment, the doctor prescribed an anti-inflammatory to help manage symptoms.',
+    outcome: 'Some improvement',
     outcomeColor: 'text-amber-600',
-    outcomeDetail: '20–25% symptom reduction. OCD compulsions less frequent but still severe. Sleep improved marginally. Confirmed NSAID responsiveness consistent with autoimmune encephalitis pattern.',
-    decisionToEscalate: 'NSAID response confirmed autoimmune etiology. Cunningham Panel returned: CaM Kinase II at 151% (elevated). Immunologist authorized IVIG. Decision: proceed to IVIG.',
+    outcomeDetail: 'The family noticed modest symptom reduction. Sleep improved slightly. The specialist appointment was scheduled.',
+    decisionToEscalate: 'Based on testing and evaluation, the specialist discussed additional treatment options with the family.',
     connector: true,
     connectorColor: 'from-purple-500 to-primary-500',
   },
   {
-    level: 4, icon: '💉', label: 'Tier 4 — IVIG Immunotherapy',
-    treatment: 'IVIG 2g/kg over 2 days',
+    level: 4, icon: '💉', label: 'Step 4 — Immunotherapy',
+    treatment: 'IVIG',
     periodMain: 'Sep 15–16, 2025', periodSub: 'Infusion complete',
     colorClass: 'border-primary-300 bg-primary-50 dark:border-primary-600 dark:bg-primary-950/30',
     iconBg: 'bg-primary-600',
     labelColor: 'text-primary-600 dark:text-primary-400',
-    rationale: 'High-dose intravenous immunoglobulin. Modulates immune response, reduces autoantibody activity, and resets dysregulated B-cell activity. Evidence-supported for PANDAS/PANS with confirmed autoimmune markers.',
-    outcome: 'Significant improvement — Full remission by week 4',
+    rationale: 'The specialist recommended IVIG based on the child\'s test results and clinical history. The family discussed risks and benefits before proceeding.',
+    outcome: 'Significant improvement reported by family',
     outcomeColor: 'text-success-600',
-    outcomeDetail: 'Weeks 1–2: headache and fatigue (expected side effects). Week 3: noticeable OCD reduction. Week 4: near-full remission. Symptom scores dropped from 8–9/10 to 1–2/10. ASO titer declined to 320 IU/mL.',
+    outcomeDetail: 'The family reported gradual improvement over several weeks. They continued to track symptoms and follow up with the care team.',
     decisionToEscalate: null,
     connector: false,
     connectorColor: '',
@@ -106,15 +106,21 @@ const ESCALATION_TIERS = [
 const EscalationPath: React.FC = () => (
   <Card className="border-[1.5px] border-primary-200 dark:border-primary-700 bg-gradient-to-b from-blue-50/50 to-white dark:from-primary-950/20 dark:to-neutral-900">
     <CardContent className="p-4">
+      <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-2.5 px-3 mb-3 flex gap-2 items-start">
+        <span className="text-[14px] mt-0.5 shrink-0">ℹ️</span>
+        <p className="font-sans text-[11px] text-blue-600 dark:text-blue-400 leading-relaxed m-0">
+          This is a sample treatment journey for illustration purposes only. Every child's path is different. Always work with your healthcare team to determine the right approach.
+        </p>
+      </div>
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-[22px]">🔬</span>
+        <span className="text-[22px]">📋</span>
         <div>
-          <p className="font-serif text-[17px] text-primary-700 dark:text-primary-300 m-0">Treatment Escalation Path</p>
-          <p className="font-sans text-[11px] text-neutral-400 m-0">Clinical decision history leading to IVIG</p>
+          <p className="font-serif text-[17px] text-primary-700 dark:text-primary-300 m-0">One Family's Treatment Journey</p>
+          <p className="font-sans text-[11px] text-neutral-400 m-0">An example of how one family's treatment path progressed</p>
         </div>
       </div>
       <p className="font-sans text-[12px] text-neutral-500 dark:text-neutral-400 leading-relaxed mb-4">
-        Each treatment level was trialed based on response, intolerance, or worsening. Decisions were made in consultation with immunology and neurology.
+        Each step reflects decisions this family made together with their doctors. Your child's journey may look very different.
       </p>
 
       {ESCALATION_TIERS.map((step, i) => (
@@ -148,7 +154,7 @@ const EscalationPath: React.FC = () => (
             </div>
 
             <div className="bg-white/65 dark:bg-neutral-800/40 rounded-[10px] p-2.5 px-3 mb-2.5 border border-black/[.06] dark:border-white/[.06]">
-              <p className="font-sans font-extrabold text-[10px] text-neutral-400 uppercase tracking-[0.06em] mb-1">Clinical Rationale</p>
+              <p className="font-sans font-extrabold text-[10px] text-neutral-400 uppercase tracking-[0.06em] mb-1">Doctor's Reasoning</p>
               <p className="font-sans text-[12px] text-neutral-600 dark:text-neutral-300 leading-relaxed m-0">{step.rationale}</p>
             </div>
 
@@ -164,7 +170,7 @@ const EscalationPath: React.FC = () => (
               <div className="bg-black/[.04] dark:bg-white/[.04] rounded-[10px] p-2.5 px-3 border border-dashed border-current/20 flex gap-2 items-start">
                 <span className="text-[14px] flex-shrink-0 mt-0.5">→</span>
                 <div>
-                  <p className={cn('font-sans font-extrabold text-[10px] uppercase tracking-[0.06em] mb-0.5', step.labelColor)}>Decision to Escalate</p>
+                  <p className={cn('font-sans font-extrabold text-[10px] uppercase tracking-[0.06em] mb-0.5', step.labelColor)}>What Led to the Next Step</p>
                   <p className="font-sans text-[12px] text-neutral-600 dark:text-neutral-300 leading-relaxed m-0">{step.decisionToEscalate}</p>
                 </div>
               </div>
@@ -174,7 +180,7 @@ const EscalationPath: React.FC = () => (
               <div className="bg-gradient-to-r from-success-50 to-green-50 dark:from-success-950/30 dark:to-green-950/30 rounded-[10px] p-2.5 px-3 mt-2.5 border border-success-200 dark:border-success-700 flex gap-2 items-center">
                 <span className="text-[20px]">🎉</span>
                 <p className="font-sans text-[12px] font-bold text-success-600 dark:text-success-400 leading-relaxed m-0">
-                  IVIG resulted in near-full remission. Continuing Amoxicillin prophylaxis. Next infusion evaluation in 6 months.
+                  This family reported significant improvement after IVIG. They continue to work closely with their care team on next steps.
                 </p>
               </div>
             )}

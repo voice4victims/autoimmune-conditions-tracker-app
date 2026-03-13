@@ -49,7 +49,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'When is IVIG recommended?',
-    a: "IVIG is typically considered for moderate-to-severe PANS/PANDAS that hasn't responded to antibiotics and anti-inflammatories, or for refractory cases. It's a significant intervention and should be discussed with a specialist.",
+    a: "IVIG is a treatment that some specialists may discuss with families when other approaches haven't been effective. It's a significant step — talk to your child's doctor or specialist to understand whether it may be appropriate for your situation.",
   },
   {
     q: 'How do I find a PANDAS-literate doctor?',
