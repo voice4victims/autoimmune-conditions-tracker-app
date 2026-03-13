@@ -505,9 +505,11 @@ export const magicLinkService = {
             last_accessed: Timestamp.now()
         });
 
-        // Record detailed access log
+        const linkSnap = await getDoc(linkRef);
+        const linkOwner = linkSnap.exists() ? linkSnap.data().created_by : null;
         await addDoc(collection(db, 'magic_link_access'), {
             magic_link_id: linkId,
+            userId: linkOwner,
             accessed_at: Timestamp.now(),
             ip_address: accessInfo.ip_address || null,
             user_agent: accessInfo.user_agent || null,

@@ -219,7 +219,6 @@ export class SecurityConfigurationService {
             ],
             'connect-src': [
                 "'self'",
-                'https://api.ipify.org', // For IP detection
                 'https://*.firebaseio.com',
                 'https://*.googleapis.com',
                 'https://*.google.com'

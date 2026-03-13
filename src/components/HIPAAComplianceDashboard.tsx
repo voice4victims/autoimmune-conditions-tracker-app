@@ -106,7 +106,7 @@ const HIPAAComplianceDashboard: React.FC = () => {
 
     const handleRiskAssessment = async () => {
         try {
-            await HIPAAComplianceService.conductRiskAssessment();
+            await HIPAAComplianceService.conductRiskAssessment(user?.uid);
             // Reload data after assessment
             await loadComplianceData();
         } catch (error) {

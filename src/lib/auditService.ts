@@ -268,13 +268,7 @@ export class AuditService implements AuditServiceInterface {
     }
 
     private async getClientIP(): Promise<string | undefined> {
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            return data.ip;
-        } catch {
-            return undefined;
-        }
+        return undefined;
     }
 
     private generateSessionId(): string {
@@ -290,6 +284,7 @@ export class AuditService implements AuditServiceInterface {
             await addDoc(collection(db, 'audit_failures'), {
                 error: error.message,
                 context,
+                userId: context?.userId || 'system',
                 timestamp: Timestamp.now(),
                 severity: 'critical'
             });

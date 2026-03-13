@@ -51,13 +51,7 @@ export class HIPAAComplianceService {
 
     // Get client IP for audit logging
     private static async getClientIP(): Promise<string | null> {
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            return data.ip;
-        } catch {
-            return null;
-        }
+        return null;
     }
 
     // Escalate audit logging failures
@@ -237,6 +231,7 @@ export class HIPAAComplianceService {
 
         await addDoc(collection(db, 'breach_notifications'), {
             ...breachNotification,
+            userId,
             incident_date: Timestamp.fromDate(breachNotification.incident_date),
             discovery_date: Timestamp.fromDate(breachNotification.discovery_date)
         });
@@ -307,7 +302,7 @@ export class HIPAAComplianceService {
     }
 
     // Risk Assessment
-    static async conductRiskAssessment(): Promise<any> {
+    static async conductRiskAssessment(userId?: string): Promise<any> {
         const risks = {
             technical: await this.assessTechnicalRisks(),
             administrative: await this.assessAdministrativeRisks(),
@@ -316,6 +311,7 @@ export class HIPAAComplianceService {
 
         // Log risk assessment
         await addDoc(collection(db, 'risk_assessments'), {
+            userId: userId || 'system',
             assessment_date: Timestamp.now(),
             risks,
             overall_risk_level: this.calculateOverallRisk(risks),

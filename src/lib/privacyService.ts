@@ -340,13 +340,7 @@ export class PrivacyService implements PrivacyServiceInterface {
     }
 
     private async getClientIP(): Promise<string | undefined> {
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            return data.ip;
-        } catch {
-            return undefined;
-        }
+        return undefined;
     }
 
     private generateSessionId(): string {
