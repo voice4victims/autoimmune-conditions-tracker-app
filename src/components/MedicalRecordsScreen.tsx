@@ -496,8 +496,8 @@ const MedicalRecordsScreen: React.FC = () => {
                     <span className="font-sans text-[12px] text-neutral-600 dark:text-neutral-300 truncate">{uploadFile.name}</span>
                     <span className="font-sans text-[10px] text-neutral-400 shrink-0">{formatFileSize(uploadFile.size)}</span>
                   </div>
-                  <button onClick={() => { setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="cursor-pointer bg-transparent border-none p-0.5">
-                    <X className="w-3.5 h-3.5 text-neutral-400" />
+                  <button onClick={() => { setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="cursor-pointer bg-transparent border-none p-0.5" aria-label="Remove file">
+                    <X className="w-3.5 h-3.5 text-neutral-400" aria-hidden="true" />
                   </button>
                 </div>
               )}

@@ -135,6 +135,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onQuickLog, onNavigate }) => {
                 <div
                   key={entry.id}
                   onClick={() => onNavigate('log')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('log'); } }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${entry.symptomType}, severity ${entry.severity} out of 10, ${entry.date}`}
                   className={`flex items-center gap-2.5 py-2.5 cursor-pointer ${
                     i > 0 ? 'border-t border-neutral-50 dark:border-neutral-800' : ''
                   }`}

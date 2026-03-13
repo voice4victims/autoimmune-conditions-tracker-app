@@ -180,11 +180,11 @@ export class CryptoService {
             // Encrypt data with session key
             const encryptedData = this.encryptPrivacyData(jsonData, sessionKey);
 
-            // In a real implementation, you would encrypt the session key with the public key
-            // For now, we'll include it in the payload (this is not secure for production)
+            const wrappingKey = publicKey || this.getMasterKey();
+            const wrappedSessionKey = this.encryptPrivacyData(sessionKey, wrappingKey);
             const payload = {
                 data: encryptedData,
-                sessionKey: sessionKey, // In production, this would be encrypted with public key
+                sessionKey: wrappedSessionKey,
                 timestamp: Date.now(),
                 version: '1.0'
             };
@@ -210,8 +210,14 @@ export class CryptoService {
                 throw new Error('Encrypted payload has expired');
             }
 
-            // In production, you would decrypt the session key with the private key
-            const sessionKey = payload.sessionKey;
+            const unwrapKey = privateKey || this.getMasterKey();
+            const sessionKey = this.decryptPrivacyData(
+                payload.sessionKey.encrypted,
+                unwrapKey,
+                payload.sessionKey.iv,
+                payload.sessionKey.tag,
+                payload.sessionKey.salt
+            );
 
             // Decrypt the actual data
             const decryptedData = this.decryptPrivacyData(
@@ -346,11 +352,12 @@ export class CryptoService {
      * Get master key for key encryption (in production, this would be more secure)
      */
     private getMasterKey(): string {
-        // In production, this would be:
-        // - Derived from user authentication
-        // - Stored in secure hardware
-        // - Retrieved from key management service
-        return 'master-key-placeholder-not-for-production';
+        const storageKey = '_crypto_mk';
+        const existing = localStorage.getItem(storageKey);
+        if (existing) return existing;
+        const key = CryptoJS.lib.WordArray.random(32).toString();
+        localStorage.setItem(storageKey, key);
+        return key;
     }
 
     /**

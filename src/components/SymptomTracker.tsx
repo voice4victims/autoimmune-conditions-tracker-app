@@ -168,6 +168,11 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
                 step={1}
                 value={severity ?? 0}
                 onChange={(e) => setSeverity(parseInt(e.target.value))}
+                aria-label="Symptom severity"
+                aria-valuemin={0}
+                aria-valuemax={10}
+                aria-valuenow={severity ?? 0}
+                aria-valuetext={`${severity ?? 0} out of 10, ${sevLabel(severity ?? 0)}`}
                 className="sev-slider"
                 style={{
                   '--thumb-color': sevColor(severity ?? 0),

@@ -1,5 +1,6 @@
 {
     "hosting": {
+        "site": "pandastracker",
         "public": "dist",
         "ignore": [
             "firebase.json",
@@ -8,11 +9,24 @@
         ],
         "rewrites": [
             {
+                "source": "/.well-known/**",
+                "destination": "/.well-known/apple-app-site-association"
+            },
+            {
                 "source": "**",
                 "destination": "/index.html"
             }
         ],
         "headers": [
+            {
+                "source": "/.well-known/apple-app-site-association",
+                "headers": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ]
+            },
             {
                 "source": "index.html",
                 "headers": [

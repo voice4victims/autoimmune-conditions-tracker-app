@@ -5,17 +5,20 @@ import './index.css';
 import { useServiceWorker } from './hooks/useServiceWorker';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './components/theme-provider';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const Main = () => {
   useServiceWorker();
 
   return (
     <React.StrictMode>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </ThemeProvider>
+      <ErrorBoundary>
+        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
     </React.StrictMode>
   );
 };
