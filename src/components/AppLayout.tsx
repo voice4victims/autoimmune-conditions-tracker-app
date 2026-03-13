@@ -243,8 +243,9 @@ const AppLayout: React.FC = () => {
               setActiveMoreTab('reminders');
             }}
             className="relative font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 py-1 cursor-pointer"
+            aria-label="Medication Reminders"
           >
-            ⏰
+            <span aria-hidden="true">⏰</span>
           </button>
           <button
             onClick={() => {
@@ -252,15 +253,16 @@ const AppLayout: React.FC = () => {
               setActiveMoreTab('profile');
             }}
             className="font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2.5 py-1 cursor-pointer"
+            aria-label="Profile and Settings"
           >
-            ⚙️
+            <span aria-hidden="true">⚙️</span>
           </button>
           <button
             onClick={signOut}
             className="font-sans font-bold text-[11px] text-red-500 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg px-2 py-1 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
-            title="Sign Out"
+            aria-label="Sign Out"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -336,22 +338,25 @@ const AppLayout: React.FC = () => {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex pb-[env(safe-area-inset-bottom,8px)] pt-2 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex pb-[env(safe-area-inset-bottom,8px)] pt-2 z-50" aria-label="Main navigation">
         {NAV_TABS.map((t) => (
-          <div
+          <button
             key={t.id}
             onClick={() => {
               setScreen(t.id);
               if (t.id === 'more') setActiveMoreTab(null);
               if (t.id === 'log') setLogTab('symptoms');
             }}
-            className="flex-1 flex flex-col items-center gap-0.5 cursor-pointer"
+            className="flex-1 flex flex-col items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
+            aria-label={t.label}
+            aria-current={screen === t.id ? 'page' : undefined}
           >
             <span
               className={cn(
                 'leading-none transition-all',
                 screen === t.id ? 'text-[21px]' : 'text-[19px] opacity-40'
               )}
+              aria-hidden="true"
             >
               {t.icon}
             </span>
@@ -366,11 +371,11 @@ const AppLayout: React.FC = () => {
               {t.label}
             </span>
             {screen === t.id && (
-              <div className="w-4 h-0.5 bg-primary-500 rounded-full" />
+              <div className="w-4 h-0.5 bg-primary-500 rounded-full" aria-hidden="true" />
             )}
-          </div>
+          </button>
         ))}
-      </div>
+      </nav>
 
       <ChildManager
         isOpen={showChildManager}

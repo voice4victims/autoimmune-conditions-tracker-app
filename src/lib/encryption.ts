@@ -1,13 +1,15 @@
 
 import CryptoJS from 'crypto-js';
 
-// It's crucial to use an environment variable for the secret key
-// to avoid exposing it in the source code.
-const SECRET_KEY = process.env.REACT_APP_ENCRYPTION_KEY || 'default-secret-key';
-
-if (process.env.NODE_ENV !== 'production' && SECRET_KEY === 'default-secret-key') {
-  console.warn('Warning: Using default secret key for encryption. Please set a REACT_APP_ENCRYPTION_KEY environment variable for production.');
+function getUserDerivedKey(): string {
+  const stored = localStorage.getItem('_enc_dk');
+  if (stored) return stored;
+  const key = CryptoJS.lib.WordArray.random(32).toString();
+  localStorage.setItem('_enc_dk', key);
+  return key;
 }
+
+const SECRET_KEY = getUserDerivedKey();
 
 /**
  * Encrypts data using AES encryption.

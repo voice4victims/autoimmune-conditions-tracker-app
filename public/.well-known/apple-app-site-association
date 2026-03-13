@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["TEAM_ID.com.pandastracker.app"],
+        "paths": ["/provider-access/*"],
+        "components": [
+          {
+            "/": "/provider-access/*"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAM_ID.com.pandastracker.app"]
+  }
+}
