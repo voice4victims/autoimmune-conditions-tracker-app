@@ -40,6 +40,7 @@ import MedicalVisitTracker from './MedicalVisitTracker';
 import InsuranceTracker from './InsuranceTracker';
 import AllergyTracker from './AllergyTracker';
 import MedicalRecordsScreen from './MedicalRecordsScreen';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
 
 type ScreenId = 'home' | 'log' | 'trends' | 'records' | 'more';
 
@@ -195,6 +196,7 @@ const AppLayout: React.FC = () => {
       insurance: <InsuranceTracker />,
       'medical-visits': <MedicalVisitTracker />,
       'medical-records': <MedicalRecordsScreen />,
+      'privacy-policy': <PrivacyPolicy />,
       comorbidities: <PatientProfile />,
       'patient-profile': <PatientProfile />,
     };

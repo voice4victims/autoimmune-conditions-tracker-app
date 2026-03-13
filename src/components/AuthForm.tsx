@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
 
 const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) => {
   const { signInAsGuest } = useAuth();
@@ -13,6 +14,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [parentConsent, setParentConsent] = useState(false);
+  const [hipaaConsent, setHipaaConsent] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const auth = getAuth();
 
   const handleEmailPasswordAuth = async (e: React.FormEvent) => {
@@ -108,17 +111,37 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
         )}
 
         {isSignUp && (
-          <label className="flex items-start gap-2.5 p-3 rounded-xl border border-primary-200 bg-primary-50/50 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={parentConsent}
-              onChange={(e) => setParentConsent(e.target.checked)}
-              className="mt-0.5 accent-primary-600 w-4 h-4 shrink-0"
-            />
-            <span className="font-sans text-[12px] text-neutral-600 leading-relaxed">
-              I am a <strong>parent or legal guardian</strong> (18 years or older) and I am creating this account to track my child's health information. I understand this app is <strong>not a medical device</strong> and does not provide medical advice.
-            </span>
-          </label>
+          <div className="space-y-2.5">
+            <label className="flex items-start gap-2.5 p-3 rounded-xl border border-primary-200 bg-primary-50/50 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={parentConsent}
+                onChange={(e) => setParentConsent(e.target.checked)}
+                className="mt-0.5 accent-primary-600 w-4 h-4 shrink-0"
+              />
+              <span className="font-sans text-[12px] text-neutral-600 leading-relaxed">
+                I am a <strong>parent or legal guardian</strong> (18 years or older) and I am creating this account to track my child's health information. I understand this app is <strong>not a medical device</strong> and does not provide medical advice.
+              </span>
+            </label>
+            <label className="flex items-start gap-2.5 p-3 rounded-xl border border-primary-200 bg-primary-50/50 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hipaaConsent}
+                onChange={(e) => setHipaaConsent(e.target.checked)}
+                className="mt-0.5 accent-primary-600 w-4 h-4 shrink-0"
+              />
+              <span className="font-sans text-[12px] text-neutral-600 leading-relaxed">
+                I acknowledge that health data entered into this app is <strong>Protected Health Information (PHI)</strong> under HIPAA. I have reviewed and agree to the{' '}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setShowPrivacyPolicy(true); }}
+                  className="text-primary-600 underline font-bold bg-transparent border-none cursor-pointer p-0 inline"
+                >
+                  Privacy Policy & Notice of Privacy Practices
+                </button>.
+              </span>
+            </label>
+          </div>
         )}
 
         <form onSubmit={handleEmailPasswordAuth} className="space-y-3">
@@ -152,7 +175,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
             type="submit"
             className="w-full font-sans font-bold"
             style={{ background: 'linear-gradient(135deg, #176F91, #573F9E)' }}
-            disabled={isSignUp && !parentConsent}
+            disabled={isSignUp && (!parentConsent || !hipaaConsent)}
           >
             {isSignUp ? 'Create Account' : 'Sign In'}
           </Button>
@@ -213,6 +236,24 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           </button>
         </p>
       </div>
+
+      {showPrivacyPolicy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowPrivacyPolicy(false)}>
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700 p-4 flex justify-between items-center">
+              <h2 className="font-serif text-lg font-bold text-neutral-800 dark:text-neutral-100">Privacy Policy & Notice of Privacy Practices</h2>
+              <button
+                onClick={() => setShowPrivacyPolicy(false)}
+                className="text-neutral-500 hover:text-neutral-700 bg-transparent border-none cursor-pointer text-xl font-bold p-1"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <PrivacyPolicy />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
