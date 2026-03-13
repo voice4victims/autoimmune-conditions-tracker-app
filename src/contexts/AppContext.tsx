@@ -53,6 +53,7 @@ interface AppContextType {
   customSymptoms: string[];
   addSymptom: (symptom: SymptomRating) => Promise<void>;
   addTreatment: (treatment: any) => Promise<void>;
+  deleteTreatment: (treatmentId: string) => Promise<void>;
   addNote: (note: Pick<Note, 'note' | 'date'>) => Promise<void>;
   addCustomSymptom: (symptom: string) => void;
   loadChildren: () => Promise<void>;
@@ -176,6 +177,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await loadTreatments();
   };
 
+  const deleteTreatment = async (treatmentId: string) => {
+    if (!childProfile || !childProfile.id) return;
+    await deleteDoc(doc(db, 'children', childProfile.id, 'treatments', treatmentId));
+    await loadTreatments();
+  };
+
   const loadNotes = async () => {
     if (!childProfile || !childProfile.id) {
       setNotes([]);
@@ -231,6 +238,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         customSymptoms,
         addSymptom,
         addTreatment,
+        deleteTreatment,
         addNote,
         addCustomSymptom,
         loadChildren,
