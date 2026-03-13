@@ -1101,7 +1101,7 @@ const MoreScreen: React.FC<MoreScreenProps> = ({ onNav }) => {
               )}
             >
               <span className="text-lg shrink-0">
-                {item.i === "__selfcare__" ? "💜" : item.i}
+                {item.i === "__selfcare__" ? "☕" : item.i}
               </span>
               <div className="min-w-0">
                 <p className={cn("font-sans font-extrabold text-[12px] m-0 truncate", activeItem === item.l ? "text-primary-600" : "text-neutral-700")}>{item.l}</p>
@@ -1358,7 +1358,7 @@ const PANDASPrototype: React.FC = () => {
             )}
             {showSelfCare && (
               <div className="border-b px-4 py-2.5 flex gap-2.5 items-center shrink-0" style={{ background: "#FFF0F7", borderBottomColor: "#F9C6DF" }}>
-                <div className="w-7 h-7 rounded-full bg-[#FF6B9D] flex items-center justify-center text-[14px] shrink-0">💜</div>
+                <div className="w-7 h-7 rounded-full bg-[#FF6B9D] flex items-center justify-center text-[14px] shrink-0">☕</div>
                 <div className="flex-1">
                   <p className="font-sans font-extrabold text-[12px] text-[#C2185B] m-0 mb-0.5">Remember to Take Care of Yourself Too</p>
                   <p className="font-sans text-[11px] text-[#E91E80]/75 m-0">Caring for a child with PANDAS is challenging. Your wellbeing matters.</p>
@@ -1427,7 +1427,7 @@ const PANDASPrototype: React.FC = () => {
               ["📚","Education Hub","PANS/PANDAS knowledge base"],
               ["👨‍👩‍👧","Family Sharing","Multi-caregiver access"],
               ["❓","FAQ","Accordion Q&A"],
-              ["💜","Self Care Reminder","Caregiver wellness banner"],
+              ["☕","Self Care Reminder","Caregiver wellness banner"],
             ].map(([i, l, s]) => (
               <div key={l} className="bg-white/[0.08] rounded-xl p-2.5">
                 <p className="font-sans font-extrabold text-[12px] text-white/80 m-0 mb-0.5">{i} {l}</p>

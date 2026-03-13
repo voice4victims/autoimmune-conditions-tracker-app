@@ -22,7 +22,7 @@ const SelfCareBanner: React.FC = () => {
       className="border-b px-4 py-2.5 flex gap-2.5 items-center shrink-0 bg-[#FFF0F7] dark:bg-[#2D1525] border-[#F9C6DF] dark:border-[#4A2040]"
     >
       <div className="w-7 h-7 rounded-full bg-[#FF6B9D] flex items-center justify-center text-[14px] shrink-0">
-        💜
+        ☕
       </div>
       <div className="flex-1">
         <p className="font-sans font-extrabold text-[12px] text-[#C2185B] m-0 mb-0.5">

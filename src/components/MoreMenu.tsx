@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 
 const MORE_ITEMS = [
-  { i: '💜', l: 'Self Care', s: 'Wellness tips & guidance', id: 'selfcare', nav: true },
+  { i: '☕', l: 'Self Care', s: 'Wellness tips & guidance', id: 'selfcare', nav: true },
   { i: '📚', l: 'Learn About PANS', s: 'Knowledge hub & education', id: 'learn', nav: true },
   { i: '❤️', l: 'Vital Signs', s: 'Temperature, heart rate, etc.', id: 'vitals', nav: true },
   { i: '💊', l: 'Treatments', s: 'Log medications & therapies', id: 'treatments', nav: true },
