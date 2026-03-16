@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import { isBiometricAvailable, isBiometricEnabled, getBiometryType } from '@/lib/biometricService';
 
 const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) => {
-  const { signInAsGuest } = useAuth();
+  const { signInAsGuest, signInWithBiometrics } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,7 +17,32 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const [parentConsent, setParentConsent] = useState(false);
   const [hipaaConsent, setHipaaConsent] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [biometricReady, setBiometricReady] = useState(false);
+  const [biometricLabel, setBiometricLabel] = useState('Biometric');
   const auth = getAuth();
+
+  useEffect(() => {
+    (async () => {
+      const available = await isBiometricAvailable();
+      const enabled = available && await isBiometricEnabled();
+      setBiometricReady(enabled);
+      if (enabled) setBiometricLabel(await getBiometryType());
+    })();
+  }, []);
+
+  const handleBiometricSignIn = async () => {
+    setError(null);
+    try {
+      const success = await signInWithBiometrics();
+      if (success) {
+        onAuthSuccess();
+      } else {
+        setError('Biometric authentication failed. Please sign in with your credentials.');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
 
   const handleEmailPasswordAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,6 +243,27 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
             Sign in with Apple
           </button>
         </div>
+
+        {biometricReady && (
+          <button
+            onClick={handleBiometricSignIn}
+            type="button"
+            className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-primary-200 bg-primary-50 hover:bg-primary-100 cursor-pointer font-sans font-bold text-[13px] text-primary-700 transition-colors"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 10a2 2 0 0 0-2 2c0 1.02.1 2.51.4 4" />
+              <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+              <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
+              <path d="M2 12a10 10 0 0 1 18-6" />
+              <path d="M2 16h.01" />
+              <path d="M21.8 16c.2-2 .131-5.354 0-6" />
+              <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
+              <path d="M8.65 22c.21-.66.45-1.32.57-2" />
+              <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
+            </svg>
+            Sign in with {biometricLabel}
+          </button>
+        )}
 
         <button
           onClick={handleGuestSignIn}

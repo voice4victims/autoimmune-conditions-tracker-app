@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { getCachedSecure, setCachedSecure, secureSet, secureGet, secureRemove } from './secureStorageService';
 
 /**
  * Cryptographic service for secure data handling in privacy settings
@@ -240,25 +241,17 @@ export class CryptoService {
      */
     async storeSecureKey(keyId: string, key: string): Promise<void> {
         try {
-            // In a real implementation, you would use:
-            // - Web Crypto API for key storage
-            // - IndexedDB with encryption
-            // - Hardware security modules if available
-
             const encryptedKey = this.encryptPrivacyData(key, this.getMasterKey());
-            localStorage.setItem(`secure_key_${keyId}`, JSON.stringify(encryptedKey));
+            await secureSet(`secure_key_${keyId}`, JSON.stringify(encryptedKey));
         } catch (error) {
             console.error('Key storage failed:', error);
             throw new Error('Failed to store secure key');
         }
     }
 
-    /**
-     * Retrieve secure key from storage
-     */
     async retrieveSecureKey(keyId: string): Promise<string | null> {
         try {
-            const storedData = localStorage.getItem(`secure_key_${keyId}`);
+            const storedData = await secureGet(`secure_key_${keyId}`);
             if (!storedData) {
                 return null;
             }
@@ -277,11 +270,8 @@ export class CryptoService {
         }
     }
 
-    /**
-     * Clear secure key from storage
-     */
     async clearSecureKey(keyId: string): Promise<void> {
-        localStorage.removeItem(`secure_key_${keyId}`);
+        await secureRemove(`secure_key_${keyId}`);
     }
 
     /**
@@ -353,10 +343,10 @@ export class CryptoService {
      */
     private getMasterKey(): string {
         const storageKey = '_crypto_mk';
-        const existing = localStorage.getItem(storageKey);
+        const existing = getCachedSecure(storageKey);
         if (existing) return existing;
         const key = CryptoJS.lib.WordArray.random(32).toString();
-        localStorage.setItem(storageKey, key);
+        setCachedSecure(storageKey, key);
         return key;
     }
 

@@ -13,6 +13,7 @@
  */
 
 import { User } from 'firebase/auth';
+import { getCachedSecure, setCachedSecure } from '../secureStorageService';
 import {
     collection,
     doc,
@@ -82,7 +83,7 @@ export const SESSION_TIMEOUT_OPTIONS = [
 const SESSION_TIMEOUT_KEY = 'pandas_session_timeout_minutes';
 
 export function getSessionTimeoutMinutes(): number {
-    const stored = localStorage.getItem(SESSION_TIMEOUT_KEY);
+    const stored = getCachedSecure(SESSION_TIMEOUT_KEY);
     if (stored) {
         const val = parseInt(stored, 10);
         if (SESSION_TIMEOUT_OPTIONS.some(o => o.value === val)) return val;
@@ -91,7 +92,7 @@ export function getSessionTimeoutMinutes(): number {
 }
 
 export function setSessionTimeoutMinutes(minutes: number): void {
-    localStorage.setItem(SESSION_TIMEOUT_KEY, String(minutes));
+    setCachedSecure(SESSION_TIMEOUT_KEY, String(minutes));
 }
 
 export class SessionManager {

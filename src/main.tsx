@@ -6,6 +6,7 @@ import { useServiceWorker } from './hooks/useServiceWorker';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './components/theme-provider';
 import ErrorBoundary from './components/ErrorBoundary';
+import { initSecureStorage } from './lib/secureStorageService';
 
 const Main = () => {
   useServiceWorker();
@@ -23,4 +24,6 @@ const Main = () => {
   );
 };
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<Main />);
+initSecureStorage().then(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(<Main />);
+});

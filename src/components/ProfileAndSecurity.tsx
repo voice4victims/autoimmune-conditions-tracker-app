@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MfaSetup from '@/components/MfaSetup';
 import DataDeletion from '@/components/DataDeletion';
 import AuditTrail from '@/components/AuditTrail';
@@ -12,9 +12,10 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from './ui/button';
 import { useTheme } from '@/components/theme-provider';
 import { useAuth } from '@/contexts/AuthContext';
-import { Moon, Sun, LogOut, Timer } from 'lucide-react';
+import { Moon, Sun, LogOut, Timer, Fingerprint } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SESSION_TIMEOUT_OPTIONS, getSessionTimeoutMinutes, setSessionTimeoutMinutes } from '@/lib/security/sessionManager';
+import { isBiometricAvailable, isBiometricEnabled, enableBiometric, disableBiometric, getBiometryType } from '@/lib/biometricService';
 
 interface ProfileAndSecurityProps {
   showChildManager: boolean;
@@ -23,8 +24,32 @@ interface ProfileAndSecurityProps {
 
 const ProfileAndSecurity: React.FC<ProfileAndSecurityProps> = ({ showChildManager, setShowChildManager }) => {
   const { theme, setTheme } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [sessionTimeout, setSessionTimeout] = useState(getSessionTimeoutMinutes);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricOn, setBiometricOn] = useState(false);
+  const [biometricType, setBiometricType] = useState('Fingerprint');
+
+  useEffect(() => {
+    (async () => {
+      const available = await isBiometricAvailable();
+      setBiometricAvailable(available);
+      if (available) {
+        setBiometricOn(await isBiometricEnabled());
+        setBiometricType(await getBiometryType());
+      }
+    })();
+  }, []);
+
+  const handleBiometricToggle = async () => {
+    if (biometricOn) {
+      await disableBiometric();
+      setBiometricOn(false);
+    } else if (user) {
+      const success = await enableBiometric(user.uid);
+      setBiometricOn(success);
+    }
+  };
 
   const handleTimeoutChange = (minutes: number) => {
     setSessionTimeoutMinutes(minutes);
@@ -85,6 +110,42 @@ const ProfileAndSecurity: React.FC<ProfileAndSecurityProps> = ({ showChildManage
           </div>
         </CardContent>
       </Card>
+
+      {biometricAvailable && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Fingerprint className="w-5 h-5 text-primary-500" />
+                <div>
+                  <p className="font-sans font-bold text-[13px] text-neutral-800 dark:text-neutral-100 m-0">
+                    {biometricType} Login
+                  </p>
+                  <p className="font-sans text-[11px] text-neutral-400 dark:text-neutral-500 m-0">
+                    {biometricOn ? 'Enabled' : 'Disabled'}
+                  </p>
+                </div>
+              </div>
+              <button
+                role="switch"
+                aria-checked={biometricOn}
+                onClick={handleBiometricToggle}
+                className={cn(
+                  'relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
+                  biometricOn ? 'bg-primary-500' : 'bg-neutral-200'
+                )}
+              >
+                <span
+                  className={cn(
+                    'pointer-events-none inline-block h-[24px] w-[24px] rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out',
+                    biometricOn ? 'translate-x-5' : 'translate-x-0'
+                  )}
+                />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-4 space-y-3">

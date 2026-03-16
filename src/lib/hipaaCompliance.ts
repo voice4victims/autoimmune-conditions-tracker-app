@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { AuditLog, HIPAAAction, PrivacySettings, BreachNotification } from '@/types/hipaa';
+import { getCachedSecure } from './secureStorageService';
 
 export class HIPAAComplianceService {
     // Audit Logging - Required by HIPAA Security Rule
@@ -157,8 +158,7 @@ export class HIPAAComplianceService {
     }
 
     private static getCurrentUserId(): string | null {
-        // Get current user ID from auth context
-        return localStorage.getItem('currentUserId');
+        return getCachedSecure('currentUserId');
     }
 
     private static clearSensitiveData(): void {

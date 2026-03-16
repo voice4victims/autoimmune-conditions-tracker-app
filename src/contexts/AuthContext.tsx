@@ -5,6 +5,8 @@ import { auth } from '../lib/firebase';
 import { HIPAAComplianceService } from '@/lib/hipaaCompliance';
 import { sessionManager } from '@/lib/security/sessionManager';
 import { accessControlService } from '@/lib/security/accessControl';
+import { getCachedSecure, setCachedSecure, removeCachedSecure } from '@/lib/secureStorageService';
+import { authenticateWithBiometric } from '@/lib/biometricService';
 
 interface AuthContextType {
   user: User | null;
@@ -12,6 +14,7 @@ interface AuthContextType {
   sessionId: string | null;
   signOut: () => Promise<void>;
   signInAsGuest: () => Promise<void>;
+  signInWithBiometrics: () => Promise<boolean>;
   demoMode: boolean;
   isSessionValid: boolean;
   elevateSession: () => Promise<boolean>;
@@ -24,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   sessionId: null,
   signOut: async () => { },
   signInAsGuest: async () => { },
+  signInWithBiometrics: async () => false,
   demoMode: false,
   isSessionValid: false,
   elevateSession: async () => false,
@@ -102,8 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sessionIdRef.current = null;
       setSessionId(null);
       setIsSessionValid(false);
-      localStorage.removeItem('currentUserId');
-      localStorage.removeItem('currentSessionId');
+      removeCachedSecure('currentUserId');
+      removeCachedSecure('currentSessionId');
 
       await firebaseSignOut(auth);
     } catch (error) {
@@ -123,8 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setDemoMode(firebaseUser?.isAnonymous || false);
 
       if (firebaseUser) {
-        const existingSessionId = localStorage.getItem('currentSessionId');
-        const existingUserId = localStorage.getItem('currentUserId');
+        const existingSessionId = getCachedSecure('currentSessionId');
+        const existingUserId = getCachedSecure('currentUserId');
 
         if (existingSessionId && existingUserId === firebaseUser.uid) {
           sessionIdRef.current = existingSessionId;
@@ -148,8 +152,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setSessionId(newSessionId);
             setIsSessionValid(true);
 
-            localStorage.setItem('currentUserId', firebaseUser.uid);
-            localStorage.setItem('currentSessionId', newSessionId);
+            setCachedSecure('currentUserId', firebaseUser.uid);
+            setCachedSecure('currentSessionId', newSessionId);
 
             await HIPAAComplianceService.logAccess(
               firebaseUser.uid,
@@ -177,8 +181,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sessionIdRef.current = null;
         setSessionId(null);
         setIsSessionValid(false);
-        localStorage.removeItem('currentUserId');
-        localStorage.removeItem('currentSessionId');
+        removeCachedSecure('currentUserId');
+        removeCachedSecure('currentSessionId');
 
         if (oldSessionId) {
           await sessionManager.invalidateSession(oldSessionId, 'User logout').catch(() => {});
@@ -235,6 +239,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithBiometrics = async (): Promise<boolean> => {
+    try {
+      const uid = await authenticateWithBiometric();
+      if (!uid) return false;
+      const currentUser = auth.currentUser;
+      if (currentUser && currentUser.uid === uid) return true;
+      return false;
+    } catch (error) {
+      console.error('Biometric sign-in failed:', error);
+      return false;
+    }
+  };
+
   const elevateSession = async (): Promise<boolean> => {
     if (!user || !sessionIdRef.current) return false;
 
@@ -274,6 +291,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sessionId,
       signOut,
       signInAsGuest,
+      signInWithBiometrics,
       demoMode,
       isSessionValid,
       elevateSession,
