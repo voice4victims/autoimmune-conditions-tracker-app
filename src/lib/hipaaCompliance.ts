@@ -153,8 +153,7 @@ export class HIPAAComplianceService {
         // Clear sensitive data from memory
         this.clearSensitiveData();
 
-        // Redirect to login
-        location.href = '/login?reason=timeout';
+        window.location.reload();
     }
 
     private static getCurrentUserId(): string | null {

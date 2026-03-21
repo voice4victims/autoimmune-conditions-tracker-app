@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { Capacitor } from '@capacitor/core';
 import { getCachedSecure, setCachedSecure, secureSet, secureGet, secureRemove } from './secureStorageService';
 
 /**
@@ -309,8 +310,7 @@ export class CryptoService {
             recommendations.push('Ensure Web Crypto API is available');
         }
 
-        // Check HTTPS
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+        if (typeof window !== 'undefined' && !Capacitor.isNativePlatform() && location.protocol !== 'https:' && location.hostname !== 'localhost') {
             issues.push('Not using HTTPS');
             recommendations.push('Always use HTTPS in production');
         }
