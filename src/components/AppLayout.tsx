@@ -1,46 +1,53 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, LogOut } from 'lucide-react';
+import { ArrowLeft, LogOut, Loader2 } from 'lucide-react';
 import SplashScreen from './SplashScreen';
 import ChildManager from './ChildManager';
 import MedicalDisclaimer from './MedicalDisclaimer';
 import SelfCareBanner from './SelfCareBanner';
 import ChildProfileForm from './ChildProfileForm';
 import HomeScreen from './HomeScreen';
-import LogScreen from './LogScreen';
-import TrendsScreen from './TrendsScreen';
-import RecordsScreen from './RecordsScreen';
-import EducationScreen from './EducationScreen';
-import CommunityScreen from './CommunityScreen';
 import MoreMenu from './MoreMenu';
-import SymptomChart from './SymptomChart';
-import SymptomHeatmap from './SymptomHeatmap';
-import TreatmentTracker from './TreatmentTracker';
-import NotesTracker from './NotesTracker';
-import MedicationReminders from './MedicationReminders';
-import SupplementRecipes from './SupplementRecipes';
-import VitalSignsTracker from './VitalSignsTracker';
-import SelfCareGuide from './SelfCareGuide';
-import DrugInteractionChecker from './DrugInteractionChecker';
-import ResourcesTab from './ResourcesTab';
-import { FamilyManager } from './FamilyManager';
-import AdvancedAnalyticsDashboard from './AdvancedAnalyticsDashboard';
-import { DiagnosisTracker } from './DiagnosisTracker';
-import ProfileAndSecurity from './ProfileAndSecurity';
-import PatientProfile from './PatientProfile';
-import PrivacySettings from './PrivacySettings';
-import PTECTracker from './PTECTracker';
-import { ProviderAccessManager } from './ProviderAccessManager';
-import FileManager from './FileManager';
-import ProviderTracker from './ProviderTracker';
-import EmailRecordsForm from './EmailRecordsForm';
-import MedicalVisitTracker from './MedicalVisitTracker';
-import InsuranceTracker from './InsuranceTracker';
-import AllergyTracker from './AllergyTracker';
-import MedicalRecordsScreen from './MedicalRecordsScreen';
-import PrivacyPolicy from '@/pages/PrivacyPolicy';
+
+const LogScreen = lazy(() => import('./LogScreen'));
+const TrendsScreen = lazy(() => import('./TrendsScreen'));
+const RecordsScreen = lazy(() => import('./RecordsScreen'));
+const EducationScreen = lazy(() => import('./EducationScreen'));
+const CommunityScreen = lazy(() => import('./CommunityScreen'));
+const SymptomChart = lazy(() => import('./SymptomChart'));
+const SymptomHeatmap = lazy(() => import('./SymptomHeatmap'));
+const TreatmentTracker = lazy(() => import('./TreatmentTracker'));
+const NotesTracker = lazy(() => import('./NotesTracker'));
+const MedicationReminders = lazy(() => import('./MedicationReminders'));
+const SupplementRecipes = lazy(() => import('./SupplementRecipes'));
+const VitalSignsTracker = lazy(() => import('./VitalSignsTracker'));
+const SelfCareGuide = lazy(() => import('./SelfCareGuide'));
+const DrugInteractionChecker = lazy(() => import('./DrugInteractionChecker'));
+const ResourcesTab = lazy(() => import('./ResourcesTab'));
+const FamilyManager = lazy(() => import('./FamilyManager').then(m => ({ default: m.FamilyManager })));
+const AdvancedAnalyticsDashboard = lazy(() => import('./AdvancedAnalyticsDashboard'));
+const DiagnosisTracker = lazy(() => import('./DiagnosisTracker').then(m => ({ default: m.DiagnosisTracker })));
+const ProfileAndSecurity = lazy(() => import('./ProfileAndSecurity'));
+const PatientProfile = lazy(() => import('./PatientProfile'));
+const PrivacySettings = lazy(() => import('./PrivacySettings'));
+const PTECTracker = lazy(() => import('./PTECTracker'));
+const ProviderAccessManager = lazy(() => import('./ProviderAccessManager').then(m => ({ default: m.ProviderAccessManager })));
+const FileManager = lazy(() => import('./FileManager'));
+const ProviderTracker = lazy(() => import('./ProviderTracker'));
+const EmailRecordsForm = lazy(() => import('./EmailRecordsForm'));
+const MedicalVisitTracker = lazy(() => import('./MedicalVisitTracker'));
+const InsuranceTracker = lazy(() => import('./InsuranceTracker'));
+const AllergyTracker = lazy(() => import('./AllergyTracker'));
+const MedicalRecordsScreen = lazy(() => import('./MedicalRecordsScreen'));
+const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
+
+const LazyFallback = () => (
+  <div className="flex-1 flex items-center justify-center p-8">
+    <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+  </div>
+);
 
 type ScreenId = 'home' | 'log' | 'trends' | 'records' | 'more';
 
@@ -280,64 +287,66 @@ const AppLayout: React.FC = () => {
           />
         )}
 
-        {screen === 'log' && <LogScreen initialTab={logTab} />}
+        <Suspense fallback={<LazyFallback />}>
+          {screen === 'log' && <LogScreen initialTab={logTab} />}
 
-        {screen === 'trends' && <TrendsScreen onOpenMore={(tab) => handleNavigate(`more-${tab}`)} />}
+          {screen === 'trends' && <TrendsScreen onOpenMore={(tab) => handleNavigate(`more-${tab}`)} />}
 
-        {screen === 'records' && <RecordsScreen initialTab={recordsTab} />}
+          {screen === 'records' && <RecordsScreen initialTab={recordsTab} />}
 
-        {screen === 'more' && activeMoreTab === 'learn' && (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="px-4 pt-4 pb-2 shrink-0">
-              <button
-                onClick={() => setActiveMoreTab(null)}
-                className="inline-flex items-center gap-2 font-sans font-bold text-[13px] text-primary-600 bg-primary-50 border border-primary-200 rounded-xl px-4 py-2 cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Menu
-              </button>
-            </div>
-            <EducationScreen />
-          </div>
-        )}
-
-        {screen === 'more' && activeMoreTab === 'community' && (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="px-4 pt-4 pb-2 shrink-0">
-              <button
-                onClick={() => setActiveMoreTab(null)}
-                className="inline-flex items-center gap-2 font-sans font-bold text-[13px] text-primary-600 bg-primary-50 border border-primary-200 rounded-xl px-4 py-2 cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Menu
-              </button>
-            </div>
-            <CommunityScreen />
-          </div>
-        )}
-
-        {screen === 'more' && activeMoreTab !== 'learn' && activeMoreTab !== 'community' && (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {!activeMoreTab && (
-              <div className="bg-white dark:bg-neutral-900 px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
-                <p className="font-sans text-[11px] font-bold uppercase tracking-[0.07em] text-neutral-400 mb-0.5">
-                  All features
-                </p>
-                <h2 className="font-serif text-[22px] text-neutral-800 dark:text-neutral-100 m-0 tracking-[-0.2px]">
-                  More
-                </h2>
+          {screen === 'more' && activeMoreTab === 'learn' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="px-4 pt-4 pb-2 shrink-0">
+                <button
+                  onClick={() => setActiveMoreTab(null)}
+                  className="inline-flex items-center gap-2 font-sans font-bold text-[13px] text-primary-600 bg-primary-50 border border-primary-200 rounded-xl px-4 py-2 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Menu
+                </button>
               </div>
-            )}
-            <div className="flex-1 overflow-y-auto p-4 pb-24">
-              <MoreMenu
-                activeMoreTab={activeMoreTab}
-                onMoreTabClick={handleMoreTabClick}
-                onBackToMenu={() => setActiveMoreTab(null)}
-              />
-              {renderMoreContent()}
+              <EducationScreen />
             </div>
-          </div>
-        )}
+          )}
+
+          {screen === 'more' && activeMoreTab === 'community' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="px-4 pt-4 pb-2 shrink-0">
+                <button
+                  onClick={() => setActiveMoreTab(null)}
+                  className="inline-flex items-center gap-2 font-sans font-bold text-[13px] text-primary-600 bg-primary-50 border border-primary-200 rounded-xl px-4 py-2 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Menu
+                </button>
+              </div>
+              <CommunityScreen />
+            </div>
+          )}
+
+          {screen === 'more' && activeMoreTab !== 'learn' && activeMoreTab !== 'community' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {!activeMoreTab && (
+                <div className="bg-white dark:bg-neutral-900 px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
+                  <p className="font-sans text-[11px] font-bold uppercase tracking-[0.07em] text-neutral-400 mb-0.5">
+                    All features
+                  </p>
+                  <h2 className="font-serif text-[22px] text-neutral-800 dark:text-neutral-100 m-0 tracking-[-0.2px]">
+                    More
+                  </h2>
+                </div>
+              )}
+              <div className="flex-1 overflow-y-auto p-4 pb-24">
+                <MoreMenu
+                  activeMoreTab={activeMoreTab}
+                  onMoreTabClick={handleMoreTabClick}
+                  onBackToMenu={() => setActiveMoreTab(null)}
+                />
+                {renderMoreContent()}
+              </div>
+            </div>
+          )}
+        </Suspense>
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex pb-[env(safe-area-inset-bottom,8px)] pt-2 z-50" aria-label="Main navigation">

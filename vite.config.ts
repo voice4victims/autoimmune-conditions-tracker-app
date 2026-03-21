@@ -43,12 +43,16 @@ export default defineConfig(({ mode }) => {
       } : undefined,
       rollupOptions: {
         output: {
-          // Obfuscate chunk names in production
           chunkFileNames: isProduction ? 'assets/[hash].js' : 'assets/[name]-[hash].js',
           entryFileNames: isProduction ? 'assets/[hash].js' : 'assets/[name]-[hash].js',
           assetFileNames: isProduction ? 'assets/[hash].[ext]' : 'assets/[name]-[hash].[ext]',
-          // Remove banner comments
           banner: '',
+          manualChunks(id) {
+            if (id.includes('node_modules/firebase')) return 'vendor-firebase';
+            if (id.includes('node_modules/@radix-ui')) return 'vendor-radix';
+            if (id.includes('node_modules/@capacitor')) return 'vendor-capacitor';
+            if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-charts';
+          },
         },
       },
     },
