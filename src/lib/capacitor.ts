@@ -18,7 +18,7 @@ export const openMailto = async (mailtoUrl: string) => {
   if (isNative()) {
     await Browser.open({ url: mailtoUrl });
   } else {
-    window.open(mailtoUrl);
+    window.open(mailtoUrl, '_self');
   }
 };
 
@@ -26,7 +26,7 @@ export const openSms = async (smsUrl: string) => {
   if (isNative()) {
     await Browser.open({ url: smsUrl });
   } else {
-    window.open(smsUrl);
+    window.open(smsUrl, '_self');
   }
 };
 

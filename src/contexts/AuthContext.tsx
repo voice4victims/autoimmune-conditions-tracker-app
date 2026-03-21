@@ -1,12 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { User, onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { HIPAAComplianceService } from '@/lib/hipaaCompliance';
 import { sessionManager } from '@/lib/security/sessionManager';
 import { accessControlService } from '@/lib/security/accessControl';
 import { getCachedSecure, setCachedSecure, removeCachedSecure } from '@/lib/secureStorageService';
 import { authenticateWithBiometric } from '@/lib/biometricService';
+import { initPushNotifications, setupPushListeners, removePushToken } from '@/lib/pushNotificationService';
 
 interface AuthContextType {
   user: User | null;
@@ -46,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const sessionIdRef = useRef<string | null>(null);
   const validationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const signingOutRef = useRef(false);
+  const pushCleanupRef = useRef<(() => void) | null>(null);
 
   const getClientInfo = () => {
     return {
@@ -86,8 +88,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       clearValidationInterval();
+      if (pushCleanupRef.current) {
+        pushCleanupRef.current();
+        pushCleanupRef.current = null;
+      }
 
       if (user) {
+        await removePushToken(user.uid).catch(() => {});
         await HIPAAComplianceService.logAccess(
           user.uid,
           'logout',
@@ -135,6 +142,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSessionId(existingSessionId);
           setIsSessionValid(true);
           startValidationInterval(firebaseUser.uid, existingSessionId);
+          initPushNotifications(firebaseUser.uid).catch(() => {});
+          pushCleanupRef.current = setupPushListeners();
         } else {
           try {
             const clientInfo = getClientInfo();
@@ -166,6 +175,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ).catch(() => {});
 
             startValidationInterval(firebaseUser.uid, newSessionId);
+            initPushNotifications(firebaseUser.uid).catch(() => {});
+            pushCleanupRef.current = setupPushListeners();
           } catch (error) {
             console.error('Error creating secure session:', error);
             if (mounted) {
@@ -244,7 +255,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const uid = await authenticateWithBiometric();
       if (!uid) return false;
       const currentUser = auth.currentUser;
-      if (currentUser && currentUser.uid === uid) return true;
+      if (currentUser && currentUser.uid === uid) {
+        return true;
+      }
+      if (currentUser && currentUser.uid !== uid) {
+        return false;
+      }
       return false;
     } catch (error) {
       console.error('Biometric sign-in failed:', error);

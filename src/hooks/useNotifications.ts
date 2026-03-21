@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { PushNotifications } from '@capacitor/push-notifications';
 
 interface NotificationPermissionState {
   granted: boolean;
@@ -16,14 +17,20 @@ export const useNotifications = () => {
     default: true
   });
 
+  const idCounterRef = useRef(Date.now());
+
   useEffect(() => {
     const checkPermission = async () => {
       if (Capacitor.isNativePlatform()) {
-        const result = await LocalNotifications.checkPermissions();
+        const [localResult, pushResult] = await Promise.all([
+          LocalNotifications.checkPermissions(),
+          PushNotifications.checkPermissions().catch(() => ({ receive: 'prompt' as const }))
+        ]);
+        const granted = localResult.display === 'granted' || pushResult.receive === 'granted';
         setPermission({
-          granted: result.display === 'granted',
-          denied: result.display === 'denied',
-          default: result.display === 'prompt'
+          granted,
+          denied: localResult.display === 'denied' && pushResult.receive === 'denied',
+          default: !granted && (localResult.display === 'prompt' || pushResult.receive === 'prompt')
         });
       } else if ('Notification' in window) {
         const currentPermission = Notification.permission;
@@ -40,8 +47,11 @@ export const useNotifications = () => {
   const requestPermission = async (): Promise<boolean> => {
     try {
       if (Capacitor.isNativePlatform()) {
-        const result = await LocalNotifications.requestPermissions();
-        const granted = result.display === 'granted';
+        const [localResult, pushResult] = await Promise.all([
+          LocalNotifications.requestPermissions(),
+          PushNotifications.requestPermissions().catch(() => ({ receive: 'denied' as const }))
+        ]);
+        const granted = localResult.display === 'granted' || pushResult.receive === 'granted';
         setPermission({ granted, denied: !granted, default: false });
         if (granted) {
           toast({ title: 'Success', description: 'Notifications enabled successfully' });
@@ -72,8 +82,6 @@ export const useNotifications = () => {
     }
   };
 
-  let notificationIdCounter = Date.now();
-
   const showNotification = async (title: string, options?: NotificationOptions) => {
     if (!permission.granted) {
       console.warn('Notification permission not granted');
@@ -86,7 +94,7 @@ export const useNotifications = () => {
           notifications: [{
             title,
             body: options?.body || '',
-            id: notificationIdCounter++,
+            id: idCounterRef.current++,
             schedule: { at: new Date(Date.now() + 100) },
           }]
         });

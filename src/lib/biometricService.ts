@@ -38,12 +38,14 @@ export async function isBiometricEnabled(): Promise<boolean> {
 }
 
 export async function enableBiometric(uid: string): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return false;
   try {
     await BiometricAuth.authenticate({ reason: 'Verify your identity to enable biometric login' });
     await secureSet(BIOMETRIC_ENABLED_KEY, 'true');
     await secureSet(BIOMETRIC_UID_KEY, uid);
     return true;
-  } catch {
+  } catch (error) {
+    console.error('Failed to enable biometric:', error);
     return false;
   }
 }
@@ -54,12 +56,14 @@ export async function disableBiometric(): Promise<void> {
 }
 
 export async function authenticateWithBiometric(): Promise<string | null> {
+  if (!Capacitor.isNativePlatform()) return null;
   try {
     const enabled = await isBiometricEnabled();
     if (!enabled) return null;
     await BiometricAuth.authenticate({ reason: 'Sign in to PANDAS Tracker' });
     return await secureGet(BIOMETRIC_UID_KEY);
-  } catch {
+  } catch (error) {
+    console.error('Biometric authentication failed:', error);
     return null;
   }
 }
