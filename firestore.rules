@@ -2,6 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function hasProviderAccess(childId) {
+      return exists(/databases/$(database)/documents/provider_sessions/$(request.auth.uid))
+        && get(/databases/$(database)/documents/provider_sessions/$(request.auth.uid)).data.child_id == childId
+        && get(/databases/$(database)/documents/provider_sessions/$(request.auth.uid)).data.expires_at > request.time;
+    }
+
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
@@ -11,12 +17,19 @@ service cloud.firestore {
     }
 
     match /children/{childId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        hasProviderAccess(childId)
+      );
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
 
       match /{collection}/{document} {
-        allow read, write: if request.auth != null &&
+        allow read: if request.auth != null && (
+          get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid ||
+          hasProviderAccess(childId)
+        );
+        allow write: if request.auth != null &&
           get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid;
       }
     }
@@ -49,7 +62,10 @@ service cloud.firestore {
     }
 
     match /vital_signs/{docId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow read: if request.auth != null && (
+        resource.data.user_id == request.auth.uid ||
+        hasProviderAccess(resource.data.child_id)
+      );
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
@@ -97,20 +113,41 @@ service cloud.firestore {
     }
 
     match /file_uploads/{docId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow read: if request.auth != null && (
+        resource.data.user_id == request.auth.uid ||
+        hasProviderAccess(resource.data.child_id)
+      );
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /magic_links/{linkId} {
-      allow read: if request.auth != null && resource.data.created_by == request.auth.uid;
+      allow read: if request.auth != null && (
+        resource.data.created_by == request.auth.uid ||
+        (resource.data.is_active == true
+         && resource.data.expires_at > request.time
+         && (resource.data.max_access_count == null || resource.data.access_count < resource.data.max_access_count))
+      );
       allow create: if request.auth != null && request.resource.data.created_by == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.created_by == request.auth.uid;
+      allow update: if request.auth != null && (
+        resource.data.created_by == request.auth.uid ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['access_count', 'last_accessed'])
+      );
+      allow delete: if request.auth != null && resource.data.created_by == request.auth.uid;
     }
 
     match /magic_link_access/{accessId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.provider_uid == request.auth.uid;
+      allow create: if request.auth != null;
+    }
+
+    match /provider_sessions/{uid} {
+      allow read, create: if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /provider_access_audit/{docId} {
+      allow read, write: if false;
     }
 
     match /privacy_audit_logs/{logId} {

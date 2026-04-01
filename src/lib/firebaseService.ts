@@ -6,6 +6,7 @@ import {
     deleteDoc,
     getDocs,
     getDoc,
+    setDoc,
     query,
     where,
     limit,
@@ -18,7 +19,7 @@ import {
     getDownloadURL,
     deleteObject
 } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { auth, db, storage } from './firebase';
 
 // Family Access Management
 export const familyService = {
@@ -496,22 +497,32 @@ export const magicLinkService = {
         };
     },
 
-    // Record access attempt
+    async createProviderSession(linkData: any) {
+        const currentUser = auth.currentUser;
+        if (!currentUser) throw new Error('Not authenticated');
+
+        await setDoc(doc(db, 'provider_sessions', currentUser.uid), {
+            child_id: linkData.child_id,
+            family_id: linkData.family_id,
+            magic_link_id: linkData.id,
+            permissions: linkData.permissions,
+            expires_at: linkData.expires_at,
+            created_at: Timestamp.now()
+        });
+    },
+
     async recordAccess(linkId: string, accessInfo: any = {}) {
-        // Update access count and last accessed time
         const linkRef = doc(db, 'magic_links', linkId);
         await updateDoc(linkRef, {
             access_count: increment(1),
             last_accessed: Timestamp.now()
         });
 
-        const linkSnap = await getDoc(linkRef);
-        const linkOwner = linkSnap.exists() ? linkSnap.data().created_by : null;
+        const currentUser = auth.currentUser;
         await addDoc(collection(db, 'magic_link_access'), {
             magic_link_id: linkId,
-            userId: linkOwner,
+            provider_uid: currentUser?.uid || null,
             accessed_at: Timestamp.now(),
-            ip_address: accessInfo.ip_address || null,
             user_agent: accessInfo.user_agent || null,
             provider_info: accessInfo.provider_info || null
         });

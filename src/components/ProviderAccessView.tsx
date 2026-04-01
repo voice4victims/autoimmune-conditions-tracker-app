@@ -4,8 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { magicLinkService } from '@/lib/firebaseService';
 import { MagicLink } from '@/types/magicLink';
+import { signInAnonymously } from 'firebase/auth';
+import { auth, functions } from '@/lib/firebase';
+import { httpsCallable } from 'firebase/functions';
+import { magicLinkService } from '@/lib/firebaseService';
 import {
     Shield,
     User,
@@ -40,30 +43,20 @@ export const ProviderAccessView: React.FC = () => {
 
     const validateAndLoadData = async () => {
         try {
-            // Validate magic link
-            const linkData = await magicLinkService.validateMagicLink(token!);
-            setMagicLink(linkData as MagicLink);
+            await signInAnonymously(auth);
 
-            // Record access
-            await magicLinkService.recordAccess(linkData.id, {
-                ip_address: await getClientIP(),
-                user_agent: navigator.userAgent,
-                provider_info: providerInfo
-            });
+            const validateAccess = httpsCallable(functions, 'validateProviderAccess');
+            const result = await validateAccess({ token });
+            const data = result.data as any;
 
-            // Load child data based on permissions
-            const data = await magicLinkService.getChildDataForProvider(linkData.id, linkData.permissions);
+            setMagicLink(data.magic_link as MagicLink);
             setChildData(data);
-
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Access denied');
+        } catch (err: any) {
+            const message = err?.details || err?.message || 'Access denied';
+            setError(message);
         } finally {
             setLoading(false);
         }
-    };
-
-    const getClientIP = async (): Promise<string | null> => {
-        return null;
     };
 
     const updateProviderInfo = () => {
