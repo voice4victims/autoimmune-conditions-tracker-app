@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { User, onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut as firebaseSignOut, signInWithCustomToken } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { HIPAAComplianceService } from '@/lib/hipaaCompliance';
 import { sessionManager } from '@/lib/security/sessionManager';
@@ -14,7 +14,6 @@ interface AuthContextType {
   loading: boolean;
   sessionId: string | null;
   signOut: () => Promise<void>;
-  signInAsGuest: () => Promise<void>;
   signInWithBiometrics: () => Promise<boolean>;
   demoMode: boolean;
   isSessionValid: boolean;
@@ -27,7 +26,6 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   sessionId: null,
   signOut: async () => { },
-  signInAsGuest: async () => { },
   signInWithBiometrics: async () => false,
   demoMode: false,
   isSessionValid: false,
@@ -242,14 +240,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     validationIntervalRef.current = setInterval(validate, 30000);
   };
 
-  const signInAsGuest = async () => {
-    try {
-      await signInAnonymously(auth);
-    } catch (error) {
-      console.error("Error signing in as guest: ", error);
-    }
-  };
-
   const signInWithBiometrics = async (): Promise<boolean> => {
     try {
       const uid = await authenticateWithBiometric();
@@ -306,7 +296,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       sessionId,
       signOut,
-      signInAsGuest,
       signInWithBiometrics,
       demoMode,
       isSessionValid,
