@@ -60,7 +60,7 @@ const VitalSignsTracker: React.FC = () => {
       setVitals(data);
     } catch (error) {
       const key = `pandas-vitals-${childProfile.id}`;
-      const stored = getSecureItem<VitalSign[]>(key);
+      const stored = await getSecureItem<VitalSign[]>(key);
       setVitals(stored || []);
     }
   };
@@ -90,9 +90,9 @@ const VitalSignsTracker: React.FC = () => {
     } catch (error) {
       setVitals((prev) => [newVital as VitalSign, ...prev]);
       const key = `pandas-vitals-${childProfile.id}`;
-      const stored = getSecureItem<VitalSign[]>(key) || [];
+      const stored = await getSecureItem<VitalSign[]>(key) || [];
       stored.unshift(newVital as VitalSign);
-      setSecureItem(key, stored);
+      await setSecureItem(key, stored);
     } finally {
       setLoading(false);
     }
@@ -107,14 +107,12 @@ const VitalSignsTracker: React.FC = () => {
       await enhancedVitalSignsService.deleteVitalSigns(vitalId);
     } catch (error) {}
 
-    setVitals((prev) => {
-      const updated = prev.filter((v) => v.id !== vitalId);
-      if (childProfile) {
-        const key = `pandas-vitals-${childProfile.id}`;
-        setSecureItem(key, updated);
-      }
-      return updated;
-    });
+    const updated = vitals.filter((v) => v.id !== vitalId);
+    setVitals(updated);
+    if (childProfile) {
+      const key = `pandas-vitals-${childProfile.id}`;
+      await setSecureItem(key, updated);
+    }
     toast({ title: 'Deleted', description: 'Vital sign removed' });
   };
 

@@ -5,6 +5,7 @@ import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
+import { setSecureItem, getSecureItem } from '@/lib/encryption';
 import FoodDiaryForm from './FoodDiaryForm';
 
 interface FoodEntry {
@@ -43,8 +44,8 @@ const FoodDiaryTracker: React.FC = () => {
       setEntries(entriesData);
     } catch (error) {
       const key = `pandas-food-diary-${childProfile.id}`;
-      const stored = localStorage.getItem(key);
-      setEntries(stored ? JSON.parse(stored) : []);
+      const stored = await getSecureItem<FoodEntry[]>(key);
+      setEntries(stored || []);
     } finally {
       setIsLoadingEntries(false);
     }
@@ -61,10 +62,9 @@ const FoodDiaryTracker: React.FC = () => {
       const entryWithId = { ...newEntry, id: Date.now().toString() };
       setEntries(prev => [entryWithId, ...prev]);
       const key = `pandas-food-diary-${childProfile.id}`;
-      const stored = localStorage.getItem(key);
-      const list = stored ? JSON.parse(stored) : [];
-      list.unshift(entryWithId);
-      localStorage.setItem(key, JSON.stringify(list));
+      const stored = await getSecureItem<FoodEntry[]>(key) || [];
+      stored.unshift(entryWithId);
+      await setSecureItem(key, stored);
     } finally {
       setIsLoading(false);
     }
@@ -72,11 +72,9 @@ const FoodDiaryTracker: React.FC = () => {
 
   const handleDelete = async (entryId: string) => {
     try { await deleteDoc(doc(db, 'food_diary', entryId)); } catch (error) {}
-    setEntries(prev => {
-      const updated = prev.filter(e => e.id !== entryId);
-      if (childProfile) localStorage.setItem(`pandas-food-diary-${childProfile.id}`, JSON.stringify(updated));
-      return updated;
-    });
+    const updated = entries.filter(e => e.id !== entryId);
+    setEntries(updated);
+    if (childProfile) await setSecureItem(`pandas-food-diary-${childProfile.id}`, updated);
     toast({ title: 'Deleted', description: 'Entry removed' });
   };
 

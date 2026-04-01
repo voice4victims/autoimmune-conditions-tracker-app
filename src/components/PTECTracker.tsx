@@ -7,6 +7,7 @@ import { Plus, TrendingDown, TrendingUp, Minus, Activity, History } from 'lucide
 import PTECForm from './PTECForm';
 import PTECTreatmentCorrelation from './PTECTreatmentCorrelation';
 import { useApp } from '@/contexts/AppContext';
+import { setSecureItem, getSecureItem } from '@/lib/encryption';
 
 
 const PTECTracker: React.FC = () => {
@@ -16,19 +17,18 @@ const PTECTracker: React.FC = () => {
 
   useEffect(() => {
     if (childProfile?.id) {
-      const stored = localStorage.getItem(`ptec_${childProfile.id}`);
-      if (stored) {
-        setEvaluations(JSON.parse(stored));
-      }
+      getSecureItem<any[]>(`ptec_${childProfile.id}`).then(stored => {
+        if (stored) setEvaluations(stored);
+      });
     }
   }, [childProfile]);
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = async (data: any) => {
     const newEval = { ...data, id: Date.now() };
     const updated = [...evaluations, newEval];
     setEvaluations(updated);
     if (childProfile?.id) {
-      localStorage.setItem(`ptec_${childProfile.id}`, JSON.stringify(updated));
+      await setSecureItem(`ptec_${childProfile.id}`, updated);
     }
     setShowForm(false);
   };

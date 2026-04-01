@@ -3,7 +3,6 @@
 import * as React from "react"
 import { createContext, useContext, useEffect, useState, useRef } from "react"
 import { ThemeProviderProps } from "next-themes/dist/types"
-import { setSecureItem, getSecureItem } from "@/lib/encryption";
 import { auth } from "@/lib/firebase";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -26,7 +25,7 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
-      const savedTheme = getSecureItem<Theme>("theme");
+      const savedTheme = localStorage.getItem("theme");
       return (savedTheme && ["dark", "light", "system"].includes(savedTheme)
         ? savedTheme
         : defaultTheme) as Theme
@@ -67,7 +66,7 @@ export function ThemeProvider({
         const savedTheme = userDoc.data()?.theme;
         if (savedTheme && ["dark", "light", "system"].includes(savedTheme)) {
           skipFirestoreSync.current = true;
-          setSecureItem("theme", savedTheme);
+          localStorage.setItem("theme", savedTheme);
           setThemeState(savedTheme as Theme);
         }
       } catch {}
@@ -76,7 +75,7 @@ export function ThemeProvider({
   }, []);
 
   const setTheme = (newTheme: Theme) => {
-    setSecureItem("theme", newTheme);
+    localStorage.setItem("theme", newTheme);
     setThemeState(newTheme);
 
     if (skipFirestoreSync.current) {

@@ -150,6 +150,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /rate_limits/{docId} {
+      allow read, write: if false;
+    }
+
     match /privacy_audit_logs/{logId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;

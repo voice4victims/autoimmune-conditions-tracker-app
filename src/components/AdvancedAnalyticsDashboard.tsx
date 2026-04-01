@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, Activity, Brain, Award } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import { getSecureItem } from '@/lib/encryption';
 import TreatmentEffectivenessStats from './analytics/TreatmentEffectivenessStats';
 import TreatmentResponseChart from './analytics/TreatmentResponseChart';
 import SymptomCategoryBreakdown from './analytics/SymptomCategoryBreakdown';
@@ -22,10 +23,10 @@ const AdvancedAnalyticsDashboard: React.FC = () => {
     }
   }, [childProfile, treatments]);
 
-  const loadSymptoms = () => {
+  const loadSymptoms = async () => {
     const key = `pandas-symptoms-${childProfile?.id}`;
-    const stored = localStorage.getItem(key);
-    const symptomData = stored ? JSON.parse(stored) : [];
+    const stored = await getSecureItem<any[]>(key);
+    const symptomData = stored || [];
     setSymptoms(symptomData);
     analyzeData(symptomData);
   };

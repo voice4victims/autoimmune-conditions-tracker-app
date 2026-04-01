@@ -6,6 +6,35 @@ import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 initializeApp();
 const db = getFirestore();
 
+async function checkRateLimit(
+  uid: string,
+  action: string,
+  maxRequests: number,
+  windowMs: number
+): Promise<void> {
+  const ref = db.collection("rate_limits").doc(`${uid}:${action}`);
+  const now = Date.now();
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.data();
+
+    if (!data || now - data.window_start > windowMs) {
+      tx.set(ref, { requests: 1, window_start: now });
+      return;
+    }
+
+    if (data.requests >= maxRequests) {
+      throw new HttpsError(
+        "resource-exhausted",
+        `Rate limit exceeded. Try again in ${Math.ceil((data.window_start + windowMs - now) / 1000)}s`
+      );
+    }
+
+    tx.update(ref, { requests: FieldValue.increment(1) });
+  });
+}
+
 export const validateProviderAccess = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Must be signed in");
@@ -17,6 +46,8 @@ export const validateProviderAccess = onCall(async (request) => {
   }
 
   const providerUid = request.auth.uid;
+
+  await checkRateLimit(providerUid, "provider_access", 10, 900000);
 
   const linksSnap = await db
     .collection("magic_links")

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingDown, TrendingUp, Minus, AlertCircle } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import { getSecureItem } from '@/lib/encryption';
 
 interface CorrelationData {
   evalDate: string;
@@ -18,11 +19,9 @@ const PTECTreatmentCorrelation: React.FC = () => {
 
   useEffect(() => {
     if (childProfile?.id) {
-      const stored = localStorage.getItem(`ptec_${childProfile.id}`);
-      if (stored) {
-        const evaluations = JSON.parse(stored);
-        analyzeCorrelations(evaluations);
-      }
+      getSecureItem<any[]>(`ptec_${childProfile.id}`).then(stored => {
+        if (stored) analyzeCorrelations(stored);
+      });
     }
   }, [childProfile, treatments]);
 

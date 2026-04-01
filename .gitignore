@@ -53,3 +53,4 @@ coverage/
 # Temporary files
 .tmp/
 temp/
+functions/lib/

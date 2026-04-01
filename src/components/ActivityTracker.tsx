@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { setSecureItem, getSecureItem } from '@/lib/encryption';
 import ActivityForm from './ActivityForm';
 
 interface Activity {
@@ -39,8 +40,8 @@ const ActivityTracker: React.FC = () => {
       setActivities(data);
     } catch (error) {
       const key = `pandas-activities-${childProfile.id}`;
-      const stored = localStorage.getItem(key);
-      setActivities(stored ? JSON.parse(stored) : []);
+      const stored = await getSecureItem<Activity[]>(key);
+      setActivities(stored || []);
     } finally {
       setLoading(false);
     }
@@ -62,20 +63,17 @@ const ActivityTracker: React.FC = () => {
       const newActivity = { id: Date.now().toString(), child_id: childProfile.id, created_at: new Date().toISOString(), ...activityData };
       setActivities(prev => [newActivity, ...prev]);
       const key = `pandas-activities-${childProfile.id}`;
-      const stored = localStorage.getItem(key);
-      const list = stored ? JSON.parse(stored) : [];
-      list.unshift(newActivity);
-      localStorage.setItem(key, JSON.stringify(list));
+      const stored = await getSecureItem<Activity[]>(key) || [];
+      stored.unshift(newActivity);
+      await setSecureItem(key, stored);
     }
   };
 
   const handleDelete = async (activityId: string) => {
     try { await deleteDoc(doc(db, 'activity_logs', activityId)); } catch (error) {}
-    setActivities(prev => {
-      const updated = prev.filter(a => a.id !== activityId);
-      if (childProfile) localStorage.setItem(`pandas-activities-${childProfile.id}`, JSON.stringify(updated));
-      return updated;
-    });
+    const updated = activities.filter(a => a.id !== activityId);
+    setActivities(updated);
+    if (childProfile) await setSecureItem(`pandas-activities-${childProfile.id}`, updated);
     toast({ title: 'Deleted', description: 'Activity removed' });
   };
 
