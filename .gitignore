@@ -42,9 +42,18 @@ server/admin/*.json
 !server/admin/README.md
 
 # Capacitor
-android/
 ios/
 .capacitor/
+
+# Android build artifacts (keep android/ project in git)
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/app/build/
+android/.gradle/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+android/app/google-services.json
 
 # Testing
 coverage/

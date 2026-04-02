@@ -1,0 +1,28 @@
+{
+  "_comment": "Download your actual google-services.json from the Firebase Console",
+  "_instructions": [
+    "1. Go to https://console.firebase.google.com/",
+    "2. Select the 'pandastracker' project",
+    "3. Click the gear icon > Project Settings",
+    "4. Under 'Your apps', click 'Add app' > Android",
+    "5. Enter package name: com.pandastracker.app",
+    "6. Download google-services.json",
+    "7. Place it at android/app/google-services.json",
+    "8. This file is gitignored — do NOT commit the real file"
+  ],
+  "project_info": {
+    "project_number": "REPLACE_ME",
+    "project_id": "pandastracker",
+    "storage_bucket": "pandastracker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "REPLACE_ME",
+        "android_client_info": {
+          "package_name": "com.pandastracker.app"
+        }
+      }
+    }
+  ]
+}
