@@ -1,0 +1,53 @@
+{
+  "privacy_nutrition_labels": {
+    "description": "App Store Connect privacy nutrition label declarations for PANDAS Tracker",
+    "last_updated": "2026-04-02",
+    "data_not_collected_for_tracking": true,
+    "data_not_sold_to_third_parties": true,
+    "data_types": [
+      {
+        "category": "Health & Fitness",
+        "subcategories": ["Health", "Fitness"],
+        "description": "Symptom logs, vitals, treatment records",
+        "linked_to_identity": true,
+        "used_for_tracking": false,
+        "purposes": ["App Functionality"],
+        "notes": "All health data is encrypted client-side before storage"
+      },
+      {
+        "category": "Contact Info",
+        "subcategories": ["Email Address"],
+        "description": "Email address used for account creation and authentication",
+        "linked_to_identity": true,
+        "used_for_tracking": false,
+        "purposes": ["App Functionality"]
+      },
+      {
+        "category": "Identifiers",
+        "subcategories": ["User ID"],
+        "description": "Firebase Auth user ID for account management",
+        "linked_to_identity": true,
+        "used_for_tracking": false,
+        "purposes": ["App Functionality"]
+      },
+      {
+        "category": "Usage Data",
+        "subcategories": ["Product Interaction"],
+        "description": "Firebase Analytics usage data (screen views, feature usage)",
+        "linked_to_identity": true,
+        "used_for_tracking": false,
+        "purposes": ["Analytics"],
+        "notes": "User can opt out via analytics consent toggle in settings"
+      },
+      {
+        "category": "Diagnostics",
+        "subcategories": ["Crash Data", "Performance Data"],
+        "description": "Firebase Crashlytics crash logs and performance metrics",
+        "linked_to_identity": false,
+        "used_for_tracking": false,
+        "purposes": ["App Functionality"],
+        "notes": "Collected anonymously to improve app stability"
+      }
+    ]
+  }
+}
