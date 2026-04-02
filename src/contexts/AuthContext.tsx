@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (mounted) {
               sessionIdRef.current = null;
               setSessionId(null);
-              setIsSessionValid(true);
+              setIsSessionValid(false);
             }
           }
         }
