@@ -9,6 +9,8 @@ import { db } from '@/lib/firebase';
 import { Capacitor } from '@capacitor/core';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import { isBiometricAvailable, isBiometricEnabled, getBiometryType } from '@/lib/biometricService';
+import { getFriendlyAuthError } from '@/lib/firebaseErrorMessages';
+import PasswordStrengthMeter, { validatePasswordForSignup } from '@/components/PasswordStrengthMeter';
 
 const CONSENT_VERSION = '1.0';
 
@@ -54,7 +56,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
     return age > 18 || (age === 18 && (monthDiff > 0 || (monthDiff === 0 && today.getDate() >= dob.getDate())));
   })();
   const consentGiven = parentConsent && hipaaConsent && isOver18;
-  const signUpBlocked = isSignUp && !consentGiven;
+  const passwordValid = !isSignUp || validatePasswordForSignup(password) === null;
+  const signUpBlocked = isSignUp && (!consentGiven || !passwordValid);
 
   useEffect(() => {
     (async () => {
@@ -96,14 +99,21 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
       } else {
         setError('Biometric authentication failed. Please sign in with your credentials.');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getFriendlyAuthError(err));
     }
   };
 
   const handleEmailPasswordAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (isSignUp) {
+      const validationError = validatePasswordForSignup(password);
+      if (validationError) {
+        setError(`Password requirement not met: ${validationError}`);
+        return;
+      }
+    }
     try {
       let result;
       if (isSignUp) {
@@ -114,8 +124,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
         result = await signInWithEmailAndPassword(auth, email, password);
         await checkConsentAndProceed(result.user);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getFriendlyAuthError(err));
     }
   };
 
@@ -145,7 +155,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
             setShowReconsentModal(true);
           }
         }
-      }).catch((err) => setError(err.message));
+      }).catch((err: unknown) => setError(getFriendlyAuthError(err)));
     }
   }, []);
 
@@ -154,8 +164,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
     try {
       const provider = new GoogleAuthProvider();
       await signInWithProvider(provider);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getFriendlyAuthError(err));
     }
   };
 
@@ -166,8 +176,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
       provider.addScope('email');
       provider.addScope('name');
       await signInWithProvider(provider);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getFriendlyAuthError(err));
     }
   };
 
@@ -274,6 +284,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
               required
               className="mt-1"
             />
+            {isSignUp && <PasswordStrengthMeter password={password} />}
           </div>
           <Button
             type="submit"
