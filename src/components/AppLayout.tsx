@@ -42,6 +42,7 @@ const InsuranceTracker = lazy(() => import('./InsuranceTracker'));
 const AllergyTracker = lazy(() => import('./AllergyTracker'));
 const MedicalRecordsScreen = lazy(() => import('./MedicalRecordsScreen'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('@/pages/TermsOfService'));
 
 const LazyFallback = () => (
   <div className="flex-1 flex items-center justify-center p-8">
@@ -204,6 +205,7 @@ const AppLayout: React.FC = () => {
       'medical-visits': <MedicalVisitTracker />,
       'medical-records': <MedicalRecordsScreen />,
       'privacy-policy': <PrivacyPolicy />,
+      'terms-of-service': <TermsOfService />,
       comorbidities: <PatientProfile />,
       'patient-profile': <PatientProfile />,
     };

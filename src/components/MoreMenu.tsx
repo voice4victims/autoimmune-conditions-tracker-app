@@ -28,6 +28,7 @@ const MORE_ITEMS = [
   { i: '🩻', l: 'Co-Morbidities', s: 'Prior & post-infection conditions', id: 'comorbidities', nav: false },
   { i: '🔐', l: 'Account & Privacy', s: 'Logout, data & permissions', id: 'privacy', nav: true },
   { i: '📜', l: 'Privacy Policy & HIPAA', s: 'Notice of Privacy Practices', id: 'privacy-policy', nav: true },
+  { i: '📃', l: 'Terms of Service', s: 'Usage terms & conditions', id: 'terms-of-service', nav: true },
   { i: '👤', l: 'Profile & Settings', s: 'Child profile & app settings', id: 'profile', nav: true },
 ];
 

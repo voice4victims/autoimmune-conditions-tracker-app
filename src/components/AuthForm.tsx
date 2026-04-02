@@ -8,6 +8,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Capacitor } from '@capacitor/core';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
 import { isBiometricAvailable, isBiometricEnabled, getBiometryType } from '@/lib/biometricService';
 import { getFriendlyAuthError } from '@/lib/firebaseErrorMessages';
 import PasswordStrengthMeter, { validatePasswordForSignup } from '@/components/PasswordStrengthMeter';
@@ -39,6 +40,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const [hipaaConsent, setHipaaConsent] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [showReconsentModal, setShowReconsentModal] = useState(false);
   const [pendingUser, setPendingUser] = useState<User | null>(null);
   const [reconsentParent, setReconsentParent] = useState(false);
@@ -225,6 +227,16 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           </button>.
         </span>
       </label>
+      <p className="font-sans text-[11px] text-neutral-500 leading-relaxed px-1">
+        By creating an account, you agree to our{' '}
+        <button
+          type="button"
+          onClick={() => setShowTermsOfService(true)}
+          className="text-primary-600 underline font-bold bg-transparent border-none cursor-pointer p-0 inline text-[11px]"
+        >
+          Terms of Service
+        </button>.
+      </p>
     </div>
   );
 
@@ -381,6 +393,24 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
               </button>
             </div>
             <PrivacyPolicy />
+          </div>
+        </div>
+      )}
+
+      {showTermsOfService && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowTermsOfService(false)}>
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700 p-4 flex justify-between items-center">
+              <h2 className="font-serif text-lg font-bold text-neutral-800 dark:text-neutral-100">Terms of Service</h2>
+              <button
+                onClick={() => setShowTermsOfService(false)}
+                className="text-neutral-500 hover:text-neutral-700 bg-transparent border-none cursor-pointer text-xl font-bold p-1"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <TermsOfService />
           </div>
         </div>
       )}
