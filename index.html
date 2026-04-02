@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, viewport-fit=cover" />
 
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com https://www.google.com https://www.googletagmanager.com https://*.google-analytics.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com/recaptcha/ https://recaptcha.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-mE69NVE47yXKwkAaoLiqCFbFX7gVg2UqK+HAN4LoNKg=' https://www.google.com/recaptcha/ https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com https://www.google.com https://www.googletagmanager.com https://*.google-analytics.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com/recaptcha/ https://recaptcha.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
     <title>PANDAS Tracker</title>
     <meta name="description" content="Track and manage your child's PANDAS symptoms and easily share updates with doctors." />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -43,6 +43,7 @@
 
   <body>
     <div id="root"></div>
+    <script>window.addEventListener('vite:preloadError',function(e){e.preventDefault();if(!sessionStorage.getItem('chunk_reload')){sessionStorage.setItem('chunk_reload','1');window.location.reload();}});</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

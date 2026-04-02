@@ -3,7 +3,18 @@ import React from 'react';
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
+  isChunkError: boolean;
 }
+
+const isChunkLoadError = (error: Error): boolean => {
+  const message = error.message || '';
+  return (
+    message.includes('Failed to fetch dynamically imported module') ||
+    message.includes('Loading chunk') ||
+    message.includes('Loading CSS chunk') ||
+    (error.name === 'TypeError' && message.includes('importing a module'))
+  );
+};
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -11,19 +22,30 @@ class ErrorBoundary extends React.Component<
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, isChunkError: false };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+    return { hasError: true, error, isChunkError: isChunkLoadError(error) };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Application error:', error, errorInfo);
+    if (isChunkLoadError(error) && !sessionStorage.getItem('chunk_reload')) {
+      sessionStorage.setItem('chunk_reload', '1');
+      window.location.reload();
+    }
   }
 
   render() {
     if (this.state.hasError) {
+      const heading = this.state.isChunkError
+        ? 'App Updated'
+        : 'Something went wrong';
+      const message = this.state.isChunkError
+        ? 'A new version of the app is available. Please refresh to load the latest version.'
+        : 'The app encountered an unexpected error. Please reload to continue.';
+
       return (
         <div style={{
           minHeight: '100vh',
@@ -42,7 +64,9 @@ class ErrorBoundary extends React.Component<
             textAlign: 'center',
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
           }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>
+              {this.state.isChunkError ? '🔄' : '⚠️'}
+            </div>
             <h1 style={{
               fontFamily: 'system-ui, sans-serif',
               fontSize: '20px',
@@ -50,7 +74,7 @@ class ErrorBoundary extends React.Component<
               color: '#1a1a1a',
               margin: '0 0 8px',
             }}>
-              Something went wrong
+              {heading}
             </h1>
             <p style={{
               fontFamily: 'system-ui, sans-serif',
@@ -59,9 +83,9 @@ class ErrorBoundary extends React.Component<
               margin: '0 0 24px',
               lineHeight: 1.5,
             }}>
-              The app encountered an unexpected error. Please reload to continue.
+              {message}
             </p>
-            {this.state.error && (
+            {!this.state.isChunkError && this.state.error && (
               <p style={{
                 fontFamily: 'monospace',
                 fontSize: '12px',
@@ -89,7 +113,7 @@ class ErrorBoundary extends React.Component<
                 cursor: 'pointer',
               }}
             >
-              Reload App
+              {this.state.isChunkError ? 'Refresh Now' : 'Reload App'}
             </button>
           </div>
         </div>
