@@ -29,7 +29,7 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid ||
         hasProviderAccess(childId)
       );
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "createdAt"]) && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
 
       match /{collection}/{document} {
@@ -50,7 +50,7 @@ service cloud.firestore {
       allow read: if request.auth != null &&
         (request.auth.uid == resource.data.owner_user_id ||
          request.auth.uid == resource.data.user_id);
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null &&
         request.auth.uid == resource.data.owner_user_id;
     }
@@ -59,13 +59,13 @@ service cloud.firestore {
       allow read: if request.auth != null &&
         (request.auth.uid == resource.data.invited_by ||
          request.auth.uid == resource.data.invited_user_id);
-      allow create: if request.auth != null && request.resource.data.invited_by == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["invited_by", "created_at"]) && request.resource.data.invited_by == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.invited_by == request.auth.uid;
     }
 
     match /symptoms/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
@@ -74,49 +74,49 @@ service cloud.firestore {
         resource.data.user_id == request.auth.uid ||
         hasProviderAccess(resource.data.child_id)
       );
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /medical_visits/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /medication_reminders/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /notes/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /recipes/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /supplement_recipes/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /food_diary/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /symptom_ratings/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
@@ -125,7 +125,7 @@ service cloud.firestore {
         resource.data.user_id == request.auth.uid ||
         hasProviderAccess(resource.data.child_id)
       );
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
@@ -136,7 +136,7 @@ service cloud.firestore {
          && resource.data.expires_at > request.time
          && (resource.data.max_access_count == null || resource.data.access_count < resource.data.max_access_count))
       );
-      allow create: if request.auth != null && request.resource.data.created_by == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["created_by", "created_at"]) && request.resource.data.created_by == request.auth.uid;
       allow update: if request.auth != null && (
         resource.data.created_by == request.auth.uid ||
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['access_count', 'last_accessed'])
@@ -164,119 +164,119 @@ service cloud.firestore {
 
     match /privacy_audit_logs/{logId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "timestamp"]) && request.resource.data.userId == request.auth.uid;
     }
 
     match /hipaa_audit_logs/{logId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "timestamp"]) && request.resource.data.user_id == request.auth.uid;
     }
 
     match /activity_logs/{logId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "created_at"]) && request.resource.data.userId == request.auth.uid;
     }
 
     match /audit_failures/{docId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "timestamp"]) && request.resource.data.userId == request.auth.uid;
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     match /deletion_requests/{docId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId"]) && request.resource.data.userId == request.auth.uid;
       allow update: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     match /deletion_confirmations/{docId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId"]) && request.resource.data.userId == request.auth.uid;
     }
 
     match /user_sessions/{sessionId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "createdAt"]) && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     match /session_security_events/{eventId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "timestamp"]) && request.resource.data.userId == request.auth.uid;
     }
 
     match /provider_access/{docId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId"]) && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     match /healthcare_providers/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /temporary_access/{docId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId"]) && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     match /access_reviews/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /breach_notifications/{docId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId"]) && request.resource.data.userId == request.auth.uid;
     }
 
     match /risk_assessments/{docId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId"]) && request.resource.data.userId == request.auth.uid;
     }
 
     match /allergy_records/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /patient_profiles/{docId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId"]) && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     match /insurance_info/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /trigger_events/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /medical_records/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /treatments/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /activities/{docId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
   }

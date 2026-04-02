@@ -1,11 +1,14 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, deleteDoc, writeBatch, getDoc } from 'firebase/firestore';
+import { EmailAuthProvider, GoogleAuthProvider, OAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
 import { Loader2 } from 'lucide-react';
 
 const USER_ID_FIELD_COLLECTIONS = [
@@ -73,6 +76,42 @@ const DataDeletion: React.FC = () => {
   const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [step, setStep] = useState<'reauth' | 'confirm'>('reauth');
+  const [password, setPassword] = useState('');
+  const [reauthError, setReauthError] = useState<string | null>(null);
+  const [reauthenticating, setReauthenticating] = useState(false);
+
+  const providerId = user?.providerData?.[0]?.providerId;
+
+  const handleReauth = async () => {
+    if (!auth.currentUser) return;
+    setReauthenticating(true);
+    setReauthError(null);
+    try {
+      if (providerId === 'google.com') {
+        await reauthenticateWithPopup(auth.currentUser, new GoogleAuthProvider());
+      } else if (providerId === 'apple.com') {
+        const provider = new OAuthProvider('apple.com');
+        provider.addScope('email');
+        await reauthenticateWithPopup(auth.currentUser, provider);
+      } else {
+        if (!password) { setReauthError('Password is required'); setReauthenticating(false); return; }
+        const credential = EmailAuthProvider.credential(auth.currentUser.email!, password);
+        await reauthenticateWithCredential(auth.currentUser, credential);
+      }
+      setStep('confirm');
+    } catch (err: any) {
+      setReauthError(err?.message?.includes('wrong-password') ? 'Incorrect password' : 'Re-authentication failed. Please try again.');
+    } finally {
+      setReauthenticating(false);
+    }
+  };
+
+  const resetDialog = (open: boolean) => {
+    if (deleting) return;
+    setIsOpen(open);
+    if (!open) { setStep('reauth'); setPassword(''); setReauthError(null); }
+  };
 
   const handleDelete = async () => {
     if (!user?.uid) return;
@@ -150,24 +189,65 @@ const DataDeletion: React.FC = () => {
       <p className="text-sm text-gray-600 mb-4">
         You have the right to request the permanent deletion of your account and all associated data. This action is irreversible.
       </p>
-      <Dialog open={isOpen} onOpenChange={deleting ? undefined : setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={resetDialog}>
         <DialogTrigger asChild>
           <Button variant="destructive">Request Data Deletion</Button>
         </DialogTrigger>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete your account and all associated health data from our servers.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsOpen(false)} disabled={deleting}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {deleting ? 'Deleting...' : 'I understand, delete my data'}
-            </Button>
-          </DialogFooter>
+          {step === 'reauth' ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Verify your identity</DialogTitle>
+                <DialogDescription>
+                  For security, please re-authenticate before deleting your account.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                {providerId === 'google.com' ? (
+                  <Button onClick={handleReauth} disabled={reauthenticating} className="w-full">
+                    {reauthenticating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Re-authenticate with Google
+                  </Button>
+                ) : providerId === 'apple.com' ? (
+                  <Button onClick={handleReauth} disabled={reauthenticating} className="w-full">
+                    {reauthenticating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Re-authenticate with Apple
+                  </Button>
+                ) : (
+                  <>
+                    <Input
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleReauth()}
+                    />
+                    <Button onClick={handleReauth} disabled={reauthenticating} className="w-full">
+                      {reauthenticating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Verify Password
+                    </Button>
+                  </>
+                )}
+                {reauthError && <p className="text-sm text-red-600">{reauthError}</p>}
+              </div>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Are you absolutely sure?</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. This will permanently delete your account and all associated health data from our servers.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="secondary" onClick={() => resetDialog(false)} disabled={deleting}>Cancel</Button>
+                <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                  {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {deleting ? 'Deleting...' : 'I understand, delete my data'}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

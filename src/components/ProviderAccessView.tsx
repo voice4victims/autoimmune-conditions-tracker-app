@@ -34,6 +34,7 @@ export const ProviderAccessView: React.FC = () => {
         name: '',
         organization: ''
     });
+    const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
 
     useEffect(() => {
         if (token) {
@@ -56,6 +57,20 @@ export const ProviderAccessView: React.FC = () => {
             setError(message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleFileDownload = async (fileId: string) => {
+        try {
+            setDownloadingFile(fileId);
+            const getFileUrl = httpsCallable(functions, 'getProviderFileUrl');
+            const result = await getFileUrl({ fileId });
+            const { url } = result.data as { url: string };
+            window.open(url, '_blank');
+        } catch (err: any) {
+            setError(err?.message || 'Failed to download file');
+        } finally {
+            setDownloadingFile(null);
         }
     };
 
@@ -267,7 +282,122 @@ export const ProviderAccessView: React.FC = () => {
                         </TabsContent>
                     )}
 
-                    {/* Add other tab contents similarly */}
+                    {/* Treatments Tab */}
+                    {magicLink?.permissions.includes('view_treatments') && (
+                        <TabsContent value="treatments">
+                            <Card>
+                                <CardHeader><CardTitle>Treatment History</CardTitle></CardHeader>
+                                <CardContent>
+                                    {childData?.treatments?.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {childData.treatments.map((t: any) => (
+                                                <div key={t.id} className="border rounded-lg p-3">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <h4 className="font-medium">{t.name || t.treatment_name}</h4>
+                                                        <Badge variant={t.status === 'active' ? 'default' : 'secondary'}>{t.status}</Badge>
+                                                    </div>
+                                                    {t.dosage && <p className="text-sm text-muted-foreground">{t.dosage}</p>}
+                                                    {t.notes && <p className="text-sm mt-1">{t.notes}</p>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">No treatment data available.</p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
+
+                    {/* Vitals Tab */}
+                    {magicLink?.permissions.includes('view_vitals') && (
+                        <TabsContent value="vitals">
+                            <Card>
+                                <CardHeader><CardTitle>Vital Signs</CardTitle></CardHeader>
+                                <CardContent>
+                                    {childData?.vitals?.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {childData.vitals.slice(0, 30).map((v: any) => (
+                                                <div key={v.id} className="border rounded-lg p-3 flex justify-between items-center">
+                                                    <div>
+                                                        {v.temperature && <span className="font-medium mr-3">Temp: {v.temperature}°F</span>}
+                                                        {v.heart_rate && <span className="text-sm mr-3">HR: {v.heart_rate} bpm</span>}
+                                                        {v.weight && <span className="text-sm">Weight: {v.weight} lbs</span>}
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {v.date ? format(new Date(v.date), 'MMM d, yyyy') : ''}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">No vital signs data available.</p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
+
+                    {/* Notes Tab */}
+                    {magicLink?.permissions.includes('view_notes') && (
+                        <TabsContent value="notes">
+                            <Card>
+                                <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+                                <CardContent>
+                                    {childData?.notes?.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {childData.notes.map((n: any) => (
+                                                <div key={n.id} className="border rounded-lg p-3">
+                                                    {n.title && <h4 className="font-medium mb-1">{n.title}</h4>}
+                                                    <p className="text-sm">{n.content || n.text}</p>
+                                                    {n.date && <p className="text-xs text-muted-foreground mt-1">{format(new Date(n.date), 'MMM d, yyyy')}</p>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">No notes available.</p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
+
+                    {/* Files Tab */}
+                    {magicLink?.permissions.includes('view_files') && (
+                        <TabsContent value="files">
+                            <Card>
+                                <CardHeader><CardTitle>Medical Files</CardTitle></CardHeader>
+                                <CardContent>
+                                    {childData?.files?.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {childData.files.map((file: any) => (
+                                                <div key={file.id} className="border rounded-lg p-3 flex justify-between items-center">
+                                                    <div>
+                                                        <h4 className="font-medium">{file.file_name || file.name}</h4>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {file.category && <span className="mr-2">{file.category}</span>}
+                                                            {file.file_size && <span>{(file.file_size / 1024).toFixed(0)} KB</span>}
+                                                        </p>
+                                                    </div>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => handleFileDownload(file.id)}
+                                                        disabled={downloadingFile === file.id}
+                                                    >
+                                                        <Download className="w-4 h-4 mr-1" />
+                                                        {downloadingFile === file.id ? 'Loading...' : 'View'}
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">No files available.</p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
                 </Tabs>
 
                 {/* Export Button */}

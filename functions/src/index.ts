@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 
 initializeApp();
 const db = getFirestore();
@@ -171,6 +172,83 @@ export const validateProviderAccess = onCall(async (request) => {
   });
 
   return data;
+});
+
+export const getProviderFileUrl = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in");
+  }
+
+  const { fileId } = request.data;
+  if (!fileId || typeof fileId !== "string") {
+    throw new HttpsError("invalid-argument", "Missing or invalid fileId");
+  }
+
+  const providerUid = request.auth.uid;
+
+  await checkRateLimit(providerUid, "file_download", 20, 900000);
+
+  const sessionDoc = await db
+    .collection("provider_sessions")
+    .doc(providerUid)
+    .get();
+  if (!sessionDoc.exists) {
+    throw new HttpsError("permission-denied", "No active provider session");
+  }
+
+  const session = sessionDoc.data()!;
+  const expiresAt = session.expires_at as Timestamp;
+  if (expiresAt.toDate() < new Date()) {
+    throw new HttpsError("permission-denied", "Provider session expired");
+  }
+
+  const permissions: string[] = session.permissions || [];
+  if (!permissions.includes("view_files")) {
+    throw new HttpsError("permission-denied", "File access not permitted");
+  }
+
+  const fileDoc = await db.collection("file_uploads").doc(fileId).get();
+  if (!fileDoc.exists) {
+    throw new HttpsError("not-found", "File not found");
+  }
+
+  const fileData = fileDoc.data()!;
+  if (fileData.child_id !== session.child_id) {
+    throw new HttpsError(
+      "permission-denied",
+      "File does not belong to authorized child"
+    );
+  }
+
+  if (!fileData.storage_path) {
+    throw new HttpsError("not-found", "File has no storage path");
+  }
+
+  const bucket = getStorage().bucket();
+  const file = bucket.file(fileData.storage_path);
+
+  const [exists] = await file.exists();
+  if (!exists) {
+    throw new HttpsError("not-found", "File not found in storage");
+  }
+
+  const [signedUrl] = await file.getSignedUrl({
+    action: "read",
+    expires: Date.now() + 60 * 60 * 1000,
+  });
+
+  await db.collection("provider_access_audit").add({
+    event_type: "file_download",
+    provider_uid: providerUid,
+    child_id: session.child_id,
+    file_id: fileId,
+    file_name: fileData.file_name || null,
+    magic_link_id: session.magic_link_id,
+    accessed_at: Timestamp.now(),
+    source: "cloud_function",
+  });
+
+  return { url: signedUrl, expires_in: 3600 };
 });
 
 export const onProviderAccessLogged = onDocumentCreated(

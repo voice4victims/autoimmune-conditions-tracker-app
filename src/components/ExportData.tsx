@@ -1,15 +1,65 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { jsPDF } from 'jspdf';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveFile, saveBlobFile } from '@/lib/capacitor';
 import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
+import { EmailAuthProvider, GoogleAuthProvider, OAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup } from 'firebase/auth';
+import { Loader2 } from 'lucide-react';
 
 const ExportData: React.FC = () => {
   const { children, treatments, childProfile } = useApp();
   const { toast } = useToast();
+  const [reauthOpen, setReauthOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [reauthError, setReauthError] = useState<string | null>(null);
+  const [reauthenticating, setReauthenticating] = useState(false);
+  const [pendingExport, setPendingExport] = useState<(() => Promise<void>) | null>(null);
+
+  const providerId = auth.currentUser?.providerData?.[0]?.providerId;
+
+  const requireReauth = (exportFn: () => Promise<void>) => {
+    setPendingExport(() => exportFn);
+    setReauthOpen(true);
+  };
+
+  const handleReauth = async () => {
+    if (!auth.currentUser) return;
+    setReauthenticating(true);
+    setReauthError(null);
+    try {
+      if (providerId === 'google.com') {
+        await reauthenticateWithPopup(auth.currentUser, new GoogleAuthProvider());
+      } else if (providerId === 'apple.com') {
+        const provider = new OAuthProvider('apple.com');
+        provider.addScope('email');
+        await reauthenticateWithPopup(auth.currentUser, provider);
+      } else {
+        if (!password) { setReauthError('Password is required'); setReauthenticating(false); return; }
+        const credential = EmailAuthProvider.credential(auth.currentUser.email!, password);
+        await reauthenticateWithCredential(auth.currentUser, credential);
+      }
+      setReauthOpen(false);
+      setPassword('');
+      setReauthError(null);
+      if (pendingExport) await pendingExport();
+      setPendingExport(null);
+    } catch (err: any) {
+      setReauthError(err?.message?.includes('wrong-password') ? 'Incorrect password' : 'Re-authentication failed. Please try again.');
+    } finally {
+      setReauthenticating(false);
+    }
+  };
+
+  const resetDialog = (open: boolean) => {
+    setReauthOpen(open);
+    if (!open) { setPassword(''); setReauthError(null); setPendingExport(null); }
+  };
 
   const exportToTxt = async () => {
     let text = '';
@@ -148,11 +198,50 @@ const ExportData: React.FC = () => {
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Export Data</h2>
       <div className="flex space-x-4">
-        <Button onClick={exportToTxt}>Export as .txt</Button>
-        <Button onClick={exportToCsv}>Export as .csv</Button>
-        <Button onClick={exportToPdf}>Export as .pdf</Button>
-        <Button onClick={exportToWord}>Export as .docx</Button>
+        <Button onClick={() => requireReauth(exportToTxt)}>Export as .txt</Button>
+        <Button onClick={() => requireReauth(exportToCsv)}>Export as .csv</Button>
+        <Button onClick={() => requireReauth(exportToPdf)}>Export as .pdf</Button>
+        <Button onClick={() => requireReauth(exportToWord)}>Export as .docx</Button>
       </div>
+
+      <Dialog open={reauthOpen} onOpenChange={resetDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Verify your identity</DialogTitle>
+            <DialogDescription>
+              For security, please re-authenticate before exporting your health data.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {providerId === 'google.com' ? (
+              <Button onClick={handleReauth} disabled={reauthenticating} className="w-full">
+                {reauthenticating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Re-authenticate with Google
+              </Button>
+            ) : providerId === 'apple.com' ? (
+              <Button onClick={handleReauth} disabled={reauthenticating} className="w-full">
+                {reauthenticating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Re-authenticate with Apple
+              </Button>
+            ) : (
+              <>
+                <Input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleReauth()}
+                />
+                <Button onClick={handleReauth} disabled={reauthenticating} className="w-full">
+                  {reauthenticating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Verify Password
+                </Button>
+              </>
+            )}
+            {reauthError && <p className="text-sm text-red-600">{reauthError}</p>}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
