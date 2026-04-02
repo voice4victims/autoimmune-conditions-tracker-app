@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { jsPDF } from 'jspdf';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveFile, saveBlobFile } from '@/lib/capacitor';
+import { csvRow } from '@/lib/csvSanitize';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import { EmailAuthProvider, GoogleAuthProvider, OAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup } from 'firebase/auth';
@@ -124,13 +125,13 @@ const ExportData: React.FC = () => {
     csv += 'Children Data\n';
     csv += 'ID,Name,Date of Birth,Diagnosis Date\n';
     children.forEach(child => {
-        csv += `${child.id},${child.name},${child.dateOfBirth},${child.diagnosisDate}\n`;
+        csv += csvRow([child.id, child.name, child.dateOfBirth, child.diagnosisDate]);
     });
 
     csv += '\nTreatments Data\n';
     csv += 'ID,Type,Medication,Dosage,Date,Time\n';
     treatments.forEach(treatment => {
-        csv += `${treatment.id},${treatment.treatment_type},${treatment.medication_name},${treatment.dosage},${treatment.administration_date},${treatment.administration_time}\n`;
+        csv += csvRow([treatment.id, treatment.treatment_type, treatment.medication_name, treatment.dosage, treatment.administration_date, treatment.administration_time]);
     });
 
     await saveFile('export.csv', csv, 'text/csv;charset=utf-8');
