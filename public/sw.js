@@ -59,30 +59,17 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  if (isApiRequest(event.request.url)) {
+  if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  if (isStaticAsset(event.request.url)) {
-    event.respondWith(
-      fetch(event.request).then(function(networkResponse) {
-        if (networkResponse && networkResponse.ok) {
-          var responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(function(cache) {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return networkResponse;
-      }).catch(function() {
-        return caches.match(event.request);
-      })
-    );
+  if (isApiRequest(event.request.url)) {
     return;
   }
 
   event.respondWith(
     fetch(event.request).then(function(networkResponse) {
-      if (networkResponse && networkResponse.ok && event.request.url.startsWith(self.location.origin)) {
+      if (networkResponse && networkResponse.ok) {
         var responseClone = networkResponse.clone();
         caches.open(CACHE_NAME).then(function(cache) {
           cache.put(event.request, responseClone);
@@ -90,7 +77,9 @@ self.addEventListener('fetch', function(event) {
       }
       return networkResponse;
     }).catch(function() {
-      return caches.match(event.request);
+      return caches.match(event.request).then(function(cached) {
+        return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+      });
     })
   );
 });
