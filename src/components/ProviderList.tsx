@@ -37,9 +37,13 @@ const ProviderList: React.FC<ProviderListProps> = ({ childId, refreshTrigger }) 
       const q = query(providersRef, where('user_id', '==', user.uid), where('child_id', '==', childId));
       const querySnapshot = await getDocs(q);
       const providersData = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Provider[];
-      providersData.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+      providersData.sort((a, b) => {
+        const ta = a.created_at?.toDate?.() ?? new Date(a.created_at || 0);
+        const tb = b.created_at?.toDate?.() ?? new Date(b.created_at || 0);
+        return tb.getTime() - ta.getTime();
+      });
       setProviders(providersData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching providers:', error);
       toast({ title: 'Error', description: 'Failed to load providers', variant: 'destructive' });
     } finally {

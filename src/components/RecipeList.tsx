@@ -78,7 +78,7 @@ const RecipeList: React.FC<RecipeListProps> = ({ recipes, onEdit, onDelete }) =>
               <div>
                 <h4 className="font-medium text-sm mb-2">Ingredients:</h4>
                 <div className="flex flex-wrap gap-1">
-                  {recipe.ingredients.map((ingredient, index) => (
+                  {(Array.isArray(recipe.ingredients) ? recipe.ingredients : []).map((ingredient, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
                       {ingredient.name} - {ingredient.amount} {ingredient.unit}
                     </Badge>
