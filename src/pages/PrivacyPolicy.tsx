@@ -8,13 +8,13 @@ const PrivacyPolicy: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Privacy Policy & Notice of Privacy Practices</CardTitle>
-          <p className="text-sm text-neutral-500 mt-1">Last updated: March 13, 2026</p>
+          <p className="text-sm text-neutral-500 mt-1">Last updated: April 1, 2026</p>
         </CardHeader>
         <CardContent className="prose max-w-none space-y-6 text-[14px] leading-relaxed text-neutral-700 dark:text-neutral-300">
           <section>
             <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">1. Introduction</h2>
             <p>
-              PANDAS Tracker ("we," "our," or "the app") is published by SPM HealthTech. This app is designed to help families track symptoms, treatments, and health information related to PANS/PANDAS and related autoimmune conditions.
+              PANDAS Tracker ("we," "our," or "the app") is published by SPM HealthTech. SPM HealthTech is operated by SPM Advisors. This app is designed to help families track symptoms, treatments, and health information related to PANS/PANDAS and related autoimmune conditions.
             </p>
             <p>
               <strong>This app is not a medical device.</strong> It does not provide medical advice, diagnosis, or treatment recommendations. It is for personal tracking and informational purposes only. Always consult a qualified healthcare professional before making medical decisions.
@@ -57,7 +57,7 @@ const PrivacyPolicy: React.FC = () => {
               <li><strong>Right to Data Deletion:</strong> You may request permanent deletion of all PHI through the Data Deletion option in Account & Privacy settings. Upon deletion, all associated data is permanently removed from our systems.</li>
             </ul>
             <p className="mt-2">
-              To exercise any of these rights, contact our Privacy Officer at <a href="mailto:info@tegratec.com" className="text-primary-600 underline">info@tegratec.com</a>.
+              To exercise any of these rights, contact our Privacy Officer at <a href="mailto:security@spmadvisors.net" className="text-primary-600 underline">security@spmadvisors.net</a>.
             </p>
           </section>
 
@@ -115,6 +115,7 @@ const PrivacyPolicy: React.FC = () => {
               <li><strong>Provider information:</strong> Healthcare provider names and contact information you enter.</li>
               <li><strong>Insurance information (PHI):</strong> Insurance details you choose to store.</li>
               <li><strong>App usage data:</strong> Basic analytics to help us improve the app (can be disabled in settings). No PHI is included in analytics data.</li>
+              <li><strong>Push notification tokens:</strong> If you enable push notifications, we store a device token to deliver medication reminders and alerts. This token is deleted when you disable notifications or delete your account.</li>
             </ul>
           </section>
 
@@ -135,7 +136,7 @@ const PrivacyPolicy: React.FC = () => {
             <p>We use the following third-party services to operate the app. Where these services handle PHI, we have executed Business Associate Agreements:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li><strong>Google Cloud / Firebase (Business Associate):</strong> Authentication, database (Firestore), file storage, and hosting. Data is stored in Google Cloud's US data centers with BAA coverage. See <a href="https://firebase.google.com/support/privacy" className="text-primary-600 underline" target="_blank" rel="noopener noreferrer">Firebase Privacy Policy</a> and <a href="https://cloud.google.com/security/compliance/hipaa" className="text-primary-600 underline" target="_blank" rel="noopener noreferrer">Google Cloud HIPAA Compliance</a>.</li>
-              <li><strong>Google Analytics (Firebase Analytics):</strong> Anonymized usage analytics to understand how the app is used. No PHI is sent to analytics. You may opt out in your device settings.</li>
+              <li><strong>Google Analytics (Firebase Analytics):</strong> Anonymized usage analytics to understand how the app is used. No PHI is sent to analytics. You may opt out via the cookie consent banner or the Usage Analytics toggle in Profile & Settings.</li>
             </ul>
           </section>
 
@@ -145,32 +146,59 @@ const PrivacyPolicy: React.FC = () => {
               <li>Your data is retained for as long as your account is active.</li>
               <li>You may delete individual records (symptoms, treatments, notes, etc.) at any time from within the app.</li>
               <li>You may request full account and data deletion by contacting us or using the deletion option in Account & Privacy settings.</li>
-              <li>Upon account deletion, all associated PHI is permanently removed from our systems.</li>
-              <li>Audit logs related to PHI access may be retained for up to 6 years as required by HIPAA.</li>
+              <li>Upon account deletion, all other personal data is deleted upon request.</li>
+              <li>Audit logs (privacy_audit_logs and hipaa_audit_logs) are retained for 6 years per HIPAA 45 CFR {'\u00A7'}164.530(j) and are exempt from deletion requests under GDPR Art. 17(3)(b).</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">11. Changes to This Policy</h2>
+            <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">11. California Privacy Rights (CCPA/CPRA)</h2>
+            <p>
+              If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA) and the California Privacy Rights Act (CPRA).
+            </p>
+            <p>
+              We do not sell your personal information. Firebase Analytics data collection may constitute "sharing" under CPRA. You can opt out via the Analytics toggle in Settings.
+            </p>
+            <h3 className="text-base font-bold text-neutral-800 dark:text-neutral-100 mt-4">Categories of Personal Information Collected</h3>
+            <ul className="list-disc pl-5 space-y-1">
+              <li><strong>Health data:</strong> Symptom ratings, treatment records, vital signs, lab results, medical documents, and related PHI.</li>
+              <li><strong>Account information:</strong> Email address and authentication credentials.</li>
+              <li><strong>Device information:</strong> Push notification tokens and basic device identifiers used for app functionality.</li>
+              <li><strong>Analytics data:</strong> Anonymized usage data collected through Firebase Analytics (can be disabled in Settings).</li>
+            </ul>
+            <h3 className="text-base font-bold text-neutral-800 dark:text-neutral-100 mt-4">Your California Privacy Rights</h3>
+            <ul className="list-disc pl-5 space-y-1">
+              <li><strong>Right to opt out of sharing:</strong> You can disable analytics data collection at any time using the Analytics toggle in Settings.</li>
+              <li><strong>Right to deletion:</strong> You can permanently delete all your personal data using the Data Deletion feature in Account & Privacy settings.</li>
+              <li><strong>Right to know and access:</strong> You can view and export all your personal data using the Data Export feature in Account & Privacy settings.</li>
+              <li><strong>Right to non-discrimination:</strong> We will not discriminate against you for exercising any of your CCPA/CPRA rights. You will receive equal service and pricing regardless of whether you exercise these rights.</li>
+            </ul>
+            <p className="mt-2">
+              To submit a CCPA request or for questions about your California privacy rights, contact us at <a href="mailto:security@spmadvisors.net" className="text-primary-600 underline">security@spmadvisors.net</a>.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">12. Changes to This Policy</h2>
             <p>
               We may update this privacy policy and notice of privacy practices from time to time. We will notify you of material changes through the app or via email. The revised notice will be available within the app. Continued use of the app after changes constitutes acceptance of the updated policy.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">12. Complaints</h2>
+            <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">13. Complaints</h2>
             <p>
-              If you believe your privacy rights have been violated, you may file a complaint with our Privacy Officer at <a href="mailto:info@tegratec.com" className="text-primary-600 underline">info@tegratec.com</a>. You also have the right to file a complaint with the U.S. Department of Health and Human Services Office for Civil Rights. We will not retaliate against you for filing a complaint.
+              If you believe your privacy rights have been violated, you may file a complaint with our Privacy Officer at <a href="mailto:security@spmadvisors.net" className="text-primary-600 underline">security@spmadvisors.net</a>. You also have the right to file a complaint with the U.S. Department of Health and Human Services Office for Civil Rights. We will not retaliate against you for filing a complaint.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">13. Contact Us</h2>
+            <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">14. Contact Us</h2>
             <p>
               If you have questions about this privacy policy, HIPAA compliance, your data, or wish to exercise any of your rights, please contact our Privacy Officer:
             </p>
             <p className="font-medium">
-              Email: <a href="mailto:info@tegratec.com" className="text-primary-600 underline">info@tegratec.com</a>
+              Email: <a href="mailto:security@spmadvisors.net" className="text-primary-600 underline">security@spmadvisors.net</a>
             </p>
             <p className="font-medium">
               SPM HealthTech — Privacy Officer

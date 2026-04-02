@@ -5,6 +5,7 @@ import { AppProvider } from './contexts/AppContext';
 import { PrivacyProvider } from './contexts/PrivacyContext';
 import { ThemeProvider } from './components/theme-provider';
 import { Toaster } from './components/ui/toaster';
+import CookieConsent from './components/CookieConsent';
 import Index from './pages/Index';
 import MobileOptimizations from './components/MobileOptimizations';
 import { ProviderAccessView } from './components/ProviderAccessView';
@@ -23,6 +24,7 @@ function App() {
               </Routes>
             </Router>
             <Toaster />
+            <CookieConsent />
           </AppProvider>
         </PrivacyProvider>
       </AuthProvider>

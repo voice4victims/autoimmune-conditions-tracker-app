@@ -35,6 +35,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const [error, setError] = useState<string | null>(null);
   const [parentConsent, setParentConsent] = useState(false);
   const [hipaaConsent, setHipaaConsent] = useState(false);
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showReconsentModal, setShowReconsentModal] = useState(false);
   const [pendingUser, setPendingUser] = useState<User | null>(null);
@@ -44,7 +45,15 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const [biometricLabel, setBiometricLabel] = useState('Biometric');
   const auth = getAuth();
 
-  const consentGiven = parentConsent && hipaaConsent;
+  const isOver18 = (() => {
+    if (!dateOfBirth) return false;
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    return age > 18 || (age === 18 && (monthDiff > 0 || (monthDiff === 0 && today.getDate() >= dob.getDate())));
+  })();
+  const consentGiven = parentConsent && hipaaConsent && isOver18;
   const signUpBlocked = isSignUp && !consentGiven;
 
   useEffect(() => {
@@ -164,6 +173,19 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
 
   const consentCheckboxes = (
     <div className="space-y-2.5">
+      <div className="p-3 rounded-xl border border-primary-200 bg-primary-50/50">
+        <label className="font-sans text-[12px] text-neutral-600 font-semibold block mb-1.5">Your date of birth</label>
+        <input
+          type="date"
+          value={dateOfBirth}
+          onChange={(e) => setDateOfBirth(e.target.value)}
+          max={new Date().toISOString().split('T')[0]}
+          className="w-full px-3 py-2 rounded-lg border border-primary-200 text-sm bg-white"
+        />
+        {dateOfBirth && !isOver18 && (
+          <p className="text-[11px] text-red-600 mt-1">You must be 18 or older to create an account.</p>
+        )}
+      </div>
       <label className="flex items-start gap-2.5 p-3 rounded-xl border border-primary-200 bg-primary-50/50 cursor-pointer">
         <input
           type="checkbox"

@@ -1,6 +1,6 @@
 
 import { initializeApp } from 'firebase/app';
-import { getAnalytics, type Analytics } from "firebase/analytics";
+import { getAnalytics, setAnalyticsCollectionEnabled, type Analytics } from "firebase/analytics";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
@@ -21,9 +21,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 let analytics: Analytics | null = null;
-if (!Capacitor.isNativePlatform() && typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
 
+if (!Capacitor.isNativePlatform() && typeof window !== 'undefined') {
   if (import.meta.env.DEV) {
     // @ts-expect-error Debug token for local development
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APPCHECK_DEBUG_TOKEN || true;
@@ -34,6 +33,21 @@ if (!Capacitor.isNativePlatform() && typeof window !== 'undefined') {
       provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY),
       isTokenAutoRefreshEnabled: true,
     });
+  }
+}
+
+export function initAnalytics(): void {
+  if (Capacitor.isNativePlatform() || typeof window === 'undefined') return;
+  if (localStorage.getItem('analytics_consent') !== 'granted') return;
+  if (!analytics) {
+    analytics = getAnalytics(app);
+  }
+  setAnalyticsCollectionEnabled(analytics, true);
+}
+
+export function disableAnalytics(): void {
+  if (analytics) {
+    setAnalyticsCollectionEnabled(analytics, false);
   }
 }
 
