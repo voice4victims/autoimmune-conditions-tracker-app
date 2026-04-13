@@ -337,6 +337,12 @@ export const onSubscriptionWebhook = onRequest({ secrets: ["REVENUECAT_WEBHOOK_S
     return;
   }
 
+  const existingUser = usersSnap.docs[0].data();
+  if (existingUser.isLifetime) {
+    res.status(200).send("Lifetime user — skipping");
+    return;
+  }
+
   const entitlements: Record<string, unknown> =
     event.subscriber?.entitlements || {};
   const activeEntitlements = Object.keys(entitlements).filter(
@@ -568,7 +574,40 @@ export const caregiverLogEntry = onCall(async (request) => {
   return { id: docRef.id };
 });
 
-export const redeemBetaCode = onCall(async (request) => {
+const RC_API_BASE = "https://api.revenuecat.com/v1";
+
+async function grantRCEntitlement(
+  rcAppUserId: string,
+  entitlementId: string,
+  durationMs: number | null
+): Promise<boolean> {
+  const secretKey = process.env.REVENUECAT_SECRET_KEY;
+  if (!secretKey) return false;
+
+  const body: Record<string, unknown> = {};
+  if (durationMs) {
+    const start = new Date();
+    const end = new Date(start.getTime() + durationMs);
+    body.start_time_ms = start.getTime();
+    body.end_time_ms = end.getTime();
+  }
+
+  const res = await fetch(
+    `${RC_API_BASE}/subscribers/${encodeURIComponent(rcAppUserId)}/entitlements/${entitlementId}/promotional`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  return res.ok;
+}
+
+export const redeemBetaCode = onCall({ secrets: ["REVENUECAT_SECRET_KEY"] }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Must be signed in");
   }
@@ -605,6 +644,14 @@ export const redeemBetaCode = onCall(async (request) => {
     throw new HttpsError("already-exists", "You already have beta access");
   }
 
+  const rcId = userDoc.data()?.rcId || hashUid(uid);
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+  const granted = await grantRCEntitlement(rcId, "entitlement_pro", sevenDaysMs);
+
+  if (!granted) {
+    throw new HttpsError("internal", "Failed to grant promotional entitlement");
+  }
+
   await db.runTransaction(async (tx) => {
     const freshCode = await tx.get(codeDoc.ref);
     if (freshCode.data()?.redeemed) {
@@ -620,11 +667,9 @@ export const redeemBetaCode = onCall(async (request) => {
     tx.set(
       db.collection("users").doc(uid),
       {
-        subscriptionTier: "pro",
         betaAccess: true,
         betaRedeemedAt: Timestamp.now(),
         betaCodeUsed: normalizedCode,
-        tierUpdatedAt: Timestamp.now(),
       },
       { merge: true }
     );
@@ -644,35 +689,39 @@ export const redeemBetaCode = onCall(async (request) => {
 
 const BETA_UPGRADE_DAYS = 7;
 
-export const upgradeBetaUsers = onSchedule("every 24 hours", async () => {
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - BETA_UPGRADE_DAYS);
+export const upgradeBetaUsers = onSchedule(
+  { schedule: "every 24 hours", secrets: ["REVENUECAT_SECRET_KEY"] },
+  async () => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - BETA_UPGRADE_DAYS);
 
-  const snap = await db
-    .collection("users")
-    .where("betaAccess", "==", true)
-    .where("subscriptionTier", "==", "pro")
-    .get();
+    const snap = await db
+      .collection("users")
+      .where("betaAccess", "==", true)
+      .where("isLifetime", "!=", true)
+      .get();
 
-  let upgraded = 0;
-  for (const userDoc of snap.docs) {
-    const data = userDoc.data();
-    const redeemedAt = data.betaRedeemedAt as Timestamp | undefined;
-    if (!redeemedAt || redeemedAt.toDate() > cutoff) continue;
+    for (const userDoc of snap.docs) {
+      const data = userDoc.data();
+      const redeemedAt = data.betaRedeemedAt as Timestamp | undefined;
+      if (!redeemedAt || redeemedAt.toDate() > cutoff) continue;
 
-    await userDoc.ref.update({
-      subscriptionTier: "family",
-      tierUpdatedAt: Timestamp.now(),
-    });
+      const rcId = data.rcId || hashUid(userDoc.id);
+      const granted = await grantRCEntitlement(rcId, "entitlement_family", null);
+      if (!granted) continue;
 
-    await db.collection("hipaa_audit_logs").add({
-      user_id: userDoc.id,
-      action: "beta_upgrade_to_family",
-      resource_type: "users",
-      timestamp: Timestamp.now(),
-      source: "cloud_function",
-    });
+      await userDoc.ref.update({
+        isLifetime: true,
+        tierUpdatedAt: Timestamp.now(),
+      });
 
-    upgraded++;
+      await db.collection("hipaa_audit_logs").add({
+        user_id: userDoc.id,
+        action: "beta_upgrade_to_family_lifetime",
+        resource_type: "users",
+        timestamp: Timestamp.now(),
+        source: "cloud_function",
+      });
+    }
   }
-});
+);
