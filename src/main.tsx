@@ -25,7 +25,18 @@ const Main = () => {
   );
 };
 
-initSecureStorage().then(() => {
-  initAnalytics();
+const boot = async () => {
+  try {
+    await initSecureStorage();
+  } catch {
+    // continue without secure storage
+  }
+  try {
+    initAnalytics();
+  } catch {
+    // continue without analytics
+  }
   ReactDOM.createRoot(document.getElementById('root')!).render(<Main />);
-});
+};
+
+boot();
