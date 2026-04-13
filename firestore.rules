@@ -8,6 +8,15 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/provider_sessions/$(request.auth.uid)).data.expires_at > request.time;
     }
 
+    function isPaidUser() {
+      let tier = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subscriptionTier;
+      return tier == 'pro' || tier == 'family';
+    }
+
+    function withinRetention(dateField) {
+      return dateField > (request.time - duration.value(30, 'd'));
+    }
+
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
@@ -33,9 +42,18 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
 
       match /{collection}/{document} {
-        allow read: if request.auth != null && (
+        allow list: if request.auth != null && (
           get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid ||
           hasProviderAccess(childId)
+        );
+        allow get: if request.auth != null && (
+          get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid ||
+          hasProviderAccess(childId)
+        ) && (
+          isPaidUser() ||
+          !resource.data.keys().hasAny(['date', 'created_at']) ||
+          (resource.data.keys().hasAny(['date']) && withinRetention(resource.data.date)) ||
+          (resource.data.keys().hasAny(['created_at']) && withinRetention(resource.data.created_at))
         );
         allow write: if request.auth != null &&
           get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid;
@@ -64,16 +82,22 @@ service cloud.firestore {
     }
 
     match /symptoms/{docId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow list: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow get: if request.auth != null && resource.data.user_id == request.auth.uid
+        && (isPaidUser() || !resource.data.keys().hasAny(['date']) || withinRetention(resource.data.date));
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /vital_signs/{docId} {
-      allow read: if request.auth != null && (
+      allow list: if request.auth != null && (
         resource.data.user_id == request.auth.uid ||
         hasProviderAccess(resource.data.child_id)
       );
+      allow get: if request.auth != null && (
+        resource.data.user_id == request.auth.uid ||
+        hasProviderAccess(resource.data.child_id)
+      ) && (isPaidUser() || !resource.data.keys().hasAny(['created_at']) || withinRetention(resource.data.created_at));
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
@@ -91,7 +115,9 @@ service cloud.firestore {
     }
 
     match /notes/{docId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow list: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow get: if request.auth != null && resource.data.user_id == request.auth.uid
+        && (isPaidUser() || !resource.data.keys().hasAny(['date', 'created_at']) || (resource.data.keys().hasAny(['date']) && withinRetention(resource.data.date)) || (resource.data.keys().hasAny(['created_at']) && withinRetention(resource.data.created_at)));
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
@@ -109,13 +135,17 @@ service cloud.firestore {
     }
 
     match /food_diary/{docId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow list: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow get: if request.auth != null && resource.data.user_id == request.auth.uid
+        && (isPaidUser() || !resource.data.keys().hasAny(['created_at']) || withinRetention(resource.data.created_at));
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
 
     match /symptom_ratings/{docId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow list: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow get: if request.auth != null && resource.data.user_id == request.auth.uid
+        && (isPaidUser() || !resource.data.keys().hasAny(['date', 'created_at']) || (resource.data.keys().hasAny(['date']) && withinRetention(resource.data.date)) || (resource.data.keys().hasAny(['created_at']) && withinRetention(resource.data.created_at)));
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }
@@ -173,7 +203,9 @@ service cloud.firestore {
     }
 
     match /activity_logs/{logId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow list: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow get: if request.auth != null && resource.data.userId == request.auth.uid
+        && (isPaidUser() || !resource.data.keys().hasAny(['created_at']) || withinRetention(resource.data.created_at));
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "created_at"]) && request.resource.data.userId == request.auth.uid;
     }
 
@@ -257,7 +289,9 @@ service cloud.firestore {
     }
 
     match /trigger_events/{docId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow list: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow get: if request.auth != null && resource.data.user_id == request.auth.uid
+        && (isPaidUser() || !resource.data.keys().hasAny(['created_at']) || withinRetention(resource.data.created_at));
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id", "created_at"]) && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
     }

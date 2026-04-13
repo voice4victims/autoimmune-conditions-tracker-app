@@ -1,8 +1,9 @@
-import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
+import * as crypto from "crypto";
 
 initializeApp();
 const db = getFirestore();
@@ -287,5 +288,92 @@ export const onProviderSessionCreated = onDocumentCreated(
       logged_at: Timestamp.now(),
       source: "cloud_function",
     });
+  }
+);
+
+function hashUid(uid: string): string {
+  return crypto.createHash("sha256").update(`rc_${uid}`).digest("hex");
+}
+
+export const onSubscriptionWebhook = onRequest(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).send("Method not allowed");
+    return;
+  }
+
+  const authHeader = req.headers.authorization;
+  const expectedToken = process.env.REVENUECAT_WEBHOOK_SECRET;
+  if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
+  const event = req.body?.event;
+  if (!event) {
+    res.status(400).send("Missing event");
+    return;
+  }
+
+  const rcAppUserId: string = event.app_user_id || "";
+  if (!rcAppUserId) {
+    res.status(200).send("No app_user_id");
+    return;
+  }
+
+  const usersSnap = await db
+    .collection("users")
+    .where("rcId", "==", rcAppUserId)
+    .limit(1)
+    .get();
+
+  let firebaseUid: string | null = null;
+  if (!usersSnap.empty) {
+    firebaseUid = usersSnap.docs[0].id;
+  }
+
+  if (!firebaseUid) {
+    res.status(200).send("User not found");
+    return;
+  }
+
+  const entitlements: Record<string, unknown> =
+    event.subscriber?.entitlements || {};
+  const activeEntitlements = Object.keys(entitlements).filter(
+    (k) => (entitlements[k] as Record<string, unknown>)?.expires_date == null ||
+      new Date((entitlements[k] as Record<string, string>).expires_date) > new Date()
+  );
+
+  let tier: "free" | "pro" | "family" = "free";
+  if (activeEntitlements.includes("entitlement_family")) {
+    tier = "family";
+  } else if (activeEntitlements.includes("entitlement_pro")) {
+    tier = "pro";
+  }
+
+  await db.collection("users").doc(firebaseUid).set(
+    {
+      subscriptionTier: tier,
+      tierUpdatedAt: Timestamp.now(),
+    },
+    { merge: true }
+  );
+
+  res.status(200).send("OK");
+});
+
+export const onUserConsentCreated = onDocumentCreated(
+  "user_consents/{uid}",
+  async (event) => {
+    const uid = event.params.uid;
+    const rcId = hashUid(uid);
+
+    await db.collection("users").doc(uid).set(
+      {
+        subscriptionTier: "free",
+        rcId,
+        tierUpdatedAt: Timestamp.now(),
+      },
+      { merge: true }
+    );
   }
 );

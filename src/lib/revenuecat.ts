@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Purchases, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from './firebase';
 
 const ENTITLEMENT_PRO = 'entitlement_pro';
 const ENTITLEMENT_FAMILY = 'entitlement_family';
@@ -43,6 +45,7 @@ export async function identifyUser(uid: string): Promise<void> {
   try {
     const appUserID = await hashUid(uid);
     await Purchases.logIn({ appUserID });
+    await setDoc(doc(db, 'users', uid), { rcId: appUserID }, { merge: true }).catch(() => {});
   } catch {
     // silent — identity sync is best-effort
   }
