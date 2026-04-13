@@ -42,8 +42,17 @@ server/admin/*.json
 !server/admin/README.md
 
 # Capacitor
-ios/
 .capacitor/
+
+# iOS build artifacts (keep ios/ project in git)
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/App/build/
+ios/App/Pods/
+ios/App/output/
+ios/DerivedData/
+ios/capacitor-cordova-ios-plugins/
 
 # Android build artifacts (keep android/ project in git)
 android/app/src/main/assets/public/
