@@ -1,4 +1,4 @@
-import React, { useState, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useCallback, useEffect, Suspense, lazy } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
@@ -92,7 +92,11 @@ const AppLayout: React.FC = () => {
   const handleSplashDone = useCallback(() => {
     sessionStorage.setItem('pandas_splash_shown', '1');
     setShowSplash(false);
+  }, []);
+
+  useEffect(() => {
     if (
+      !showSplash &&
       isRevenueCatAvailable() &&
       !isPro &&
       !isTrialing &&
@@ -100,7 +104,7 @@ const AppLayout: React.FC = () => {
     ) {
       setShowTrialOffer(true);
     }
-  }, [isPro, isTrialing]);
+  }, [showSplash, isPro, isTrialing]);
 
   const handleTrialDone = useCallback(() => {
     sessionStorage.setItem('pandas_trial_shown', '1');
