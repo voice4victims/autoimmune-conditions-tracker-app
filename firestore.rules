@@ -17,6 +17,16 @@ service cloud.firestore {
       return dateField > (request.time - duration.value(30, 'd'));
     }
 
+    function isOwnerPaid(ownerUid) {
+      let tier = get(/databases/$(database)/documents/users/$(ownerUid)).data.subscriptionTier;
+      return tier == 'pro' || tier == 'family';
+    }
+
+    function hasFamilyReadAccess(ownerUid) {
+      let accessDoc = get(/databases/$(database)/documents/family_access/$(ownerUid + '_' + request.auth.uid));
+      return accessDoc != null && accessDoc.data.is_active == true;
+    }
+
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
@@ -36,7 +46,8 @@ service cloud.firestore {
     match /children/{childId} {
       allow read: if request.auth != null && (
         resource.data.userId == request.auth.uid ||
-        hasProviderAccess(childId)
+        hasProviderAccess(childId) ||
+        hasFamilyReadAccess(resource.data.userId)
       );
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "createdAt"]) && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
@@ -44,13 +55,16 @@ service cloud.firestore {
       match /{collection}/{document} {
         allow list: if request.auth != null && (
           get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid ||
-          hasProviderAccess(childId)
+          hasProviderAccess(childId) ||
+          hasFamilyReadAccess(get(/databases/$(database)/documents/children/$(childId)).data.userId)
         );
         allow get: if request.auth != null && (
           get(/databases/$(database)/documents/children/$(childId)).data.userId == request.auth.uid ||
-          hasProviderAccess(childId)
+          hasProviderAccess(childId) ||
+          hasFamilyReadAccess(get(/databases/$(database)/documents/children/$(childId)).data.userId)
         ) && (
           isPaidUser() ||
+          isOwnerPaid(get(/databases/$(database)/documents/children/$(childId)).data.userId) ||
           !resource.data.keys().hasAny(['date', 'created_at']) ||
           (resource.data.keys().hasAny(['date']) && withinRetention(resource.data.date)) ||
           (resource.data.keys().hasAny(['created_at']) && withinRetention(resource.data.created_at))
@@ -60,6 +74,7 @@ service cloud.firestore {
       }
     }
 
+
     match /privacy_settings/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
@@ -68,7 +83,7 @@ service cloud.firestore {
       allow read: if request.auth != null &&
         (request.auth.uid == resource.data.owner_user_id ||
          request.auth.uid == resource.data.user_id);
-      allow create: if request.auth != null && request.resource.data.keys().hasAll(["user_id"]) && request.resource.data.user_id == request.auth.uid;
+      allow create: if false;
       allow update, delete: if request.auth != null &&
         request.auth.uid == resource.data.owner_user_id;
     }

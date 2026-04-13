@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { familyService } from '@/lib/firebaseService';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Check, Users } from 'lucide-react';
 
@@ -20,11 +21,12 @@ export const FamilyAcceptInvite: React.FC = () => {
 
     setLoading(true);
     try {
-      await familyService.acceptInvitation(inviteCode.trim(), user.uid);
+      const acceptFn = httpsCallable<{ inviteCode: string }, { role: string }>(functions, 'acceptFamilyInvitation');
+      const result = await acceptFn({ inviteCode: inviteCode.trim() });
 
       toast({
         title: 'Success!',
-        description: 'You now have access to the family data.',
+        description: `You now have ${result.data.role} access to the family data.`,
       });
 
       setInviteCode('');

@@ -377,3 +377,192 @@ export const onUserConsentCreated = onDocumentCreated(
     );
   }
 );
+
+async function getOwnerTier(ownerUid: string): Promise<string> {
+  const userDoc = await db.collection("users").doc(ownerUid).get();
+  return userDoc.data()?.subscriptionTier || "free";
+}
+
+const WRITE_ROLES = ["caregiver", "admin", "parent"];
+const ALLOWED_COLLECTIONS = [
+  "symptoms", "treatments", "notes", "vital_signs", "food_diary",
+];
+
+export const acceptFamilyInvitation = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in");
+  }
+
+  const { inviteCode } = request.data;
+  if (!inviteCode || typeof inviteCode !== "string") {
+    throw new HttpsError("invalid-argument", "Missing invitation code");
+  }
+
+  const uid = request.auth.uid;
+  await checkRateLimit(uid, "accept_invitation", 5, 900000);
+
+  const invSnap = await db
+    .collection("family_invitations")
+    .where("invitation_code", "==", inviteCode)
+    .where("status", "==", "pending")
+    .limit(1)
+    .get();
+
+  if (invSnap.empty) {
+    throw new HttpsError("not-found", "Invalid or expired invitation code");
+  }
+
+  const invDoc = invSnap.docs[0];
+  const inv = invDoc.data();
+
+  const expiresAt = inv.expires_at as Timestamp;
+  if (expiresAt.toDate() < new Date()) {
+    throw new HttpsError("deadline-exceeded", "Invitation has expired");
+  }
+
+  if (inv.invited_by === uid) {
+    throw new HttpsError("permission-denied", "Cannot accept your own invitation");
+  }
+
+  const existingSnap = await db
+    .collection("family_access")
+    .where("family_id", "==", inv.family_id)
+    .where("user_id", "==", uid)
+    .where("is_active", "==", true)
+    .limit(1)
+    .get();
+
+  if (!existingSnap.empty) {
+    throw new HttpsError("already-exists", "You already have access to this family");
+  }
+
+  const ownerTier = await getOwnerTier(inv.family_id);
+
+  let role = inv.role || "viewer";
+  if (ownerTier === "free" && role !== "viewer") {
+    role = "viewer";
+  }
+  if (ownerTier === "pro" && !["viewer", "caregiver"].includes(role)) {
+    role = "caregiver";
+  }
+
+  const accessDocId = `${inv.family_id}_${uid}`;
+  await db.collection("family_access").doc(accessDocId).set({
+    family_id: inv.family_id,
+    owner_user_id: inv.invited_by,
+    user_id: uid,
+    role,
+    invited_by: inv.invited_by,
+    accepted_at: Timestamp.now(),
+    is_active: true,
+  });
+
+  await invDoc.ref.update({
+    status: "accepted",
+    accepted_by: uid,
+    accepted_at: Timestamp.now(),
+  });
+
+  await db.collection("hipaa_audit_logs").add({
+    user_id: inv.family_id,
+    action: "caregiver_access_granted",
+    resource_type: "family_access",
+    caregiver_uid: uid,
+    role,
+    owner_tier: ownerTier,
+    timestamp: Timestamp.now(),
+    source: "cloud_function",
+  });
+
+  return { role, familyId: inv.family_id };
+});
+
+export const caregiverLogEntry = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in");
+  }
+
+  const { childId, collectionName, data: entryData } = request.data;
+  if (!childId || !collectionName || !entryData) {
+    throw new HttpsError("invalid-argument", "Missing childId, collectionName, or data");
+  }
+
+  if (!ALLOWED_COLLECTIONS.includes(collectionName)) {
+    throw new HttpsError("invalid-argument", `Collection ${collectionName} is not allowed`);
+  }
+
+  const uid = request.auth.uid;
+  await checkRateLimit(uid, "caregiver_log", 30, 60000);
+
+  const childDoc = await db.collection("children").doc(childId).get();
+  if (!childDoc.exists) {
+    throw new HttpsError("not-found", "Child not found");
+  }
+
+  const childData = childDoc.data()!;
+  const ownerUid = childData.userId;
+
+  if (ownerUid === uid) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Owners should write directly, not through this function"
+    );
+  }
+
+  const accessSnap = await db
+    .collection("family_access")
+    .where("family_id", "==", ownerUid)
+    .where("user_id", "==", uid)
+    .where("is_active", "==", true)
+    .limit(1)
+    .get();
+
+  if (accessSnap.empty) {
+    throw new HttpsError("permission-denied", "No active family access");
+  }
+
+  const access = accessSnap.docs[0].data();
+  if (!WRITE_ROLES.includes(access.role)) {
+    throw new HttpsError("permission-denied", "Your role does not allow logging entries");
+  }
+
+  const ownerTier = await getOwnerTier(ownerUid);
+  if (ownerTier === "free") {
+    throw new HttpsError(
+      "permission-denied",
+      "The account owner's plan does not support caregiver logging"
+    );
+  }
+
+  const sanitizedData: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(entryData)) {
+    if (typeof key === "string" && key.length < 100 && !key.startsWith("_")) {
+      sanitizedData[key] = value;
+    }
+  }
+
+  sanitizedData.logged_by = uid;
+  sanitizedData.logged_by_role = access.role;
+  sanitizedData.created_at = Timestamp.now();
+
+  const docRef = await db
+    .collection("children")
+    .doc(childId)
+    .collection(collectionName)
+    .add(sanitizedData);
+
+  await db.collection("hipaa_audit_logs").add({
+    user_id: ownerUid,
+    action: "caregiver_data_write",
+    resource_type: collectionName,
+    resource_id: docRef.id,
+    child_id: childId,
+    caregiver_uid: uid,
+    caregiver_role: access.role,
+    owner_tier: ownerTier,
+    timestamp: Timestamp.now(),
+    source: "cloud_function",
+  });
+
+  return { id: docRef.id };
+});
