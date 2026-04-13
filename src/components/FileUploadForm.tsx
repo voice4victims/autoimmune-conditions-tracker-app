@@ -5,11 +5,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, X, Camera, FileText, Video, Image } from 'lucide-react';
+import { Upload, X, Camera, FileText, Video, Image, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fileService } from '@/lib/firebaseService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import { isRevenueCatAvailable } from '@/lib/revenuecat';
+import { getCurrentUsage, getStorageQuota, formatBytes } from '@/lib/storageQuota';
 
 const FileUploadForm: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -19,6 +22,7 @@ const FileUploadForm: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { childProfile } = useApp();
+  const { isPro, tier } = useSubscription();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -31,6 +35,20 @@ const FileUploadForm: React.FC = () => {
     if (!file || !category || !user || !childProfile) {
       toast({ title: 'Error', description: 'Please select a file and category', variant: 'destructive' });
       return;
+    }
+
+    if (isRevenueCatAvailable()) {
+      const quota = getStorageQuota(tier);
+      const currentUsage = await getCurrentUsage(user.uid);
+      if (currentUsage + file.size > quota) {
+        const quotaLabel = formatBytes(quota);
+        const usageLabel = formatBytes(currentUsage);
+        const upgradeMsg = tier === 'pro'
+          ? `Storage limit reached (${usageLabel} / ${quotaLabel}). Upgrade to Family for 10 GB.`
+          : `Storage limit reached (${usageLabel} / ${quotaLabel}).`;
+        toast({ title: 'Storage Full', description: upgradeMsg, variant: 'destructive' });
+        return;
+      }
     }
 
     setUploading(true);
@@ -48,6 +66,19 @@ const FileUploadForm: React.FC = () => {
       setUploading(false);
     }
   };
+
+  if (isRevenueCatAvailable() && !isPro) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <Lock className="w-10 h-10 text-gray-400 mb-3" />
+          <p className="text-gray-600 font-medium mb-1">File uploads require a Pro subscription</p>
+          <p className="text-gray-400 text-sm mb-4">Upgrade to upload and manage documents, photos, and lab results.</p>
+          <Button variant="default">Upgrade</Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

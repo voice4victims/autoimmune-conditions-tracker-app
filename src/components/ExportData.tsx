@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import { isRevenueCatAvailable } from '@/lib/revenuecat';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -13,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import { EmailAuthProvider, GoogleAuthProvider, OAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, getDoc, Timestamp } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 
 const serializeFirestoreData = (obj: any): any => {
   if (obj === null || obj === undefined) return obj;
@@ -46,7 +48,9 @@ const SINGLE_DOC_COLLECTIONS = ['users', 'privacy_settings', 'user_consents'];
 const ExportData: React.FC = () => {
   const { children, treatments, childProfile } = useApp();
   const { user } = useAuth();
+  const { isPro } = useSubscription();
   const { toast } = useToast();
+  const exportGated = isRevenueCatAvailable() && !isPro;
   const [reauthOpen, setReauthOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [reauthError, setReauthError] = useState<string | null>(null);
@@ -318,10 +322,29 @@ const ExportData: React.FC = () => {
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Export Data</h2>
       <div className="flex flex-wrap gap-3 mb-6">
-        <Button onClick={() => requireReauth(exportToTxt)}>Export as .txt</Button>
-        <Button onClick={() => requireReauth(exportToCsv)}>Export as .csv</Button>
-        <Button onClick={() => requireReauth(exportToPdf)}>Export as .pdf</Button>
-        <Button onClick={() => requireReauth(exportToWord)}>Export as .docx</Button>
+        {exportGated ? (
+          <>
+            <Button variant="secondary" onClick={() => toast({ title: 'Pro required', description: 'Data exports require a Pro subscription' })}>
+              <Lock className="w-4 h-4 mr-2" />Export as .txt
+            </Button>
+            <Button variant="secondary" onClick={() => toast({ title: 'Pro required', description: 'Data exports require a Pro subscription' })}>
+              <Lock className="w-4 h-4 mr-2" />Export as .csv
+            </Button>
+            <Button variant="secondary" onClick={() => toast({ title: 'Pro required', description: 'Data exports require a Pro subscription' })}>
+              <Lock className="w-4 h-4 mr-2" />Export as .pdf
+            </Button>
+            <Button variant="secondary" onClick={() => toast({ title: 'Pro required', description: 'Data exports require a Pro subscription' })}>
+              <Lock className="w-4 h-4 mr-2" />Export as .docx
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={() => requireReauth(exportToTxt)}>Export as .txt</Button>
+            <Button onClick={() => requireReauth(exportToCsv)}>Export as .csv</Button>
+            <Button onClick={() => requireReauth(exportToPdf)}>Export as .pdf</Button>
+            <Button onClick={() => requireReauth(exportToWord)}>Export as .docx</Button>
+          </>
+        )}
       </div>
       <div className="border-t pt-4">
         <h3 className="text-lg font-semibold mb-2">Full Data Export (GDPR)</h3>

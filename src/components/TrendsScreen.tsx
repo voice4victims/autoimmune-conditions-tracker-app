@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
-import { useApp } from '@/contexts/AppContext';
+import { useRetainedData } from '@/hooks/useRetainedData';
+import RetentionBanner from './RetentionBanner';
 import SymptomChart from './SymptomChart';
 import SymptomHeatmap from './SymptomHeatmap';
 
@@ -18,7 +19,7 @@ interface TrendsScreenProps {
 }
 
 const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
-  const { childProfile, symptoms } = useApp();
+  const { childProfile, symptoms } = useRetainedData();
   const [view, setView] = useState<'chart' | 'heatmap'>('chart');
   const [range, setRange] = useState('30d');
 
@@ -110,6 +111,8 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
           📄 Export
         </button>
       </div>
+
+      <RetentionBanner />
 
       <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-3.5">
         <div className="flex gap-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-0.5">

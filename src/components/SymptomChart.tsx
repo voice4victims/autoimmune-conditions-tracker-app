@@ -1,10 +1,10 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useApp } from '@/contexts/AppContext';
+import { useRetainedData } from '@/hooks/useRetainedData';
 import SymptomHistoryDetails from './SymptomHistoryDetails';
 
 const SymptomChart: React.FC = () => {
-  const { childProfile, symptoms } = useApp();
+  const { childProfile, symptoms } = useRetainedData();
 
   if (!childProfile) {
     return (

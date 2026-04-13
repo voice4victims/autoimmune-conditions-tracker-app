@@ -10,6 +10,7 @@ interface RoleSelectorProps {
     onValueChange: (role: UserRole) => void;
     disabled?: boolean;
     showDescription?: boolean;
+    allowedRoles?: readonly UserRole[];
 }
 
 const roleIcons = {
@@ -37,9 +38,11 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
     value,
     onValueChange,
     disabled = false,
-    showDescription = true
+    showDescription = true,
+    allowedRoles
 }) => {
-    const roles: UserRole[] = ['admin', 'parent', 'caregiver', 'viewer'];
+    const allRoles: UserRole[] = ['admin', 'parent', 'caregiver', 'viewer'];
+    const roles = allowedRoles ? allRoles.filter(r => (allowedRoles as readonly string[]).includes(r)) : allRoles;
 
     return (
         <div className="space-y-2">

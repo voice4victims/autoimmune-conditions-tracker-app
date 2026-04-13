@@ -2,8 +2,11 @@ import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, LogOut, Loader2 } from 'lucide-react';
+import { ArrowLeft, LogOut, Loader2, Crown } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
+import { isRevenueCatAvailable } from '@/lib/revenuecat';
 import SplashScreen from './SplashScreen';
+import TrialOfferScreen from './TrialOfferScreen';
 import ChildManager from './ChildManager';
 import MedicalDisclaimer from './MedicalDisclaimer';
 import SelfCareBanner from './SelfCareBanner';
@@ -43,6 +46,7 @@ const AllergyTracker = lazy(() => import('./AllergyTracker'));
 const MedicalRecordsScreen = lazy(() => import('./MedicalRecordsScreen'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('@/pages/TermsOfService'));
+import PaywallGate from './PaywallGate';
 
 const LazyFallback = () => (
   <div className="flex-1 flex items-center justify-center p-8">
@@ -76,13 +80,30 @@ const AppLayout: React.FC = () => {
   const [recordsTab, setRecordsTab] = useState('files');
   const [activeMoreTab, setActiveMoreTab] = useState<string | null>(null);
   const [showChildManager, setShowChildManager] = useState(false);
+  const { isPro, isTrialing, trialExpirationDate } = useSubscription();
+  const atFreeLimit = isRevenueCatAvailable() && !isPro && children.length >= 1;
+
   const [showSplash, setShowSplash] = useState(
     () => !sessionStorage.getItem('pandas_splash_shown')
   );
+  const [showTrialOffer, setShowTrialOffer] = useState(false);
 
   const handleSplashDone = useCallback(() => {
     sessionStorage.setItem('pandas_splash_shown', '1');
     setShowSplash(false);
+    if (
+      isRevenueCatAvailable() &&
+      !isPro &&
+      !isTrialing &&
+      !sessionStorage.getItem('pandas_trial_shown')
+    ) {
+      setShowTrialOffer(true);
+    }
+  }, [isPro, isTrialing]);
+
+  const handleTrialDone = useCallback(() => {
+    sessionStorage.setItem('pandas_trial_shown', '1');
+    setShowTrialOffer(false);
   }, []);
 
   const handleChildSelect = (childId: string) => {
@@ -131,8 +152,18 @@ const AppLayout: React.FC = () => {
     setActiveMoreTab(tab);
   };
 
+  const trialDaysLeft = (() => {
+    if (!isTrialing || !trialExpirationDate) return null;
+    const days = Math.ceil((new Date(trialExpirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : null;
+  })();
+
   if (showSplash) {
     return <SplashScreen onDone={handleSplashDone} />;
+  }
+
+  if (showTrialOffer) {
+    return <TrialOfferScreen onDone={handleTrialDone} />;
   }
 
   if (children.length === 0) {
@@ -187,8 +218,8 @@ const AppLayout: React.FC = () => {
       resources: <ResourcesTab />,
       family: <FamilyManager />,
       community: <CommunityScreen />,
-      analytics: <AdvancedAnalyticsDashboard />,
-      diagnosis: <DiagnosisTracker />,
+      analytics: <PaywallGate feature="Advanced Analytics"><AdvancedAnalyticsDashboard /></PaywallGate>,
+      diagnosis: <PaywallGate feature="Patient Profile"><DiagnosisTracker /></PaywallGate>,
       privacy: <PrivacySettings />,
       profile: (
         <ProfileAndSecurity
@@ -197,17 +228,18 @@ const AppLayout: React.FC = () => {
         />
       ),
       ptec: <PTECTracker />,
-      'provider-access': <ProviderAccessManager />,
-      providers: <ProviderTracker />,
-      files: <FileManager />,
-      email: <EmailRecordsForm />,
-      insurance: <InsuranceTracker />,
-      'medical-visits': <MedicalVisitTracker />,
-      'medical-records': <MedicalRecordsScreen />,
+      'provider-access': <PaywallGate feature="Provider Access Links"><ProviderAccessManager /></PaywallGate>,
+      providers: <PaywallGate feature="Healthcare Providers"><ProviderTracker /></PaywallGate>,
+      files: <PaywallGate feature="Document Storage"><FileManager /></PaywallGate>,
+      email: <PaywallGate feature="Email Records"><EmailRecordsForm /></PaywallGate>,
+      insurance: <PaywallGate feature="Insurance Tracker"><InsuranceTracker /></PaywallGate>,
+      'medical-visits': <PaywallGate feature="Medical Visits"><MedicalVisitTracker /></PaywallGate>,
+      'medical-records': <PaywallGate feature="Medical Records"><MedicalRecordsScreen /></PaywallGate>,
       'privacy-policy': <PrivacyPolicy />,
       'terms-of-service': <TermsOfService />,
-      comorbidities: <PatientProfile />,
-      'patient-profile': <PatientProfile />,
+      comorbidities: <PaywallGate feature="Co-Morbidities"><PatientProfile /></PaywallGate>,
+      'patient-profile': <PaywallGate feature="Patient Profile"><PatientProfile /></PaywallGate>,
+      subscription: <PaywallGate feature="Pro Subscription"><div /></PaywallGate>,
     };
 
     return contentMap[activeMoreTab] || null;
@@ -227,9 +259,16 @@ const AppLayout: React.FC = () => {
             👦
           </div>
           <div>
-            <p className="font-sans font-extrabold text-[13px] text-neutral-800 dark:text-neutral-100 m-0">
-              Tracking: {childProfile?.name ?? 'Select child'}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="font-sans font-extrabold text-[13px] text-neutral-800 dark:text-neutral-100 m-0">
+                Tracking: {childProfile?.name ?? 'Select child'}
+              </p>
+              {trialDaysLeft !== null && (
+                <span className="font-sans font-bold text-[10px] text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 rounded-md px-1.5 py-0.5 leading-none">
+                  Trial: {trialDaysLeft}d left
+                </span>
+              )}
+            </div>
             <p className="font-sans text-[10px] text-neutral-400 m-0">Active profile</p>
           </div>
         </div>
@@ -243,10 +282,29 @@ const AppLayout: React.FC = () => {
             </button>
           )}
           <button
-            onClick={() => setShowChildManager(true)}
-            className="font-sans font-bold text-[11px] text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2.5 py-1 cursor-pointer"
+            onClick={() => {
+              if (atFreeLimit) {
+                setScreen('more');
+                setActiveMoreTab('subscription');
+              } else {
+                setShowChildManager(true);
+              }
+            }}
+            className={cn(
+              'font-sans font-bold text-[11px] rounded-lg px-2.5 py-1 cursor-pointer border',
+              atFreeLimit
+                ? 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
+                : 'text-neutral-500 bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
+            )}
           >
-            + Add
+            {atFreeLimit ? (
+              <span className="flex items-center gap-1">
+                <Crown className="w-3 h-3" />
+                Add
+              </span>
+            ) : (
+              '+ Add'
+            )}
           </button>
           <button
             onClick={() => {
@@ -393,6 +451,10 @@ const AppLayout: React.FC = () => {
       <ChildManager
         isOpen={showChildManager}
         onClose={() => setShowChildManager(false)}
+        onNavigateToSubscription={() => {
+          setScreen('more');
+          setActiveMoreTab('subscription');
+        }}
       />
     </div>
   );

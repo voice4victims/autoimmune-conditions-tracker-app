@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { familyService, roleService } from '@/lib/firebaseService';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/useRoleAccess';
+import { useSubscription } from '@/hooks/useSubscription';
+import { isRevenueCatAvailable, TIER_LIMITS } from '@/lib/revenuecat';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RoleBadge, RoleSelector } from '@/components/RoleSelector';
 import { UserRole } from '@/types/roles';
-import { Trash2, UserX, Edit2, Save, X } from 'lucide-react';
+import { Trash2, UserX, Edit2, Save, X, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -33,10 +35,16 @@ interface FamilyMember {
 export const FamilyAccessManager: React.FC = () => {
   const { user } = useAuth();
   const { canManageUsers } = usePermissions();
+  const { tier } = useSubscription();
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingMember, setEditingMember] = useState<string | null>(null);
   const [editingRole, setEditingRole] = useState<UserRole | ''>('');
+
+  const isNativeApp = isRevenueCatAvailable();
+  const tierLimits = TIER_LIMITS[tier];
+  const activeCount = familyMembers.filter(m => m.is_active).length;
+  const atLimit = isNativeApp && activeCount >= tierLimits.maxCaregivers;
 
   useEffect(() => {
     if (user) {
@@ -109,9 +117,25 @@ export const FamilyAccessManager: React.FC = () => {
           <UserX className="h-4 w-4 md:h-5 md:w-5" />
           <span className="hidden sm:inline">Family Access Management</span>
           <span className="sm:hidden">Manage Access</span>
+          {isNativeApp && tier !== 'family' && (
+            <Badge variant={atLimit ? 'destructive' : 'secondary'} className="ml-auto text-xs">
+              {activeCount}/{tierLimits.maxCaregivers} caregivers
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
+        {isNativeApp && atLimit && (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-start gap-2">
+            <Crown className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+            <p className="text-sm text-amber-800">
+              {tier === 'free'
+                ? 'You\'ve reached the free plan limit. Upgrade to Pro for up to 3 caregivers.'
+                : 'You\'ve reached the Pro plan limit. Upgrade to Family for unlimited caregivers.'}
+            </p>
+          </div>
+        )}
+
         {familyMembers.length === 0 ? (
           <p className="text-muted-foreground text-center py-4 text-sm">
             No family members have access yet.
@@ -134,6 +158,7 @@ export const FamilyAccessManager: React.FC = () => {
                           value={editingRole}
                           onValueChange={setEditingRole}
                           showDescription={false}
+                          allowedRoles={isNativeApp ? (tierLimits.allowedRoles as unknown as UserRole[]) : undefined}
                         />
                       </div>
                       <Button

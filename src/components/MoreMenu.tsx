@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Crown } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
+import { isRevenueCatAvailable } from '@/lib/revenuecat';
+import UpgradeBanner from './UpgradeBanner';
 
 const MORE_ITEMS = [
   { i: '☕', l: 'Self Care', s: 'Wellness tips & guidance', id: 'selfcare', nav: true },
@@ -13,19 +16,19 @@ const MORE_ITEMS = [
   { i: '📝', l: 'Notes', s: 'Daily observations', id: 'notes', nav: true },
   { i: '📈', l: 'History', s: 'Symptom charts & trends', id: 'history', nav: true },
   { i: '🗓️', l: 'Heatmap', s: 'Visual symptom calendar', id: 'heatmap', nav: true },
-  { i: '👨‍⚕️', l: 'Providers', s: 'Your healthcare providers', id: 'providers', nav: true },
-  { i: '📁', l: 'Files', s: 'Upload documents', id: 'files', nav: true },
-  { i: '📧', l: 'Email Records', s: 'Send records to doctor', id: 'email', nav: true },
+  { i: '👨‍⚕️', l: 'Providers', s: 'Your healthcare providers', id: 'providers', nav: true, pro: true },
+  { i: '📁', l: 'Files', s: 'Upload documents', id: 'files', nav: true, pro: true },
+  { i: '📧', l: 'Email Records', s: 'Send records to doctor', id: 'email', nav: true, pro: true },
   { i: '🤧', l: 'Allergies', s: 'Track allergy records', id: 'allergies', nav: true },
   { i: '🛡️', l: 'Drug Safety', s: 'Check interactions', id: 'drug-safety', nav: true },
-  { i: '🪪', l: 'Insurance', s: 'Store insurance info', id: 'insurance', nav: false },
-  { i: '🏥', l: 'Medical Visits', s: 'Doctor visits & notes', id: 'medical-visits', nav: true },
-  { i: '🗃️', l: 'Medical Records', s: 'Lab results, imaging & documents', id: 'medical-records', nav: true },
+  { i: '🪪', l: 'Insurance', s: 'Store insurance info', id: 'insurance', nav: false, pro: true },
+  { i: '🏥', l: 'Medical Visits', s: 'Doctor visits & notes', id: 'medical-visits', nav: true, pro: true },
+  { i: '🗃️', l: 'Medical Records', s: 'Lab results, imaging & documents', id: 'medical-records', nav: true, pro: true },
   { i: '👨‍👩‍👧', l: 'Family', s: 'Manage caregivers', id: 'family', nav: true },
   { i: '🌍', l: 'Community', s: 'Find PANDAS doctors worldwide', id: 'community', nav: true },
-  { i: '📋', l: 'Analytics', s: 'Advanced treatment analysis', id: 'analytics', nav: true },
-  { i: '🧬', l: 'Patient Profile', s: 'Infection, onset, diagnosis', id: 'diagnosis', nav: true },
-  { i: '🩻', l: 'Co-Morbidities', s: 'Prior & post-infection conditions', id: 'comorbidities', nav: false },
+  { i: '📋', l: 'Analytics', s: 'Advanced treatment analysis', id: 'analytics', nav: true, pro: true },
+  { i: '🧬', l: 'Patient Profile', s: 'Infection, onset, diagnosis', id: 'diagnosis', nav: true, pro: true },
+  { i: '🩻', l: 'Co-Morbidities', s: 'Prior & post-infection conditions', id: 'comorbidities', nav: false, pro: true },
   { i: '🔐', l: 'Account & Privacy', s: 'Logout, data & permissions', id: 'privacy', nav: true },
   { i: '📜', l: 'Privacy Policy & HIPAA', s: 'Notice of Privacy Practices', id: 'privacy-policy', nav: true },
   { i: '📃', l: 'Terms of Service', s: 'Usage terms & conditions', id: 'terms-of-service', nav: true },
@@ -69,8 +72,12 @@ interface MoreMenuProps {
   onBackToMenu: () => void;
 }
 
+const PREMIUM_IDS = new Set(MORE_ITEMS.filter((m) => (m as any).pro).map((m) => m.id));
+
 const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBackToMenu }) => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { isPro } = useSubscription();
+  const showProBadges = isRevenueCatAvailable() && !isPro;
 
   if (activeMoreTab) {
     return (
@@ -88,12 +95,14 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-2.5 mb-6">
+      <UpgradeBanner onUpgrade={() => onMoreTabClick('subscription')} />
+
+      <div className="grid grid-cols-2 gap-2.5 mb-6 mt-3">
         {MORE_ITEMS.map((item) => (
           <button
             key={item.id}
             onClick={() => onMoreTabClick(item.id)}
-            className="flex items-center gap-2.5 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-left cursor-pointer transition-colors"
+            className="relative flex items-center gap-2.5 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-left cursor-pointer transition-colors"
           >
             <span className="text-lg shrink-0">{item.i}</span>
             <div className="min-w-0 flex-1">
@@ -102,9 +111,11 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
               </p>
               <p className="font-sans text-[10px] text-neutral-400 m-0 truncate">{item.s}</p>
             </div>
-            {item.nav && (
+            {showProBadges && PREMIUM_IDS.has(item.id) ? (
+              <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            ) : item.nav ? (
               <span className="text-neutral-300 text-xs shrink-0">›</span>
-            )}
+            ) : null}
           </button>
         ))}
       </div>

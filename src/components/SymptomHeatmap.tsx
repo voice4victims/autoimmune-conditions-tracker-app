@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useApp } from '@/contexts/AppContext';
+import { useRetainedData } from '@/hooks/useRetainedData';
 import { SymptomRating } from '@/types/pandas';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SymptomDayDetails from './SymptomDayDetails';
 
 const SymptomHeatmap: React.FC = () => {
-  const { childProfile, symptoms } = useApp();
+  const { childProfile, symptoms } = useRetainedData();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSymptoms, setSelectedSymptoms] = useState<SymptomRating[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());

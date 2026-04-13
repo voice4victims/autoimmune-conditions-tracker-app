@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useApp } from '@/contexts/AppContext';
+import { useRetainedData } from '@/hooks/useRetainedData';
+import RetentionBanner from './RetentionBanner';
 import { format } from 'date-fns';
 
 interface HomeScreenProps {
@@ -24,7 +25,7 @@ const QUICK_ACTIONS = [
 ];
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onQuickLog, onNavigate }) => {
-  const { childProfile, symptoms } = useApp();
+  const { childProfile, symptoms } = useRetainedData();
 
   const today = format(new Date(), 'EEEE, MMMM d');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -93,6 +94,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onQuickLog, onNavigate }) => {
           ))}
         </div>
       </div>
+
+      <RetentionBanner />
 
       <div className="p-4 pt-4 space-y-3.5">
         <button

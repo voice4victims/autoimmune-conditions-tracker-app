@@ -15,6 +15,7 @@ import AuditLogPanel from './AuditLogPanel';
 import ChildPrivacyPanel from './ChildPrivacyPanel';
 import CommunicationPanel from './CommunicationPanel';
 import DataProcessingPanel from './DataProcessingPanel';
+import PaywallGate from './PaywallGate';
 
 interface PrivacySettingsProps {
     userId?: string;
@@ -344,7 +345,9 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({
                     </TabsContent>
 
                     <TabsContent value="audit-logs" className="mt-6">
-                        <AuditLogPanel />
+                        <PaywallGate feature="HIPAA Audit Logs">
+                            <AuditLogPanel />
+                        </PaywallGate>
                     </TabsContent>
 
                     <TabsContent value="communications" className="mt-6">
