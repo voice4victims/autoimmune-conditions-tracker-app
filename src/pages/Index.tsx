@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthForm from '@/components/AuthForm';
 import AppLayout from '@/components/AppLayout';
@@ -6,14 +6,8 @@ import AnimatedBackground from '@/components/AnimatedBackground';
 
 const Index: React.FC = () => {
   const { user, loading } = useAuth();
-  const [timedOut, setTimedOut] = useState(false);
 
-  useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 5000);
-    return () => clearTimeout(t);
-  }, []);
-
-  if (loading && !timedOut) {
+  if (loading) {
     return (
       <AnimatedBackground>
         <style>{`

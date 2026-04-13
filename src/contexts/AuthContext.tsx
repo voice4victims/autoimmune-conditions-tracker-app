@@ -125,7 +125,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const loadingTimeout = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 5000);
+
+    let unsubscribe: (() => void) | null = null;
+    try {
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!mounted) return;
 
       setUser(firebaseUser);
@@ -200,10 +206,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (mounted) setLoading(false);
     });
+    } catch {
+      if (mounted) setLoading(false);
+    }
 
     return () => {
       mounted = false;
-      unsubscribe();
+      clearTimeout(loadingTimeout);
+      if (unsubscribe) unsubscribe();
       clearValidationInterval();
     };
   }, []);
