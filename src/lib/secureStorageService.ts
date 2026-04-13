@@ -54,15 +54,21 @@ let _keyCache: Record<string, string> = {};
 
 export async function initSecureStorage(): Promise<void> {
   if (!isNative()) return;
-  const keys = ['_enc_dk', '_crypto_mk', 'currentUserId', 'currentSessionId'];
-  for (const key of keys) {
-    try {
-      const result = await SecureStoragePlugin.get({ key });
-      _keyCache[key] = result.value;
-    } catch {
-      // not stored yet
+
+  const loadKeys = async () => {
+    const keys = ['_enc_dk', '_crypto_mk', 'currentUserId', 'currentSessionId'];
+    for (const key of keys) {
+      try {
+        const result = await SecureStoragePlugin.get({ key });
+        _keyCache[key] = result.value;
+      } catch {
+        // not stored yet
+      }
     }
-  }
+  };
+
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, 3000));
+  await Promise.race([loadKeys(), timeout]);
 }
 
 export function getCachedSecure(key: string): string | null {
