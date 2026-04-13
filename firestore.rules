@@ -207,6 +207,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /beta_codes/{codeId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
     match /privacy_audit_logs/{logId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.keys().hasAll(["userId", "timestamp"]) && request.resource.data.userId == request.auth.uid;

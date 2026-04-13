@@ -46,6 +46,7 @@ const AllergyTracker = lazy(() => import('./AllergyTracker'));
 const MedicalRecordsScreen = lazy(() => import('./MedicalRecordsScreen'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('@/pages/TermsOfService'));
+const BetaProgram = lazy(() => import('./BetaProgram'));
 import PaywallGate from './PaywallGate';
 
 const LazyFallback = () => (
@@ -240,6 +241,7 @@ const AppLayout: React.FC = () => {
       comorbidities: <PaywallGate feature="Co-Morbidities"><PatientProfile /></PaywallGate>,
       'patient-profile': <PaywallGate feature="Patient Profile"><PatientProfile /></PaywallGate>,
       subscription: <PaywallGate feature="Pro Subscription"><div /></PaywallGate>,
+      beta: <BetaProgram />,
     };
 
     return contentMap[activeMoreTab] || null;

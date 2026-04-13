@@ -566,3 +566,76 @@ export const caregiverLogEntry = onCall(async (request) => {
 
   return { id: docRef.id };
 });
+
+export const redeemBetaCode = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in");
+  }
+
+  const { code } = request.data;
+  if (!code || typeof code !== "string") {
+    throw new HttpsError("invalid-argument", "Missing beta code");
+  }
+
+  const uid = request.auth.uid;
+  await checkRateLimit(uid, "beta_redeem", 5, 900000);
+
+  const normalizedCode = code.trim().toUpperCase();
+
+  const codeSnap = await db
+    .collection("beta_codes")
+    .where("code", "==", normalizedCode)
+    .limit(1)
+    .get();
+
+  if (codeSnap.empty) {
+    throw new HttpsError("not-found", "Invalid beta code");
+  }
+
+  const codeDoc = codeSnap.docs[0];
+  const codeData = codeDoc.data();
+
+  if (codeData.redeemed) {
+    throw new HttpsError("already-exists", "This code has already been redeemed");
+  }
+
+  const userDoc = await db.collection("users").doc(uid).get();
+  if (userDoc.exists && userDoc.data()?.betaAccess) {
+    throw new HttpsError("already-exists", "You already have beta access");
+  }
+
+  await db.runTransaction(async (tx) => {
+    const freshCode = await tx.get(codeDoc.ref);
+    if (freshCode.data()?.redeemed) {
+      throw new HttpsError("already-exists", "This code has already been redeemed");
+    }
+
+    tx.update(codeDoc.ref, {
+      redeemed: true,
+      redeemed_by: uid,
+      redeemed_at: Timestamp.now(),
+    });
+
+    tx.set(
+      db.collection("users").doc(uid),
+      {
+        subscriptionTier: "family",
+        betaAccess: true,
+        betaCodeUsed: normalizedCode,
+        tierUpdatedAt: Timestamp.now(),
+      },
+      { merge: true }
+    );
+  });
+
+  await db.collection("hipaa_audit_logs").add({
+    user_id: uid,
+    action: "beta_code_redeemed",
+    resource_type: "beta_codes",
+    beta_code: normalizedCode,
+    timestamp: Timestamp.now(),
+    source: "cloud_function",
+  });
+
+  return { tier: "family" };
+});

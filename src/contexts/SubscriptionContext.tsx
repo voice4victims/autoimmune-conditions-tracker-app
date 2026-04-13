@@ -9,6 +9,8 @@ import {
   resetUser,
   isRevenueCatAvailable,
 } from '@/lib/revenuecat';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type {
   CustomerInfo,
   PurchasesOfferings,
@@ -143,6 +145,24 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setIsTrialing(false);
       setTrialExpirationDate(null);
     }
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const unsub = onSnapshot(doc(db, 'users', user.uid), (snap) => {
+      const data = snap.data();
+      if (data?.betaAccess && data?.subscriptionTier) {
+        const betaTier = data.subscriptionTier as SubscriptionTier;
+        setTier((current) => {
+          if (betaTier === 'family') return 'family';
+          if (betaTier === 'pro' && current !== 'family') return 'pro';
+          return current;
+        });
+      }
+    }, () => {});
+
+    return unsub;
   }, [user?.uid]);
 
   const purchasePackage = useCallback(async (pkg: PurchasesPackage): Promise<boolean> => {
