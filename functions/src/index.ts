@@ -295,7 +295,7 @@ function hashUid(uid: string): string {
   return crypto.createHash("sha256").update(`rc_${uid}`).digest("hex");
 }
 
-export const onSubscriptionWebhook = onRequest(async (req, res) => {
+export const onSubscriptionWebhook = onRequest({ secrets: ["REVENUECAT_WEBHOOK_SECRET"] }, async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).send("Method not allowed");
     return;
