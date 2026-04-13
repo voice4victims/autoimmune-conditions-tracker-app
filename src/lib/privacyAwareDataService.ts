@@ -38,39 +38,6 @@ export class PrivacyAwareDataService {
      */
     family = {
         /**
-         * Accept family invitation with privacy logging
-         */
-        acceptInvitation: async (inviteCode: string, userId: string, currentUser: User) => {
-            try {
-                const result = await familyService.acceptInvitation(inviteCode, userId);
-
-                // Log the family access grant
-                await HIPAAComplianceService.logAccess(
-                    userId,
-                    'grant_access',
-                    'family_invitation',
-                    inviteCode,
-                    false,
-                    currentUser.uid,
-                    'Family invitation accepted'
-                );
-
-                return result;
-            } catch (error) {
-                await HIPAAComplianceService.logAccess(
-                    userId,
-                    'grant_access',
-                    'family_invitation',
-                    inviteCode,
-                    true,
-                    currentUser.uid,
-                    `Failed to accept invitation: ${error instanceof Error ? error.message : 'Unknown error'}`
-                );
-                throw error;
-            }
-        },
-
-        /**
          * Get family members with privacy filtering
          */
         getFamilyMembers: async (userId: string, currentUser: User) => {

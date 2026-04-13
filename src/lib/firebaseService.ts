@@ -21,47 +21,7 @@ import {
 } from 'firebase/storage';
 import { auth, db, storage } from './firebase';
 
-// Family Access Management
 export const familyService = {
-    // Accept family invitation
-    async acceptInvitation(inviteCode: string, userId: string) {
-        const invitationsRef = collection(db, 'family_invitations');
-        const q = query(
-            invitationsRef,
-            where('invitation_code', '==', inviteCode),
-            where('status', '==', 'pending')
-        );
-
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            throw new Error('Invalid or expired invitation code');
-        }
-
-        const invitation = snapshot.docs[0];
-        const invitationData = invitation.data();
-
-        // Check if invitation is expired
-        if (invitationData.expires_at.toDate() < new Date()) {
-            throw new Error('Invitation has expired');
-        }
-
-        // Add user to family access
-        await addDoc(collection(db, 'family_access'), {
-            family_id: invitationData.family_id,
-            user_id: userId,
-            role: invitationData.role || 'parent', // Use role from invitation or default to parent
-            invited_by: invitationData.invited_by,
-            accepted_at: Timestamp.now(),
-            is_active: true
-        });
-
-        // Update invitation status
-        await updateDoc(invitation.ref, {
-            status: 'accepted',
-            accepted_at: Timestamp.now()
-        });
-    },
-
     // Get family members
     async getFamilyMembers(userId: string) {
         const accessRef = collection(db, 'family_access');
