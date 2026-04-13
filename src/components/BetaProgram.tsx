@@ -54,14 +54,14 @@ const BetaProgram: React.FC = () => {
           Welcome to the Beta!
         </h2>
         <p className="font-sans text-[13px] text-neutral-500 dark:text-neutral-400 text-center max-w-xs mb-4">
-          Your account has been upgraded to the Family plan. All features are now unlocked — no expiration, no charges.
+          You're in! Pro features are now unlocked. In 7 days, you'll automatically upgrade to the Family plan — permanently, no charges.
         </p>
-        <Badge className="bg-amber-500 text-white border-0 font-bold text-[12px] px-3 py-1">
+        <Badge className="bg-primary-500 text-white border-0 font-bold text-[12px] px-3 py-1">
           <Crown className="w-3 h-3 mr-1" />
-          Lifetime Family Plan
+          Pro Plan (Family in 7 days)
         </Badge>
         <p className="font-sans text-[11px] text-neutral-400 mt-6 text-center">
-          Refresh the app to see all features unlocked.
+          Refresh the app to see Pro features unlocked.
         </p>
       </div>
     );
@@ -78,7 +78,7 @@ const BetaProgram: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="font-sans text-[13px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
-            If you have a beta invitation code, enter it below to unlock all features for free — permanently. Beta testers receive a lifetime Family plan as a thank you for early feedback.
+            Have a beta invitation code? Enter it below to start your beta journey. You'll get Pro access immediately, then upgrade to Family automatically after 7 days — permanently, as a thank you for early feedback.
           </p>
 
           {(isPro || isFamily) && (

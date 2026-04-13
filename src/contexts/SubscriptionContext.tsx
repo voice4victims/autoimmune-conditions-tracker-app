@@ -152,14 +152,23 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const unsub = onSnapshot(doc(db, 'users', user.uid), (snap) => {
       const data = snap.data();
-      if (data?.betaAccess && data?.subscriptionTier) {
-        const betaTier = data.subscriptionTier as SubscriptionTier;
-        setTier((current) => {
-          if (betaTier === 'family') return 'family';
-          if (betaTier === 'pro' && current !== 'family') return 'pro';
-          return current;
-        });
+      if (!data?.betaAccess) return;
+
+      let betaTier = data.subscriptionTier as SubscriptionTier;
+
+      if (betaTier === 'pro' && data.betaRedeemedAt) {
+        const redeemedAt = typeof data.betaRedeemedAt.toDate === 'function'
+          ? data.betaRedeemedAt.toDate()
+          : new Date(data.betaRedeemedAt);
+        const daysSince = (Date.now() - redeemedAt.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSince >= 7) betaTier = 'family';
       }
+
+      setTier((current) => {
+        if (betaTier === 'family') return 'family';
+        if (betaTier === 'pro' && current !== 'family') return 'pro';
+        return current;
+      });
     }, () => {});
 
     return unsub;

@@ -1,5 +1,6 @@
 import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
@@ -619,8 +620,9 @@ export const redeemBetaCode = onCall(async (request) => {
     tx.set(
       db.collection("users").doc(uid),
       {
-        subscriptionTier: "family",
+        subscriptionTier: "pro",
         betaAccess: true,
+        betaRedeemedAt: Timestamp.now(),
         betaCodeUsed: normalizedCode,
         tierUpdatedAt: Timestamp.now(),
       },
@@ -637,5 +639,40 @@ export const redeemBetaCode = onCall(async (request) => {
     source: "cloud_function",
   });
 
-  return { tier: "family" };
+  return { tier: "pro" };
+});
+
+const BETA_UPGRADE_DAYS = 7;
+
+export const upgradeBetaUsers = onSchedule("every 24 hours", async () => {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - BETA_UPGRADE_DAYS);
+
+  const snap = await db
+    .collection("users")
+    .where("betaAccess", "==", true)
+    .where("subscriptionTier", "==", "pro")
+    .get();
+
+  let upgraded = 0;
+  for (const userDoc of snap.docs) {
+    const data = userDoc.data();
+    const redeemedAt = data.betaRedeemedAt as Timestamp | undefined;
+    if (!redeemedAt || redeemedAt.toDate() > cutoff) continue;
+
+    await userDoc.ref.update({
+      subscriptionTier: "family",
+      tierUpdatedAt: Timestamp.now(),
+    });
+
+    await db.collection("hipaa_audit_logs").add({
+      user_id: userDoc.id,
+      action: "beta_upgrade_to_family",
+      resource_type: "users",
+      timestamp: Timestamp.now(),
+      source: "cloud_function",
+    });
+
+    upgraded++;
+  }
 });
