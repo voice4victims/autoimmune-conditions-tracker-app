@@ -8,6 +8,7 @@ import { ThemeProvider } from './components/theme-provider';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initSecureStorage } from './lib/secureStorageService';
 import { initAnalytics } from './lib/firebase';
+import { SplashScreen as CapSplash } from '@capacitor/splash-screen';
 
 const Main = () => {
   useServiceWorker();
@@ -37,6 +38,7 @@ const boot = async () => {
     // continue without analytics
   }
   ReactDOM.createRoot(document.getElementById('root')!).render(<Main />);
+  CapSplash.hide().catch(() => {});
 };
 
 boot();
