@@ -29,6 +29,9 @@ const config: CapacitorConfig = {
       resize: 'body',
       style: 'dark',
       resizeOnFullScreen: true
+    },
+    CapacitorHttp: {
+      enabled: true
     }
   }
 };

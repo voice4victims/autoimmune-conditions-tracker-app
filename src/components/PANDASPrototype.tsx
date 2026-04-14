@@ -432,7 +432,7 @@ const LogScreen: React.FC<LogScreenProps> = ({ child, initialTab = "symptoms" })
     <div className="flex-1 flex flex-col overflow-hidden">
       <ScreenHeader title="Log Entry" sub={`Tracking · ${child}`} />
       <HTabs tabs={LOG_TABS} active={tab} onChange={setTab} />
-      <div className="flex-1 overflow-y-auto p-4 pb-20 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
 
         {/* ── SYMPTOMS ── */}
         {tab === "symptoms" && (
@@ -805,7 +805,7 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ child, onOpenHeatmap }) => 
           </button>
         }
       />
-      <div className="flex-1 overflow-y-auto p-4 pb-20 space-y-3.5">
+      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-3.5">
         {/* Range toggle */}
         <div className="flex gap-1.5 bg-neutral-100 rounded-xl p-0.5">
           {[["7d","7 Days"],["14d","14 Days"],["30d","30 Days"]].map(([v, l]) => (
@@ -928,7 +928,7 @@ const EducationScreen: React.FC = () => {
         </div>
       </div>
       <HTabs tabs={EDU_TABS} active={tab} onChange={setTab} />
-      <div className="flex-1 overflow-y-auto p-4 pb-20">
+      <div className="flex-1 overflow-y-auto p-4 pb-24">
 
         {tab === "about" && (
           <>
@@ -1085,7 +1085,7 @@ const MoreScreen: React.FC<MoreScreenProps> = ({ onNav }) => {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <ScreenHeader title="More" sub="All features" />
-      <div className="flex-1 overflow-y-auto pb-20">
+      <div className="flex-1 overflow-y-auto pb-24">
 
         {/* Menu grid */}
         <div className="p-4 grid grid-cols-2 gap-2.5">
@@ -1173,7 +1173,7 @@ const MockHomeScreen: React.FC<{ child: string; onLog: () => void; onNav: (s: Sc
     { icon: "😰", label: "Anxiety",       sev: 4, time: "Yesterday", important: false },
   ];
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto pb-20">
+    <div className="flex-1 flex flex-col overflow-y-auto pb-24">
       <div className="p-5 pb-7 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #176F91, #573F9E)" }}>
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/5" />
         <p className="font-sans text-xs mb-0.5 text-white/60">{today}</p>

@@ -47,6 +47,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const [reconsentHipaa, setReconsentHipaa] = useState(false);
   const [biometricReady, setBiometricReady] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState('Biometric');
+  const [submitting, setSubmitting] = useState(false);
   const auth = getAuth();
 
   const isOver18 = (() => {
@@ -109,10 +110,12 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   const handleEmailPasswordAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
     if (isSignUp) {
       const validationError = validatePasswordForSignup(password);
       if (validationError) {
         setError(`Password requirement not met: ${validationError}`);
+        setSubmitting(false);
         return;
       }
     }
@@ -128,6 +131,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
       }
     } catch (err: unknown) {
       setError(getFriendlyAuthError(err));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -157,7 +162,9 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
             setShowReconsentModal(true);
           }
         }
-      }).catch((err: unknown) => setError(getFriendlyAuthError(err)));
+      }).catch(() => {
+        // getRedirectResult can throw on native when there was no redirect — ignore it
+      });
     }
   }, []);
 
@@ -301,10 +308,10 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           <Button
             type="submit"
             className="w-full font-sans font-bold"
-            style={{ background: signUpBlocked ? '#ccc' : 'linear-gradient(135deg, #176F91, #573F9E)' }}
-            disabled={signUpBlocked}
+            style={{ background: (signUpBlocked || submitting) ? '#ccc' : 'linear-gradient(135deg, #176F91, #573F9E)' }}
+            disabled={signUpBlocked || submitting}
           >
-            {isSignUp ? 'Create Account' : 'Sign In'}
+            {submitting ? 'Signing in...' : isSignUp ? 'Create Account' : 'Sign In'}
           </Button>
         </form>
 
@@ -380,7 +387,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
       </div>
 
       {showPrivacyPolicy && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowPrivacyPolicy(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+16px)]" onClick={() => setShowPrivacyPolicy(false)}>
           <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700 p-4 flex justify-between items-center">
               <h2 className="font-serif text-lg font-bold text-neutral-800 dark:text-neutral-100">Privacy Policy & Notice of Privacy Practices</h2>
@@ -398,7 +405,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
       )}
 
       {showTermsOfService && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowTermsOfService(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+16px)]" onClick={() => setShowTermsOfService(false)}>
           <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700 p-4 flex justify-between items-center">
               <h2 className="font-serif text-lg font-bold text-neutral-800 dark:text-neutral-100">Terms of Service</h2>
@@ -416,7 +423,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
       )}
 
       {showReconsentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
             <h2 className="font-serif text-lg font-bold text-neutral-800">Updated Privacy Policy</h2>
             <p className="font-sans text-[13px] text-neutral-600">

@@ -22,17 +22,10 @@ export const useReminderNotifications = ({
 }: UseReminderNotificationsProps) => {
   const { permission, showNotification } = useNotifications();
 
-  const scheduleNotification = useCallback((reminder: Reminder, time: string) => {
+  const scheduleNotification = useCallback(async (reminder: Reminder, time: string) => {
     if (!notificationsEnabled || !permission.granted || !reminder.is_active) return;
 
-    const now = new Date();
     const [hours, minutes] = time.split(':').map(Number);
-    const scheduledTime = new Date();
-    scheduledTime.setHours(hours, minutes, 0, 0);
-
-    if (scheduledTime <= now) {
-      scheduledTime.setDate(scheduledTime.getDate() + 1);
-    }
 
     const title = `Medication Reminder: ${reminder.medication_name}`;
     const body = reminder.dosage
@@ -40,18 +33,31 @@ export const useReminderNotifications = ({
       : `Time to take ${reminder.medication_name}`;
 
     if (Capacitor.isNativePlatform()) {
-      const notifId = Math.abs(hashCode(`${reminder.id}-${time}`));
-      LocalNotifications.schedule({
-        notifications: [{
-          title,
-          body,
-          id: notifId,
-          schedule: { at: scheduledTime, every: 'day' },
-        }]
-      });
+      const notifId = Math.abs(hashCode(`${reminder.id}-${time}`)) % 2147483647;
+      try {
+        await LocalNotifications.schedule({
+          notifications: [{
+            title,
+            body,
+            id: notifId,
+            schedule: {
+              on: { hour: hours, minute: minutes },
+              repeats: true,
+            },
+          }]
+        });
+      } catch (error) {
+        console.error('Failed to schedule notification:', error);
+      }
       return;
     }
 
+    const now = new Date();
+    const scheduledTime = new Date();
+    scheduledTime.setHours(hours, minutes, 0, 0);
+    if (scheduledTime <= now) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
+    }
     const timeUntilNotification = scheduledTime.getTime() - now.getTime();
     setTimeout(() => {
       showNotification(title, {

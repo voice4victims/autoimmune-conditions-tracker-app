@@ -6,30 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Bell, BellOff, Settings } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 
-interface NotificationSettingsProps {
-  notificationsEnabled: boolean;
-  onToggleNotifications: (enabled: boolean) => void;
-}
-
-const NotificationSettings: React.FC<NotificationSettingsProps> = ({
-  notificationsEnabled,
-  onToggleNotifications
-}) => {
+const NotificationSettings: React.FC = () => {
   const { permission, requestPermission } = useNotifications();
 
   const handleEnableNotifications = async () => {
-    if (permission.granted) {
-      onToggleNotifications(true);
-    } else {
-      const granted = await requestPermission();
-      if (granted) {
-        onToggleNotifications(true);
-      }
+    if (!permission.granted) {
+      await requestPermission();
     }
-  };
-
-  const handleDisableNotifications = () => {
-    onToggleNotifications(false);
   };
 
   return (
@@ -52,12 +35,10 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           </div>
           <Switch
             id="notifications-toggle"
-            checked={notificationsEnabled && permission.granted}
+            checked={permission.granted}
             onCheckedChange={(checked) => {
               if (checked) {
                 handleEnableNotifications();
-              } else {
-                handleDisableNotifications();
               }
             }}
           />

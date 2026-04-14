@@ -11,7 +11,7 @@ const STARS = [
 
 const AnimatedBackground: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div
-    className="fixed inset-0 flex flex-col items-center justify-center overflow-y-auto"
+    className="fixed inset-0 flex flex-col items-center justify-center overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
     style={{ background: 'linear-gradient(160deg, #0E1F6A 0%, #1a3585 50%, #0D4A72 100%)' }}
   >
     <style>{`

@@ -2,7 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, setAnalyticsCollectionEnabled, type Analytics } from "firebase/analytics";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
-import { getAuth } from 'firebase/auth';
+import { getAuth, indexedDBLocalPersistence, browserLocalPersistence, initializeAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
@@ -51,7 +51,11 @@ export function disableAnalytics(): void {
   }
 }
 
-export const auth = getAuth(app);
+// On native iOS, use browserLocalPersistence (localStorage) instead of the default
+// indexedDBLocalPersistence which can hang in Capacitor's WKWebView
+export const auth = Capacitor.isNativePlatform()
+  ? initializeAuth(app, { persistence: browserLocalPersistence })
+  : getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);

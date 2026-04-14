@@ -124,96 +124,102 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let unsubscribe: (() => void) | undefined;
 
+    // Safety net: if onAuthStateChanged never fires (e.g. Firebase init fails),
+    // stop loading after 5 seconds so the app isn't stuck forever
     const loadingTimeout = setTimeout(() => {
-      if (mounted) setLoading(false);
+      if (mounted && loading) {
+        console.warn('Auth state listener timed out, forcing loading=false');
+        setLoading(false);
+      }
     }, 5000);
 
-    let unsubscribe: (() => void) | null = null;
     try {
       unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!mounted) return;
+        if (!mounted) return;
 
-      setUser(firebaseUser);
-      setDemoMode(firebaseUser?.isAnonymous || false);
+        clearTimeout(loadingTimeout);
+        setUser(firebaseUser);
+        setDemoMode(firebaseUser?.isAnonymous || false);
+        setLoading(false);
 
-      if (firebaseUser) {
-        const existingSessionId = getCachedSecure('currentSessionId');
-        const existingUserId = getCachedSecure('currentUserId');
+        if (firebaseUser) {
+          const existingSessionId = getCachedSecure('currentSessionId');
+          const existingUserId = getCachedSecure('currentUserId');
 
-        if (existingSessionId && existingUserId === firebaseUser.uid) {
-          sessionIdRef.current = existingSessionId;
-          setSessionId(existingSessionId);
-          setIsSessionValid(true);
-          startValidationInterval(firebaseUser.uid, existingSessionId);
-          initPushNotifications(firebaseUser.uid).catch(() => {});
-          pushCleanupRef.current = setupPushListeners();
-        } else {
-          try {
-            const clientInfo = getClientInfo();
-            const newSessionId = await sessionManager.createSession(
-              firebaseUser,
-              clientInfo.ipAddress,
-              clientInfo.userAgent,
-              clientInfo.deviceFingerprint,
-              'standard'
-            );
-
-            if (!mounted) return;
-
-            sessionIdRef.current = newSessionId;
-            setSessionId(newSessionId);
+          if (existingSessionId && existingUserId === firebaseUser.uid) {
+            sessionIdRef.current = existingSessionId;
+            setSessionId(existingSessionId);
             setIsSessionValid(true);
-
-            setCachedSecure('currentUserId', firebaseUser.uid);
-            setCachedSecure('currentSessionId', newSessionId);
-
-            await HIPAAComplianceService.logAccess(
-              firebaseUser.uid,
-              'login',
-              'authentication',
-              undefined,
-              false,
-              undefined,
-              firebaseUser.isAnonymous ? 'Anonymous login' : 'User login'
-            ).catch(() => {});
-
-            startValidationInterval(firebaseUser.uid, newSessionId);
+            startValidationInterval(firebaseUser.uid, existingSessionId);
             initPushNotifications(firebaseUser.uid).catch(() => {});
             pushCleanupRef.current = setupPushListeners();
-          } catch (error) {
-            console.error('Error creating secure session:', error);
-            if (mounted) {
-              sessionIdRef.current = null;
-              setSessionId(null);
-              setIsSessionValid(false);
+          } else {
+            try {
+              const clientInfo = getClientInfo();
+              const newSessionId = await sessionManager.createSession(
+                firebaseUser,
+                clientInfo.ipAddress,
+                clientInfo.userAgent,
+                clientInfo.deviceFingerprint,
+                'standard'
+              );
+
+              if (!mounted) return;
+
+              sessionIdRef.current = newSessionId;
+              setSessionId(newSessionId);
+              setIsSessionValid(true);
+
+              setCachedSecure('currentUserId', firebaseUser.uid);
+              setCachedSecure('currentSessionId', newSessionId);
+
+              HIPAAComplianceService.logAccess(
+                firebaseUser.uid,
+                'login',
+                'authentication',
+                undefined,
+                false,
+                undefined,
+                firebaseUser.isAnonymous ? 'Anonymous login' : 'User login'
+              ).catch(() => {});
+
+              startValidationInterval(firebaseUser.uid, newSessionId);
+              initPushNotifications(firebaseUser.uid).catch(() => {});
+              pushCleanupRef.current = setupPushListeners();
+            } catch (error) {
+              console.error('Error creating secure session:', error);
+              if (mounted) {
+                sessionIdRef.current = null;
+                setSessionId(null);
+                setIsSessionValid(false);
+              }
             }
           }
-        }
-      } else {
-        clearValidationInterval();
-        const oldSessionId = sessionIdRef.current;
-        sessionIdRef.current = null;
-        setSessionId(null);
-        setIsSessionValid(false);
-        removeCachedSecure('currentUserId');
-        removeCachedSecure('currentSessionId');
+        } else {
+          clearValidationInterval();
+          const oldSessionId = sessionIdRef.current;
+          sessionIdRef.current = null;
+          setSessionId(null);
+          setIsSessionValid(false);
+          removeCachedSecure('currentUserId');
+          removeCachedSecure('currentSessionId');
 
-        if (oldSessionId) {
-          await sessionManager.invalidateSession(oldSessionId, 'User logout').catch(() => {});
+          if (oldSessionId) {
+            sessionManager.invalidateSession(oldSessionId, 'User logout').catch(() => {});
+          }
         }
-      }
-
-      if (mounted) setLoading(false);
-    });
-    } catch {
+      });
+    } catch (error) {
+      console.error('Failed to set up auth listener:', error);
       if (mounted) setLoading(false);
     }
 
     return () => {
       mounted = false;
       clearTimeout(loadingTimeout);
-      if (unsubscribe) unsubscribe();
+      unsubscribe?.();
       clearValidationInterval();
     };
   }, []);

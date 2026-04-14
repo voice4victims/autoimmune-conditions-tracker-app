@@ -3,11 +3,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { useServiceWorker } from './hooks/useServiceWorker';
-import { ThemeProvider } from './components/theme-provider';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initSecureStorage } from './lib/secureStorageService';
 import { initAnalytics } from './lib/firebase';
-import { SplashScreen as CapSplash } from '@capacitor/splash-screen';
 
 const Main = () => {
   useServiceWorker();
@@ -15,27 +13,21 @@ const Main = () => {
   return (
     <React.StrictMode>
       <ErrorBoundary>
-        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-          <App />
-        </ThemeProvider>
+        <App />
       </ErrorBoundary>
     </React.StrictMode>
   );
 };
 
-const boot = async () => {
-  try {
-    await initSecureStorage();
-  } catch {
-    // continue without secure storage
-  }
-  try {
-    initAnalytics();
-  } catch {
-    // continue without analytics
-  }
+let started = false;
+const startApp = () => {
+  if (started) return;
+  started = true;
+  initAnalytics();
   ReactDOM.createRoot(document.getElementById('root')!).render(<Main />);
-  CapSplash.hide().catch(() => {});
 };
 
-boot();
+// Don't let secure storage init block the entire app from rendering
+initSecureStorage().then(startApp).catch(startApp);
+// Safety net: render anyway if plugin hangs after 3s
+setTimeout(startApp, 3000);

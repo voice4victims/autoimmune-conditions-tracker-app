@@ -10,6 +10,7 @@ import ReminderForm from './ReminderForm';
 import ReminderList from './ReminderList';
 import NotificationSettings from './NotificationSettings';
 import { useReminderNotifications } from '@/hooks/useReminderNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface Reminder {
   id: string;
@@ -31,9 +32,17 @@ const MedicationReminders: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+  const { permission, requestPermission } = useNotifications();
 
-  // Initialize notifications
-  useReminderNotifications(reminders);
+  // Request permission on mount if not yet granted
+  useEffect(() => {
+    if (!permission.granted && !permission.denied) {
+      requestPermission();
+    }
+  }, []);
+
+  // Initialize notifications with permission state
+  useReminderNotifications({ reminders, notificationsEnabled: permission.granted });
 
   useEffect(() => {
     if (childProfile && user) {
@@ -82,7 +91,9 @@ const MedicationReminders: React.FC = () => {
         });
         toast({
           title: 'Success',
-          description: 'Medication reminder created successfully'
+          description: permission.granted
+            ? 'Reminder created — notifications will appear at the scheduled time'
+            : 'Reminder created — enable notifications to receive alerts'
         });
       }
 
@@ -174,8 +185,8 @@ const MedicationReminders: React.FC = () => {
           {showForm && (
             <div className="mb-6">
               <ReminderForm
-                reminder={editingReminder}
-                onSave={handleSaveReminder}
+                existingReminder={editingReminder}
+                onSubmit={handleSaveReminder}
                 onCancel={handleCancelEdit}
               />
             </div>
