@@ -4,6 +4,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
+import { getMessaging } from "firebase-admin/messaging";
 import * as crypto from "crypto";
 
 initializeApp();
@@ -725,3 +726,98 @@ export const upgradeBetaUsers = onSchedule(
     }
   }
 );
+
+async function sendPushToUser(
+  userId: string,
+  title: string,
+  body: string,
+  data?: Record<string, string>
+): Promise<boolean> {
+  const tokenDoc = await db.collection("push_tokens").doc(userId).get();
+  if (!tokenDoc.exists) return false;
+
+  const tokenData = tokenDoc.data();
+  const token = tokenData?.token;
+  if (!token) return false;
+
+  try {
+    await getMessaging().send({
+      token,
+      notification: { title, body },
+      data: data || {},
+      apns: {
+        payload: {
+          aps: {
+            alert: { title, body },
+            sound: "default",
+            badge: 1,
+          },
+        },
+      },
+      android: {
+        priority: "high",
+        notification: {
+          sound: "default",
+          channelId: "default",
+        },
+      },
+    });
+    return true;
+  } catch (error: any) {
+    console.error("Failed to send push:", error?.message || error);
+    if (error?.code === "messaging/registration-token-not-registered") {
+      await tokenDoc.ref.update({ token: null, invalidated_at: Timestamp.now() });
+    }
+    return false;
+  }
+}
+
+export const sendTestPush = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in");
+  }
+
+  const uid = request.auth.uid;
+  await checkRateLimit(uid, "send_test_push", 5, 60000);
+
+  const sent = await sendPushToUser(
+    uid,
+    "PANDAS Tracker Test",
+    "Push notifications are working!",
+    { type: "test" }
+  );
+
+  if (!sent) {
+    throw new HttpsError(
+      "failed-precondition",
+      "No push token registered for this user. Make sure you've granted notification permissions."
+    );
+  }
+
+  return { sent: true };
+});
+
+export const sendPushNotification = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in");
+  }
+
+  const { targetUserId, title, body, data } = request.data;
+  if (!targetUserId || !title || !body) {
+    throw new HttpsError("invalid-argument", "Missing targetUserId, title, or body");
+  }
+
+  const callerUid = request.auth.uid;
+  await checkRateLimit(callerUid, "send_push", 30, 60000);
+
+  if (targetUserId !== callerUid) {
+    const accessDocId = `${targetUserId}_${callerUid}`;
+    const accessDoc = await db.collection("family_access").doc(accessDocId).get();
+    if (!accessDoc.exists || !accessDoc.data()?.is_active) {
+      throw new HttpsError("permission-denied", "No access to send notifications to this user");
+    }
+  }
+
+  const sent = await sendPushToUser(targetUserId, title, body, data);
+  return { sent };
+});
