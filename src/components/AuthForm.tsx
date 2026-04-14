@@ -28,6 +28,11 @@ async function saveConsentRecord(uid: string) {
     acceptedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
+  try {
+    localStorage.setItem('pandas_just_signed_up', '1');
+  } catch {
+    // storage unavailable
+  }
 }
 
 const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) => {

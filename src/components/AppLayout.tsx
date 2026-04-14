@@ -95,19 +95,21 @@ const AppLayout: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      !showSplash &&
-      isRevenueCatAvailable() &&
-      !isPro &&
-      !isTrialing &&
-      !sessionStorage.getItem('pandas_trial_shown')
-    ) {
+    if (showSplash || !isRevenueCatAvailable() || isPro || isTrialing) return;
+
+    const justSignedUp = localStorage.getItem('pandas_just_signed_up') === '1';
+    const lastShown = parseInt(localStorage.getItem('pandas_trial_last_shown') || '0', 10);
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    const dueForWeekly = Date.now() - lastShown >= oneWeekMs;
+
+    if (justSignedUp || dueForWeekly) {
       setShowTrialOffer(true);
     }
   }, [showSplash, isPro, isTrialing]);
 
   const handleTrialDone = useCallback(() => {
-    sessionStorage.setItem('pandas_trial_shown', '1');
+    localStorage.setItem('pandas_trial_last_shown', Date.now().toString());
+    localStorage.removeItem('pandas_just_signed_up');
     setShowTrialOffer(false);
   }, []);
 
