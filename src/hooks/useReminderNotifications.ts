@@ -55,9 +55,12 @@ export const useReminderNotifications = ({
             title,
             body,
             id: notifId,
+            sound: 'default',
+            smallIcon: 'ic_stat_icon_config_sample',
             schedule: {
               on: { hour: hours, minute: minutes },
               repeats: true,
+              allowWhileIdle: true,
             },
           }]
         });

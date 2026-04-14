@@ -57,6 +57,11 @@
 	<string>PANDAS Tracker uses anonymized usage data to improve app functionality. No health data is shared for tracking. You can deny this permission and the app will work normally.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>PANDAS Tracker uses Face ID to securely sign you in to your account.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

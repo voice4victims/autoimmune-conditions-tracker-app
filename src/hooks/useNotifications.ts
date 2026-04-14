@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { PushNotifications } from '@capacitor/push-notifications';
 
 interface NotificationPermissionState {
   granted: boolean;
@@ -22,16 +21,16 @@ export const useNotifications = () => {
   useEffect(() => {
     const checkPermission = async () => {
       if (Capacitor.isNativePlatform()) {
-        const [localResult, pushResult] = await Promise.all([
-          LocalNotifications.checkPermissions(),
-          PushNotifications.checkPermissions().catch(() => ({ receive: 'prompt' as const }))
-        ]);
-        const granted = localResult.display === 'granted' || pushResult.receive === 'granted';
-        setPermission({
-          granted,
-          denied: localResult.display === 'denied' && pushResult.receive === 'denied',
-          default: !granted && (localResult.display === 'prompt' || pushResult.receive === 'prompt')
-        });
+        try {
+          const localResult = await LocalNotifications.checkPermissions();
+          setPermission({
+            granted: localResult.display === 'granted',
+            denied: localResult.display === 'denied',
+            default: localResult.display === 'prompt' || localResult.display === 'prompt-with-rationale'
+          });
+        } catch {
+          setPermission({ granted: false, denied: false, default: true });
+        }
       } else if ('Notification' in window) {
         const currentPermission = Notification.permission;
         setPermission({
@@ -47,12 +46,9 @@ export const useNotifications = () => {
   const requestPermission = async (): Promise<boolean> => {
     try {
       if (Capacitor.isNativePlatform()) {
-        const [localResult, pushResult] = await Promise.all([
-          LocalNotifications.requestPermissions(),
-          PushNotifications.requestPermissions().catch(() => ({ receive: 'denied' as const }))
-        ]);
-        const granted = localResult.display === 'granted' || pushResult.receive === 'granted';
-        setPermission({ granted, denied: !granted, default: false });
+        const localResult = await LocalNotifications.requestPermissions();
+        const granted = localResult.display === 'granted';
+        setPermission({ granted, denied: localResult.display === 'denied', default: false });
         if (granted) {
           toast({ title: 'Success', description: 'Notifications enabled successfully' });
         } else {
@@ -95,6 +91,8 @@ export const useNotifications = () => {
             title,
             body: options?.body || '',
             id: idCounterRef.current++,
+            sound: 'default',
+            smallIcon: 'ic_stat_icon_config_sample',
             schedule: { at: new Date(Date.now() + 100) },
           }]
         });
