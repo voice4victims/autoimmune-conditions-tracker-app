@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const MedicalDisclaimer: React.FC = () => {
-  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem('disclaimer_dismissed') === '1');
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem('disclaimer_dismissed') === '1');
 
   if (dismissed) return null;
 
@@ -13,7 +13,7 @@ const MedicalDisclaimer: React.FC = () => {
         It is for personal tracking purposes only. Always consult a qualified healthcare professional before making any medical decisions.
       </p>
       <button
-        onClick={() => { sessionStorage.setItem('disclaimer_dismissed', '1'); setDismissed(true); }}
+        onClick={() => { localStorage.setItem('disclaimer_dismissed', '1'); setDismissed(true); }}
         className="text-warning-500 bg-transparent border-none cursor-pointer p-0 shrink-0 text-[16px] leading-none mt-0.5"
         aria-label="Dismiss disclaimer"
       >
