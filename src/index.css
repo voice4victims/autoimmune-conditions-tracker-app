@@ -201,3 +201,30 @@
     min-height: -webkit-fill-available;
   }
 }
+/* Radix portal safe-area protection — prevents dropdowns/selects/popovers
+   from rendering into the iOS notch, Android status bar, or home indicator */
+[data-radix-popper-content-wrapper] {
+  max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px) !important;
+}
+
+[data-radix-select-viewport],
+[data-radix-popover-content],
+[data-radix-dropdown-menu-content],
+[data-radix-menu-content] {
+  max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px) !important;
+}
+
+/* Dialog and sheet overlays respect safe areas */
+[data-radix-dialog-content],
+[data-radix-alert-dialog-content] {
+  max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px);
+  margin-top: env(safe-area-inset-top, 0px);
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Toast notifications — keep above home indicator */
+[data-sonner-toaster],
+[data-radix-toast-viewport] {
+  padding-top: env(safe-area-inset-top, 0px) !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
