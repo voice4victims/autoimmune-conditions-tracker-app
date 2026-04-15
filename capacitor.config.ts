@@ -31,7 +31,7 @@ const config: CapacitorConfig = {
       resizeOnFullScreen: false
     },
     CapacitorHttp: {
-      enabled: true
+      enabled: false
     },
     FirebaseAuthentication: {
       skipNativeAuth: false,
