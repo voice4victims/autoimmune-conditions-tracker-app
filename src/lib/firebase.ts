@@ -56,9 +56,9 @@ export function disableAnalytics(): void {
 export const auth = Capacitor.isNativePlatform()
   ? initializeAuth(app, { persistence: browserLocalPersistence })
   : getAuth(app);
-export const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true,
-});
+export const db = Capacitor.isNativePlatform()
+  ? initializeFirestore(app, { experimentalForceLongPolling: true })
+  : initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 export { analytics };

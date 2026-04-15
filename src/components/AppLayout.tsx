@@ -74,6 +74,7 @@ const AppLayout: React.FC = () => {
     children,
     setChildProfile,
     saveChildProfile,
+    childrenLoading,
   } = useApp();
 
   const [screen, setScreen] = useState<ScreenId>('home');
@@ -171,6 +172,14 @@ const AppLayout: React.FC = () => {
 
   if (showTrialOffer) {
     return <TrialOfferScreen onDone={handleTrialDone} />;
+  }
+
+  if (childrenLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+      </div>
+    );
   }
 
   if (children.length === 0) {

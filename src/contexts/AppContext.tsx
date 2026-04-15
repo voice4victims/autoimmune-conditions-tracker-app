@@ -62,6 +62,7 @@ interface AppContextType {
   loadNotes: () => Promise<void>;
   saveChildProfile: (profile: Partial<ChildProfile>) => Promise<void>;
   deleteChild: (childId: string) => Promise<void>;
+  childrenLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType>({} as AppContextType);
@@ -76,6 +77,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [symptoms, setSymptoms] = useState<SymptomRating[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [customSymptoms, setCustomSymptoms] = useState<string[]>([]);
+  const [childrenLoading, setChildrenLoading] = useState(true);
   const { user } = useAuth();
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
@@ -87,17 +89,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const loadChildren = async () => {
-    if (!user) return;
-    const q = query(collection(db, 'children'), where('userId', '==', user.uid));
-    const querySnapshot = await getDocs(q);
-    const loadedChildren = querySnapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as ChildProfile)
-    );
-    setChildrenList(loadedChildren);
-    if (loadedChildren.length > 0 && !childProfile) {
-      setChildProfile(loadedChildren[0]);
-    } else if (loadedChildren.length === 0) {
-      setChildProfile(null);
+    if (!user) {
+      setChildrenLoading(false);
+      return;
+    }
+    setChildrenLoading(true);
+    try {
+      const q = query(collection(db, 'children'), where('userId', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      const loadedChildren = querySnapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() } as ChildProfile)
+      );
+      setChildrenList(loadedChildren);
+      if (loadedChildren.length > 0 && !childProfile) {
+        setChildProfile(loadedChildren[0]);
+      } else if (loadedChildren.length === 0) {
+        setChildProfile(null);
+      }
+    } catch (err) {
+      console.error('[loadChildren] Firestore query failed:', err);
+    } finally {
+      setChildrenLoading(false);
     }
   };
 
@@ -245,6 +257,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         loadTreatments,
         loadSymptoms,
         loadNotes,
+        childrenLoading,
         saveChildProfile,
         deleteChild,
       }}

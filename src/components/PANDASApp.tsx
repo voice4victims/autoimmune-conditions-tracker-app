@@ -57,7 +57,8 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
     saveChildProfile,
     addSymptom,
     customSymptoms,
-    addCustomSymptom
+    addCustomSymptom,
+    childrenLoading,
   } = useApp();
 
   const deviceInfo = useDeviceDetection();
@@ -101,6 +102,14 @@ const PANDASApp: React.FC<PANDASAppProps> = ({ currentTab, setCurrentTab, showCh
   const handleNavigateToPrivacy = () => {
     setCurrentTab('privacy');
   };
+
+  if (childrenLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   if (children.length === 0) {
     return (
