@@ -9,11 +9,10 @@
 	},
 	"plugins": {
 		"SplashScreen": {
-			"launchShowDuration": 2000,
+			"launchAutoHide": true,
+			"launchShowDuration": 0,
 			"backgroundColor": "#176F91",
 			"showSpinner": false,
-			"androidSpinnerStyle": "small",
-			"iosSpinnerStyle": "small",
 			"splashFullScreen": true,
 			"splashImmersive": true
 		},
@@ -29,21 +28,30 @@
 			"iconColor": "#176F91"
 		},
 		"Keyboard": {
-			"resize": "body",
+			"resize": "none",
 			"style": "dark",
-			"resizeOnFullScreen": true
+			"resizeOnFullScreen": false
 		},
 		"CapacitorHttp": {
 			"enabled": true
+		},
+		"FirebaseAuthentication": {
+			"skipNativeAuth": false,
+			"providers": [
+				"google.com",
+				"apple.com"
+			]
 		}
 	},
 	"packageClassList": [
 		"BiometricAuthNative",
+		"FirebaseAuthenticationPlugin",
 		"CAPBrowserPlugin",
 		"CAPCameraPlugin",
 		"FilesystemPlugin",
 		"LocalNotificationsPlugin",
 		"PushNotificationsPlugin",
+		"SplashScreenPlugin",
 		"PurchasesPlugin",
 		"SecureStoragePlugin"
 	]

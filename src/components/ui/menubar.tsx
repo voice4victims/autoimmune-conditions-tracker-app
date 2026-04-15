@@ -4,6 +4,13 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+function getSafeAreaCollisionPadding() {
+  const style = getComputedStyle(document.documentElement);
+  const top = parseInt(style.getPropertyValue('--sat') || '0', 10) || 0;
+  const bottom = parseInt(style.getPropertyValue('--sab') || '0', 10) || 0;
+  return { top: top + 60, bottom: bottom + 80, left: 16, right: 16 };
+}
+
 const MenubarMenu = MenubarPrimitive.Menu
 
 const MenubarGroup = MenubarPrimitive.Group
@@ -87,21 +94,25 @@ const MenubarContent = React.forwardRef<
   (
     { className, align = "start", alignOffset = -4, sideOffset = 8, ...props },
     ref
-  ) => (
+  ) => {
+    const padding = React.useMemo(() => getSafeAreaCollisionPadding(), []);
+    return (
     <MenubarPrimitive.Portal>
       <MenubarPrimitive.Content
         ref={ref}
         align={align}
         alignOffset={alignOffset}
         sideOffset={sideOffset}
+        collisionPadding={padding}
         className={cn(
-          "z-50 min-w-[12rem] overflow-hidden rounded-md border border-border/40 bg-popover/95 backdrop-blur-sm p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200",
+          "z-[200] min-w-[12rem] overflow-hidden rounded-md border border-border/40 bg-popover/95 backdrop-blur-sm p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200",
           className
         )}
         {...props}
       />
     </MenubarPrimitive.Portal>
-  )
+    );
+  }
 )
 MenubarContent.displayName = MenubarPrimitive.Content.displayName
 

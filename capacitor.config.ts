@@ -26,12 +26,16 @@ const config: CapacitorConfig = {
       iconColor: '#176F91'
     },
     Keyboard: {
-      resize: 'body',
+      resize: 'none',
       style: 'dark',
-      resizeOnFullScreen: true
+      resizeOnFullScreen: false
     },
     CapacitorHttp: {
       enabled: true
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['google.com', 'apple.com']
     }
   }
 };

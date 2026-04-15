@@ -58,7 +58,7 @@ const Index: React.FC = () => {
   if (!user) {
     return (
       <AnimatedBackground>
-        <div className="py-10 w-full">
+        <div className="pt-10 pb-10 w-full">
           <AuthForm onAuthSuccess={() => {}} />
         </div>
       </AnimatedBackground>

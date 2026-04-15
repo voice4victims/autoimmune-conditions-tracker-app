@@ -11,7 +11,7 @@ const STARS = [
 
 const AnimatedBackground: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div
-    className="fixed inset-0 flex flex-col items-center justify-center overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+    className="fixed inset-0"
     style={{ background: 'linear-gradient(160deg, #0E1F6A 0%, #1a3585 50%, #0D4A72 100%)' }}
   >
     <style>{`
@@ -41,8 +41,28 @@ const AnimatedBackground: React.FC<{ children: React.ReactNode }> = ({ children 
         />
       );
     })}
-    <div className="relative z-10 flex flex-col items-center justify-center w-full">
-      {children}
+    <div
+      className="absolute pointer-events-none z-20"
+      style={{
+        top: 'env(safe-area-inset-top, 0px)',
+        left: 0,
+        right: 0,
+        height: '12px',
+        background: 'linear-gradient(to bottom, rgba(14,31,106,0.6) 0%, rgba(14,31,106,0) 100%)',
+      }}
+    />
+    <div
+      className="absolute overflow-y-auto z-10"
+      style={{
+        top: 'env(safe-area-inset-top, 0px)',
+        bottom: 0,
+        left: 0,
+        right: 0,
+      }}
+    >
+      <div className="flex flex-col items-center justify-center min-h-full w-full">
+        {children}
+      </div>
     </div>
   </div>
 );

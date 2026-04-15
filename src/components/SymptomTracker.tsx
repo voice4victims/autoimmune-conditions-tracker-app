@@ -143,13 +143,14 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
             .sev-slider::-webkit-slider-runnable-track { height: 10px; border-radius: 999px; background: inherit; }
             .sev-slider::-moz-range-track { height: 10px; border-radius: 999px; background: inherit; }
           `}</style>
-          <div className="pt-2 pb-1">
+          <div className="pt-8 pb-1 px-[14px]">
             <div className="relative">
               {severity !== null && (
                 <div
-                  className="absolute -top-8 flex items-center justify-center pointer-events-none"
+                  className="absolute -top-7 flex items-center justify-center pointer-events-none"
                   style={{
-                    left: `calc(${(severity / 10) * 100}% - 16px + ${(5 - severity) * 1.2}px)`,
+                    left: `calc(${(severity / 10) * 100}% + ${14 - (severity / 10) * 28}px)`,
+                    transform: 'translateX(-50%)',
                     transition: 'left 0.15s ease',
                   }}
                 >
@@ -182,7 +183,7 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
                 } as React.CSSProperties}
               />
             </div>
-            <div className="flex justify-between mt-1 px-0.5">
+            <div className="flex justify-between mt-1">
               {[0, 5, 10].map((n) => (
                 <span key={n} className="font-mono text-[9px] text-neutral-400">{n}</span>
               ))}

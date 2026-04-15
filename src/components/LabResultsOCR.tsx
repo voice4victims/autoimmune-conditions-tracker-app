@@ -111,7 +111,7 @@ const LabResultsOCR: React.FC<OCRProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 font-serif text-xl text-neutral-800 dark:text-neutral-100">
           <FileImage className="h-5 w-5" />
           {title}
         </CardTitle>

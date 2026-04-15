@@ -3,7 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithCredential, User } from 'firebase/auth';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Capacitor } from '@capacitor/core';
@@ -28,11 +29,6 @@ async function saveConsentRecord(uid: string) {
     acceptedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
-  try {
-    localStorage.setItem('pandas_just_signed_up', '1');
-  } catch {
-    // storage unavailable
-  }
 }
 
 const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) => {
@@ -65,7 +61,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
   })();
   const consentGiven = parentConsent && hipaaConsent && isOver18;
   const passwordValid = !isSignUp || validatePasswordForSignup(password) === null;
-  const signUpBlocked = isSignUp && (!consentGiven || !passwordValid);
+  const signUpBlocked = isSignUp && !consentGiven;
+  const signUpEmailBlocked = signUpBlocked || (isSignUp && !passwordValid);
 
   useEffect(() => {
     (async () => {
@@ -129,6 +126,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
       if (isSignUp) {
         result = await createUserWithEmailAndPassword(auth, email, password);
         await saveConsentRecord(result.user.uid);
+        localStorage.setItem('pandas_just_signed_up', '1');
         onAuthSuccess();
       } else {
         result = await signInWithEmailAndPassword(auth, email, password);
@@ -141,43 +139,33 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
     }
   };
 
-  const signInWithProvider = async (provider: GoogleAuthProvider | OAuthProvider) => {
-    if (Capacitor.isNativePlatform()) {
-      await signInWithRedirect(auth, provider);
+  const handleProviderResult = async (user: User) => {
+    if (isSignUp) {
+      await saveConsentRecord(user.uid);
+      localStorage.setItem('pandas_just_signed_up', '1');
+      onAuthSuccess();
     } else {
-      const result = await signInWithPopup(auth, provider);
-      if (isSignUp) {
-        await saveConsentRecord(result.user.uid);
-        onAuthSuccess();
-      } else {
-        await checkConsentAndProceed(result.user);
-      }
+      await checkConsentAndProceed(user);
     }
   };
 
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      getRedirectResult(auth).then(async (result) => {
-        if (result?.user) {
-          const record = await getConsentRecord(result.user.uid);
-          if (record && record.consentVersion === CONSENT_VERSION) {
-            onAuthSuccess();
-          } else {
-            setPendingUser(result.user);
-            setShowReconsentModal(true);
-          }
-        }
-      }).catch(() => {
-        // getRedirectResult can throw on native when there was no redirect — ignore it
-      });
-    }
-  }, []);
-
   const handleGoogleSignIn = async () => {
     setError(null);
+    if (isSignUp && !consentGiven) {
+      setError('Please complete the consent form above before signing up.');
+      return;
+    }
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithProvider(provider);
+      if (Capacitor.isNativePlatform()) {
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+        const userCredential = await signInWithCredential(auth, credential);
+        await handleProviderResult(userCredential.user);
+      } else {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        await handleProviderResult(result.user);
+      }
     } catch (err: unknown) {
       setError(getFriendlyAuthError(err));
     }
@@ -185,11 +173,27 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
 
   const handleAppleSignIn = async () => {
     setError(null);
+    if (isSignUp && !consentGiven) {
+      setError('Please complete the consent form above before signing up.');
+      return;
+    }
     try {
-      const provider = new OAuthProvider('apple.com');
-      provider.addScope('email');
-      provider.addScope('name');
-      await signInWithProvider(provider);
+      if (Capacitor.isNativePlatform()) {
+        const result = await FirebaseAuthentication.signInWithApple();
+        const provider = new OAuthProvider('apple.com');
+        const credential = provider.credential({
+          idToken: result.credential?.idToken ?? '',
+          rawNonce: result.credential?.nonce ?? '',
+        });
+        const userCredential = await signInWithCredential(auth, credential);
+        await handleProviderResult(userCredential.user);
+      } else {
+        const provider = new OAuthProvider('apple.com');
+        provider.addScope('email');
+        provider.addScope('name');
+        const result = await signInWithPopup(auth, provider);
+        await handleProviderResult(result.user);
+      }
     } catch (err: unknown) {
       setError(getFriendlyAuthError(err));
     }
@@ -199,13 +203,20 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
     <div className="space-y-2.5">
       <div className="p-3 rounded-xl border border-primary-200 bg-primary-50/50">
         <label className="font-sans text-[12px] text-neutral-600 font-semibold block mb-1.5">Your date of birth</label>
-        <input
-          type="date"
-          value={dateOfBirth}
-          onChange={(e) => setDateOfBirth(e.target.value)}
-          max={new Date().toISOString().split('T')[0]}
-          className="w-full px-3 py-2 rounded-lg border border-primary-200 text-sm bg-white"
-        />
+        <div className="relative">
+          <input
+            type="date"
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            max={new Date().toISOString().split('T')[0]}
+            className={`w-full px-3 py-2 rounded-lg border border-primary-200 text-sm bg-white h-[42px] ${dateOfBirth ? 'text-neutral-800' : 'text-transparent'}`}
+          />
+          {!dateOfBirth && (
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 pointer-events-none">
+              Select your date of birth
+            </span>
+          )}
+        </div>
         {dateOfBirth && !isOver18 && (
           <p className="text-[11px] text-red-600 mt-1">You must be 18 or older to create an account.</p>
         )}
@@ -313,8 +324,8 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           <Button
             type="submit"
             className="w-full font-sans font-bold"
-            style={{ background: (signUpBlocked || submitting) ? '#ccc' : 'linear-gradient(135deg, #176F91, #573F9E)' }}
-            disabled={signUpBlocked || submitting}
+            style={{ background: (signUpEmailBlocked || submitting) ? '#ccc' : 'linear-gradient(135deg, #176F91, #573F9E)' }}
+            disabled={signUpEmailBlocked || submitting}
           >
             {submitting ? 'Signing in...' : isSignUp ? 'Create Account' : 'Sign In'}
           </Button>
@@ -335,8 +346,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           <button
             onClick={handleGoogleSignIn}
             type="button"
-            disabled={signUpBlocked}
-            className={`w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-neutral-200 bg-white font-sans font-bold text-[13px] text-neutral-700 transition-colors ${signUpBlocked ? 'opacity-40 cursor-not-allowed' : 'hover:bg-neutral-50 cursor-pointer'}`}
+            className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 cursor-pointer font-sans font-bold text-[13px] text-neutral-700 transition-colors"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -349,8 +359,7 @@ const AuthForm: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) =>
           <button
             onClick={handleAppleSignIn}
             type="button"
-            disabled={signUpBlocked}
-            className={`w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-neutral-200 bg-white font-sans font-bold text-[13px] text-neutral-700 transition-colors ${signUpBlocked ? 'opacity-40 cursor-not-allowed' : 'hover:bg-neutral-50 cursor-pointer'}`}
+            className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 cursor-pointer font-sans font-bold text-[13px] text-neutral-700 transition-colors"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />

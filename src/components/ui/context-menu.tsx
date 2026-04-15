@@ -4,6 +4,13 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+function getSafeAreaCollisionPadding() {
+  const style = getComputedStyle(document.documentElement);
+  const top = parseInt(style.getPropertyValue('--sat') || '0', 10) || 0;
+  const bottom = parseInt(style.getPropertyValue('--sab') || '0', 10) || 0;
+  return { top: top + 60, bottom: bottom + 80, left: 16, right: 16 };
+}
+
 const ContextMenu = ContextMenuPrimitive.Root
 
 const ContextMenuTrigger = ContextMenuPrimitive.Trigger
@@ -55,18 +62,22 @@ ContextMenuSubContent.displayName = ContextMenuPrimitive.SubContent.displayName
 const ContextMenuContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content>
->(({ className, ...props }, ref) => (
+>(({ className, ...props }, ref) => {
+  const padding = React.useMemo(() => getSafeAreaCollisionPadding(), []);
+  return (
   <ContextMenuPrimitive.Portal>
     <ContextMenuPrimitive.Content
       ref={ref}
+      collisionPadding={padding}
       className={cn(
-        "z-50 min-w-[8rem] overflow-hidden rounded-md border border-border/40 bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200",
+        "z-[200] min-w-[8rem] overflow-hidden rounded-md border border-border/40 bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200",
         className
       )}
       {...props}
     />
   </ContextMenuPrimitive.Portal>
-))
+  );
+})
 ContextMenuContent.displayName = ContextMenuPrimitive.Content.displayName
 
 const ContextMenuItem = React.forwardRef<

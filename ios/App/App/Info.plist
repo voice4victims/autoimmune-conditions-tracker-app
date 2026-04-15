@@ -70,6 +70,12 @@
 				<string>com.pandastracker.app</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.762054249819-h054kobllpusd9gqf79f7e0uc8ja65ck</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

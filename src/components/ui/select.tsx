@@ -4,6 +4,13 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+function getSafeAreaCollisionPadding() {
+  const style = getComputedStyle(document.documentElement);
+  const top = parseInt(style.getPropertyValue('--sat') || '0', 10) || 0;
+  const bottom = parseInt(style.getPropertyValue('--sab') || '0', 10) || 0;
+  return { top: top + 60, bottom: bottom + 80, left: 16, right: 16 };
+}
+
 const Select = SelectPrimitive.Root
 
 const SelectGroup = SelectPrimitive.Group
@@ -65,21 +72,11 @@ const SelectScrollDownButton = React.forwardRef<
 SelectScrollDownButton.displayName =
   SelectPrimitive.ScrollDownButton.displayName
 
-function getSafeCollisionPadding() {
-  const s = getComputedStyle(document.documentElement);
-  return {
-    top: (parseInt(s.getPropertyValue('--sat') || '0', 10) || 0) + 60,
-    bottom: (parseInt(s.getPropertyValue('--sab') || '0', 10) || 0) + 80,
-    left: 16,
-    right: 16,
-  };
-}
-
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = "popper", ...props }, ref) => {
-  const collisionPadding = React.useMemo(() => getSafeCollisionPadding(), []);
+  const padding = React.useMemo(() => getSafeAreaCollisionPadding(), []);
   return (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
@@ -91,7 +88,7 @@ const SelectContent = React.forwardRef<
         className
       )}
       position={position}
-      collisionPadding={collisionPadding}
+      collisionPadding={padding}
       sideOffset={4}
       {...props}
     >
