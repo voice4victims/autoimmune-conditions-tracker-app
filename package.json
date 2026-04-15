@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postinstall": "patch-package",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -114,6 +115,7 @@
     "fast-check": "^4.4.0",
     "globals": "^15.9.0",
     "jsdom": "^27.3.0",
+    "patch-package": "^8.0.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",
     "terser": "^5.44.1",
