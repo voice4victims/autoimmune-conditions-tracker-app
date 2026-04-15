@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# @capacitor-firebase/authentication references Facebook + Play Games SDKs even
+# when only Google/Apple auth is configured. We don't ship either, so silence R8.
+-dontwarn com.facebook.**
+-dontwarn com.google.android.gms.games.**
+-keep class io.capawesome.capacitorjs.plugins.firebase.authentication.** { *; }
