@@ -185,9 +185,9 @@ const AppLayout: React.FC = () => {
   if (children.length === 0) {
     return (
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-        <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] z-50" style={{ background: 'linear-gradient(135deg, #176F91, #573F9E)' }} />
+        <div className="fixed top-0 left-0 right-0 h-[var(--sat)] z-50" style={{ background: 'linear-gradient(135deg, #176F91, #573F9E)' }} />
         <div
-          className="px-5 py-4 pt-[calc(env(safe-area-inset-top)+16px)] flex items-center gap-3 sticky top-0 z-40"
+          className="px-5 py-4 pt-[calc(var(--sat)+16px)] flex items-center gap-3 sticky top-0 z-40"
           style={{ background: 'linear-gradient(135deg, #176F91, #573F9E)' }}
         >
           <img
@@ -265,8 +265,8 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col relative">
-      <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-white dark:bg-neutral-900 z-50" />
-      <div className="sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
+      <div className="fixed top-0 left-0 right-0 h-[var(--sat)] bg-white dark:bg-neutral-900 z-50" />
+      <div className="sticky top-0 z-40 pt-[var(--sat)]">
         <MedicalDisclaimer />
         <SelfCareBanner />
         <div className="bg-white dark:bg-neutral-900 px-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between shrink-0">
@@ -429,7 +429,7 @@ const AppLayout: React.FC = () => {
         </Suspense>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex justify-center pb-[env(safe-area-inset-bottom,8px)] pt-2 z-50" aria-label="Main navigation">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex justify-center pb-[var(--sab, 8px)] pt-2 z-50" aria-label="Main navigation">
         {NAV_TABS.map((t) => (
           <button
             key={t.id}

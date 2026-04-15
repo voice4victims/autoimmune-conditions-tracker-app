@@ -6,6 +6,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 export const isNative = () => Capacitor.isNativePlatform();
 
 export async function initNativeUI(): Promise<void> {
+  probeSafeAreaInsets();
   if (!Capacitor.isNativePlatform()) return;
   try {
     await StatusBar.setOverlaysWebView({ overlay: true });
@@ -16,6 +17,22 @@ export async function initNativeUI(): Promise<void> {
   } catch (err) {
     console.warn('[initNativeUI] StatusBar setup failed:', err);
   }
+}
+
+function probeSafeAreaInsets(): void {
+  if (typeof document === 'undefined') return;
+  const probe = document.createElement('div');
+  probe.style.cssText =
+    'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;' +
+    'padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);';
+  document.body.appendChild(probe);
+  const cs = getComputedStyle(probe);
+  const top = cs.paddingTop || '0px';
+  const bottom = cs.paddingBottom || '0px';
+  document.body.removeChild(probe);
+  const root = document.documentElement;
+  if (parseFloat(top) > 0) root.style.setProperty('--sat', top);
+  if (parseFloat(bottom) > 0) root.style.setProperty('--sab', bottom);
 }
 
 export const APP_URL = 'https://pandastracker.web.app';

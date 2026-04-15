@@ -56,7 +56,7 @@ const TrialOfferScreen: React.FC<TrialOfferScreenProps> = ({ onDone }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[9998] flex flex-col items-center justify-center px-6 overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-[9998] flex flex-col items-center justify-center px-6 overflow-y-auto pt-[var(--sat)] pb-[var(--sab)]"
       style={{ background: 'linear-gradient(135deg, #176F91, #573F9E)' }}
     >
       <div className="w-full max-w-sm flex flex-col items-center py-12">

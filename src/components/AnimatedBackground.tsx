@@ -44,7 +44,7 @@ const AnimatedBackground: React.FC<{ children: React.ReactNode }> = ({ children 
     <div
       className="absolute pointer-events-none z-20"
       style={{
-        top: 'env(safe-area-inset-top, 0px)',
+        top: 'var(--sat)',
         left: 0,
         right: 0,
         height: '12px',
@@ -54,7 +54,7 @@ const AnimatedBackground: React.FC<{ children: React.ReactNode }> = ({ children 
     <div
       className="absolute overflow-y-auto z-10"
       style={{
-        top: 'env(safe-area-inset-top, 0px)',
+        top: 'var(--sat)',
         bottom: 0,
         left: 0,
         right: 0,
