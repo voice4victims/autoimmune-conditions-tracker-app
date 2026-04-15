@@ -52,6 +52,7 @@
 		"LocalNotificationsPlugin",
 		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
+		"StatusBarPlugin",
 		"PurchasesPlugin",
 		"SecureStoragePlugin"
 	]

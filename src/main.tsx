@@ -6,6 +6,7 @@ import { useServiceWorker } from './hooks/useServiceWorker';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initSecureStorage } from './lib/secureStorageService';
 import { initAnalytics } from './lib/firebase';
+import { initNativeUI } from './lib/capacitor';
 
 const Main = () => {
   useServiceWorker();
@@ -24,6 +25,7 @@ const startApp = () => {
   if (started) return;
   started = true;
   initAnalytics();
+  initNativeUI();
   ReactDOM.createRoot(document.getElementById('root')!).render(<Main />);
 };
 

@@ -1,8 +1,22 @@
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 export const isNative = () => Capacitor.isNativePlatform();
+
+export async function initNativeUI(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await StatusBar.setOverlaysWebView({ overlay: true });
+    await StatusBar.setStyle({ style: Style.Light });
+    if (Capacitor.getPlatform() === 'android') {
+      await StatusBar.setBackgroundColor({ color: '#00000000' });
+    }
+  } catch (err) {
+    console.warn('[initNativeUI] StatusBar setup failed:', err);
+  }
+}
 
 export const APP_URL = 'https://pandastracker.web.app';
 
