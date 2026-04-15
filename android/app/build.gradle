@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+fileTree(dir: projectDir).matching {
+    include '**/* [0-9]*.*'
+    include '**/* [0-9][0-9]*.*'
+}.each {
+    logger.lifecycle("Deleting iCloud duplicate: ${it}")
+    it.delete()
+}
+
 android {
     namespace = "com.pandastracker.app"
     compileSdk = rootProject.ext.compileSdkVersion
