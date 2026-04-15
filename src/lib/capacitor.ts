@@ -9,7 +9,7 @@ export async function initNativeUI(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
     await StatusBar.setOverlaysWebView({ overlay: true });
-    await StatusBar.setStyle({ style: Style.Light });
+    await StatusBar.setStyle({ style: Style.Dark });
     if (Capacitor.getPlatform() === 'android') {
       await StatusBar.setBackgroundColor({ color: '#00000000' });
     }
