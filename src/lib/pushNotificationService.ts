@@ -12,6 +12,11 @@ export function getPushToken(): string | null {
 export async function initPushNotifications(userId: string): Promise<string | null> {
   if (!Capacitor.isNativePlatform()) return null;
 
+  if (Capacitor.getPlatform() === 'android' && !hasAndroidFirebaseConfig()) {
+    console.warn('[push] Skipping register on Android: google-services.json not bundled');
+    return null;
+  }
+
   try {
     let permStatus = await PushNotifications.checkPermissions();
 
@@ -35,12 +40,21 @@ export async function initPushNotifications(userId: string): Promise<string | nu
         resolve(null);
       });
 
-      PushNotifications.register();
+      try {
+        PushNotifications.register();
+      } catch (err) {
+        console.error('[push] register() threw synchronously:', err);
+        resolve(null);
+      }
     });
   } catch (error) {
     console.error('Failed to init push notifications:', error);
     return null;
   }
+}
+
+function hasAndroidFirebaseConfig(): boolean {
+  return import.meta.env.VITE_ANDROID_FIREBASE_CONFIGURED === 'true';
 }
 
 async function savePushToken(userId: string, token: string): Promise<void> {
