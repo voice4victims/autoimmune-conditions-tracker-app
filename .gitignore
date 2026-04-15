@@ -72,3 +72,7 @@ coverage/
 .tmp/
 temp/
 functions/lib/
+
+# macOS file-sync duplicate artifacts (e.g., "config 2.xml", "capacitor.config 3.json")
+* [0-9].*
+* [0-9][0-9].*
