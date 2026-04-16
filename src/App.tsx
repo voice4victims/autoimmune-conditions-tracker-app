@@ -10,6 +10,9 @@ import CookieConsent from './components/CookieConsent';
 import Index from './pages/Index';
 import MobileOptimizations from './components/MobileOptimizations';
 import { ProviderAccessView } from './components/ProviderAccessView';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import DeleteAccount from './pages/DeleteAccount';
 import './App.css';
 
 function App() {
@@ -22,6 +25,9 @@ function App() {
             <Router>
               <Routes>
                 <Route path="/provider-access/:token" element={<ProviderAccessView />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/delete-account" element={<DeleteAccount />} />
                 <Route path="*" element={<><MobileOptimizations /><Index /></>} />
               </Routes>
             </Router>
