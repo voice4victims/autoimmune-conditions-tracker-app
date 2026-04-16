@@ -356,7 +356,7 @@ const AppLayout: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden" style={{ paddingBottom: 'calc(70px + var(--sab, 0px))' }}>
         {screen === 'home' && (
           <HomeScreen
             onQuickLog={() => {
