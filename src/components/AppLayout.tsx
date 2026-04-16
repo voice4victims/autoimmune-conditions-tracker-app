@@ -248,7 +248,7 @@ const AppLayout: React.FC = () => {
       'provider-access': <PaywallGate feature="Provider Access Links"><ProviderAccessManager /></PaywallGate>,
       providers: <PaywallGate feature="Healthcare Providers"><ProviderTracker /></PaywallGate>,
       files: <PaywallGate feature="Document Storage"><FileManager /></PaywallGate>,
-      email: <PaywallGate feature="Email Records"><EmailRecordsForm /></PaywallGate>,
+      email: <PaywallGate feature="Share with Doctor"><ProviderAccessManager /></PaywallGate>,
       insurance: <PaywallGate feature="Insurance Tracker"><InsuranceTracker /></PaywallGate>,
       'medical-visits': <PaywallGate feature="Medical Visits"><MedicalVisitTracker /></PaywallGate>,
       'medical-records': <PaywallGate feature="Medical Records"><MedicalRecordsScreen /></PaywallGate>,

@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
 import FileManager from './FileManager';
 import ProviderTracker from './ProviderTracker';
-import EmailRecordsForm from './EmailRecordsForm';
 import MedicalVisitTracker from './MedicalVisitTracker';
+import { Loader2 } from 'lucide-react';
+
+const ProviderAccessManager = lazy(() => import('./ProviderAccessManager').then(m => ({ default: m.ProviderAccessManager })));
 
 const RECORD_TABS = [
   { id: 'files', icon: '📁', label: 'Files' },
   { id: 'providers', icon: '👨‍⚕️', label: 'Providers' },
-  { id: 'email', icon: '📧', label: 'Email' },
+  { id: 'share', icon: '🔗', label: 'Share' },
   { id: 'visits', icon: '🏥', label: 'Visits' },
 ];
 
@@ -55,7 +57,11 @@ const RecordsScreen: React.FC<RecordsScreenProps> = ({ initialTab = 'files' }) =
       <div className="flex-1 overflow-y-auto p-4 pb-24">
         {tab === 'files' && <FileManager />}
         {tab === 'providers' && <ProviderTracker />}
-        {tab === 'email' && <EmailRecordsForm />}
+        {tab === 'share' && (
+          <Suspense fallback={<div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary-500" /></div>}>
+            <ProviderAccessManager />
+          </Suspense>
+        )}
         {tab === 'visits' && <MedicalVisitTracker />}
       </div>
     </div>

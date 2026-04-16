@@ -20,7 +20,7 @@ function sevColor(n: number): string {
 const QUICK_ACTIONS = [
   { icon: '📈', label: 'Trends', sub: '7-day chart', tab: 'trends' },
   { icon: '💊', label: 'Treatments', sub: 'Medications', tab: 'log-treatment' },
-  { icon: '📄', label: 'Doctor Report', sub: 'Export PDF', tab: 'records-email' },
+  { icon: '🔗', label: 'Share Records', sub: 'Doctor access link', tab: 'records-share' },
   { icon: '⚡', label: 'Triggers', sub: 'Correlations', tab: 'log-triggers' },
 ];
 

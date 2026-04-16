@@ -18,7 +18,7 @@ const MORE_ITEMS = [
   { i: '🗓️', l: 'Heatmap', s: 'Visual symptom calendar', id: 'heatmap', nav: true },
   { i: '👨‍⚕️', l: 'Providers', s: 'Your healthcare providers', id: 'providers', nav: true, pro: true },
   { i: '📁', l: 'Files', s: 'Upload documents', id: 'files', nav: true, pro: true },
-  { i: '📧', l: 'Email Records', s: 'Send records to doctor', id: 'email', nav: true, pro: true },
+  { i: '🔗', l: 'Share with Doctor', s: 'Generate secure access link', id: 'provider-access', nav: true, pro: true },
   { i: '🤧', l: 'Allergies', s: 'Track allergy records', id: 'allergies', nav: true },
   { i: '🛡️', l: 'Drug Safety', s: 'Check interactions', id: 'drug-safety', nav: true },
   { i: '🪪', l: 'Insurance', s: 'Store insurance info', id: 'insurance', nav: false, pro: true },
