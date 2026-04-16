@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Lock, Crown, CheckCircle } from 'lucide-react';
+import { Loader2, Lock, Crown, CheckCircle, Users } from 'lucide-react';
 import { isRevenueCatAvailable } from '@/lib/revenuecat';
+import type { PurchasesPackage } from '@revenuecat/purchases-capacitor';
 
 interface PaywallGateProps {
   children: React.ReactNode;
@@ -22,11 +23,24 @@ const PRO_PERKS = [
 ];
 
 const FAMILY_PERKS = [
-  'Everything in Pro',
-  'Unlimited caregivers',
-  'Named role assignments',
+  'Everything in Pro included',
+  'Unlimited caregivers with named roles',
+  'Family shared dashboard',
+  'Emergency provider access links',
   '10 GB document storage',
 ];
+
+const isPkgPro = (pkg: PurchasesPackage): boolean => {
+  const title = (pkg.product.title || '').toLowerCase();
+  const id = (pkg.product.identifier || '').toLowerCase();
+  return title.includes('pro') || id.includes('pro');
+};
+
+const isPkgFamily = (pkg: PurchasesPackage): boolean => {
+  const title = (pkg.product.title || '').toLowerCase();
+  const id = (pkg.product.identifier || '').toLowerCase();
+  return title.includes('family') || id.includes('family');
+};
 
 const PaywallGate: React.FC<PaywallGateProps> = ({ children, feature, requireFamily }) => {
   const { isPro, isFamily, loading, offerings, purchasePackage, restore } = useSubscription();
@@ -44,11 +58,11 @@ const PaywallGate: React.FC<PaywallGateProps> = ({ children, feature, requireFam
   const hasAccess = requireFamily ? isFamily : isPro;
   if (hasAccess || !isRevenueCatAvailable()) return <>{children}</>;
 
-  const packages = offerings?.current?.availablePackages ?? [];
-  const perks = requireFamily ? FAMILY_PERKS : PRO_PERKS;
-  const tierLabel = requireFamily ? 'Family' : 'Pro';
+  const allPackages = offerings?.current?.availablePackages ?? [];
+  const proPackages = allPackages.filter(isPkgPro);
+  const familyPackages = allPackages.filter(isPkgFamily);
 
-  const handlePurchase = async (pkg: typeof packages[0]) => {
+  const handlePurchase = async (pkg: PurchasesPackage) => {
     setPurchasing(pkg.identifier);
     await purchasePackage(pkg);
     setPurchasing(null);
@@ -60,68 +74,122 @@ const PaywallGate: React.FC<PaywallGateProps> = ({ children, feature, requireFam
     setRestoring(false);
   };
 
+  const renderPackage = (pkg: PurchasesPackage) => {
+    const title = pkg.product.title
+      .replace(/\s*\(.*?\)\s*/g, '')
+      .trim();
+    return (
+      <Card key={pkg.identifier} className="p-0 overflow-hidden">
+        <button
+          onClick={() => handlePurchase(pkg)}
+          disabled={!!purchasing}
+          className="w-full p-3.5 flex items-center justify-between bg-transparent border-none cursor-pointer disabled:opacity-60"
+        >
+          <div className="text-left min-w-0 flex-1 mr-3">
+            <p className="font-sans font-bold text-[14px] text-neutral-800 dark:text-neutral-100 m-0">
+              {title}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {purchasing === pkg.identifier && (
+              <Loader2 className="w-4 h-4 animate-spin text-primary-500" />
+            )}
+            <Badge className="bg-primary-500 text-white border-0 font-bold text-[12px]">
+              {pkg.product.priceString}
+            </Badge>
+          </div>
+        </button>
+      </Card>
+    );
+  };
+
+  const showProSection = !requireFamily;
+  const showFamilySection = true;
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 pb-24">
-      <div className="w-full max-w-sm space-y-5">
+    <div className="flex-1 flex flex-col items-center p-6 pb-24 overflow-y-auto">
+      <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto">
             <Crown className="w-7 h-7 text-white" />
           </div>
           <h2 className="font-serif text-xl text-neutral-800 dark:text-neutral-100">
-            Upgrade to {tierLabel}
+            Upgrade Your Plan
           </h2>
           {feature && (
             <p className="font-sans text-sm text-neutral-500 dark:text-neutral-400">
               <Lock className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-              {feature} requires a {tierLabel} subscription
+              {feature} requires {requireFamily ? 'a Family' : 'a Pro'} subscription
             </p>
           )}
         </div>
 
-        <div className="space-y-2">
-          {perks.map((perk) => (
-            <div key={perk} className="flex items-center gap-2.5">
-              <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-              <span className="font-sans text-[13px] text-neutral-700 dark:text-neutral-300">{perk}</span>
+        {showProSection && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-amber-500" />
+              <h3 className="font-sans font-bold text-[15px] text-neutral-800 dark:text-neutral-100 m-0">
+                Pro
+              </h3>
             </div>
-          ))}
-        </div>
 
-        {packages.length > 0 ? (
-          <div className="space-y-2.5">
-            {packages.map((pkg) => (
-              <Card key={pkg.identifier} className="p-0 overflow-hidden">
-                <button
-                  onClick={() => handlePurchase(pkg)}
-                  disabled={!!purchasing}
-                  className="w-full p-4 flex items-center justify-between bg-transparent border-none cursor-pointer disabled:opacity-60"
-                >
-                  <div className="text-left">
-                    <p className="font-sans font-bold text-[14px] text-neutral-800 dark:text-neutral-100 m-0">
-                      {pkg.product.title}
-                    </p>
-                    <p className="font-sans text-[12px] text-neutral-500 m-0">
-                      {pkg.product.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {purchasing === pkg.identifier && (
-                      <Loader2 className="w-4 h-4 animate-spin text-primary-500" />
-                    )}
-                    <Badge className="bg-primary-500 text-white border-0 font-bold text-[12px]">
-                      {pkg.product.priceString}
-                    </Badge>
-                  </div>
-                </button>
+            <div className="space-y-1.5">
+              {PRO_PERKS.map((perk) => (
+                <div key={perk} className="flex items-center gap-2.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                  <span className="font-sans text-[12px] text-neutral-600 dark:text-neutral-300">{perk}</span>
+                </div>
+              ))}
+            </div>
+
+            {proPackages.length > 0 ? (
+              <div className="space-y-2">
+                {proPackages.map(renderPackage)}
+              </div>
+            ) : (
+              <Card className="p-3 text-center">
+                <p className="font-sans text-[12px] text-neutral-500 m-0">
+                  Pro plans loading...
+                </p>
               </Card>
-            ))}
+            )}
           </div>
-        ) : (
-          <Card className="p-4 text-center">
-            <p className="font-sans text-[13px] text-neutral-500 m-0">
-              No plans available right now. Check back soon.
-            </p>
-          </Card>
+        )}
+
+        {showFamilySection && (
+          <div className="space-y-3">
+            {showProSection && (
+              <div className="border-t border-neutral-200 dark:border-neutral-700 pt-5" />
+            )}
+
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-violet-500" />
+              <h3 className="font-sans font-bold text-[15px] text-neutral-800 dark:text-neutral-100 m-0">
+                Family
+              </h3>
+            </div>
+
+            <div className="space-y-1.5">
+              {FAMILY_PERKS.map((perk) => (
+                <div key={perk} className="flex items-center gap-2.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-violet-500 shrink-0" />
+                  <span className="font-sans text-[12px] text-neutral-600 dark:text-neutral-300">{perk}</span>
+                </div>
+              ))}
+            </div>
+
+            {familyPackages.length > 0 ? (
+              <div className="space-y-2">
+                {familyPackages.map(renderPackage)}
+              </div>
+            ) : (
+              <Card className="p-3 text-center">
+                <p className="font-sans text-[12px] text-neutral-500 m-0">
+                  Family plans loading...
+                </p>
+              </Card>
+            )}
+          </div>
         )}
 
         <p className="font-sans text-[11px] text-center text-neutral-400">

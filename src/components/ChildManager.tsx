@@ -142,10 +142,10 @@ const ChildManager: React.FC<ChildManagerProps> = ({ isOpen, onClose, onNavigate
               <Crown className="w-6 h-6 text-amber-500" />
             </div>
             <h3 className="font-sans font-bold text-lg text-neutral-800 dark:text-neutral-100">
-              Upgrade to Pro
+              Upgrade to Pro or Family
             </h3>
             <p className="font-sans text-sm text-neutral-500 dark:text-neutral-400">
-              Free plan allows 1 child profile. Upgrade to Pro for unlimited profiles.
+              Free plan allows 1 child profile. Upgrade to Pro or Family for unlimited profiles.
             </p>
             <div className="flex gap-3 w-full">
               <Button

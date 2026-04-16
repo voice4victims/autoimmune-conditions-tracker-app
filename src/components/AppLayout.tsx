@@ -233,7 +233,7 @@ const AppLayout: React.FC = () => {
       allergies: <AllergyTracker />,
       'drug-safety': <DrugInteractionChecker />,
       resources: <ResourcesTab />,
-      family: <FamilyManager />,
+      family: <PaywallGate feature="Family Sharing" requireFamily><FamilyManager /></PaywallGate>,
       community: <CommunityScreen />,
       analytics: <PaywallGate feature="Advanced Analytics"><AdvancedAnalyticsDashboard /></PaywallGate>,
       diagnosis: <PaywallGate feature="Patient Profile"><DiagnosisTracker /></PaywallGate>,
@@ -256,7 +256,7 @@ const AppLayout: React.FC = () => {
       'terms-of-service': <TermsOfService />,
       comorbidities: <PaywallGate feature="Co-Morbidities"><PatientProfile /></PaywallGate>,
       'patient-profile': <PaywallGate feature="Patient Profile"><PatientProfile /></PaywallGate>,
-      subscription: <PaywallGate feature="Pro Subscription"><div /></PaywallGate>,
+      subscription: <PaywallGate feature="Subscription"><div /></PaywallGate>,
       beta: <BetaProgram />,
     };
 

@@ -24,7 +24,7 @@ const MORE_ITEMS = [
   { i: '🪪', l: 'Insurance', s: 'Store insurance info', id: 'insurance', nav: false, pro: true },
   { i: '🏥', l: 'Medical Visits', s: 'Doctor visits & notes', id: 'medical-visits', nav: true, pro: true },
   { i: '🗃️', l: 'Medical Records', s: 'Lab results, imaging & documents', id: 'medical-records', nav: true, pro: true },
-  { i: '👨‍👩‍👧', l: 'Family', s: 'Manage caregivers', id: 'family', nav: true },
+  { i: '👨‍👩‍👧', l: 'Family', s: 'Manage caregivers', id: 'family', nav: true, family: true },
   { i: '🌍', l: 'Community', s: 'Find PANDAS doctors worldwide', id: 'community', nav: true },
   { i: '📋', l: 'Analytics', s: 'Advanced treatment analysis', id: 'analytics', nav: true, pro: true },
   { i: '🧬', l: 'Patient Profile', s: 'Infection, onset, diagnosis', id: 'diagnosis', nav: true, pro: true },
@@ -73,12 +73,12 @@ interface MoreMenuProps {
   onBackToMenu: () => void;
 }
 
-const PREMIUM_IDS = new Set(MORE_ITEMS.filter((m) => (m as any).pro).map((m) => m.id));
+const PREMIUM_IDS = new Set(MORE_ITEMS.filter((m) => (m as any).pro || (m as any).family).map((m) => m.id));
 
 const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBackToMenu }) => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const { isPro } = useSubscription();
-  const showProBadges = isRevenueCatAvailable() && !isPro;
+  const { isPro, isFamily } = useSubscription();
+  const showBadges = isRevenueCatAvailable() && !isPro;
 
   if (activeMoreTab) {
     return (
@@ -112,7 +112,7 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ activeMoreTab, onMoreTabClick, onBa
               </p>
               <p className="font-sans text-[10px] text-neutral-400 m-0 truncate">{item.s}</p>
             </div>
-            {showProBadges && PREMIUM_IDS.has(item.id) ? (
+            {showBadges && PREMIUM_IDS.has(item.id) ? (
               <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             ) : item.nav ? (
               <span className="text-neutral-300 text-xs shrink-0">›</span>

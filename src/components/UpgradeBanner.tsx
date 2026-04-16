@@ -35,7 +35,7 @@ const UpgradeBanner: React.FC<UpgradeBannerProps> = ({ onUpgrade, compact }) => 
       </div>
       <div className="min-w-0 flex-1">
         <p className="font-sans font-extrabold text-[13px] text-amber-800 dark:text-amber-200 m-0">
-          Upgrade to Pro
+          Upgrade to Pro or Family
         </p>
         <p className="font-sans text-[11px] text-amber-600 dark:text-amber-400 m-0">
           Unlock all features & unlimited tracking
