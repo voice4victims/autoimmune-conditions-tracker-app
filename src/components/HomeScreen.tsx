@@ -95,7 +95,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onQuickLog, onNavigate }) => {
         </div>
       </div>
 
-      <RetentionBanner />
+      <RetentionBanner onUpgrade={() => onNavigate('more-subscription')} />
 
       <div className="p-4 pt-4 space-y-3.5">
         <button

@@ -112,7 +112,7 @@ const TrendsScreen: React.FC<TrendsScreenProps> = ({ onOpenMore }) => {
         </button>
       </div>
 
-      <RetentionBanner />
+      <RetentionBanner onUpgrade={() => onOpenMore('subscription')} />
 
       <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-3.5">
         <div className="flex gap-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-0.5">

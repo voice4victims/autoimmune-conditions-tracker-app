@@ -3,7 +3,11 @@ import { isRevenueCatAvailable } from '@/lib/revenuecat';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FREE_RETENTION_DAYS } from '@/lib/retentionGate';
 
-const RetentionBanner: React.FC = () => {
+interface RetentionBannerProps {
+  onUpgrade?: () => void;
+}
+
+const RetentionBanner: React.FC<RetentionBannerProps> = ({ onUpgrade }) => {
   const { isPro, loading } = useSubscription();
 
   if (loading || isPro || !isRevenueCatAvailable()) return null;
@@ -13,7 +17,10 @@ const RetentionBanner: React.FC = () => {
       <p className="font-sans text-[12px] text-amber-700 dark:text-amber-300 m-0 leading-snug">
         Showing last {FREE_RETENTION_DAYS} days. Upgrade to Pro or Family for unlimited history.
       </p>
-      <button className="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500 font-sans font-extrabold text-[11px] text-white border-none cursor-pointer">
+      <button
+        onClick={onUpgrade}
+        className="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500 font-sans font-extrabold text-[11px] text-white border-none cursor-pointer"
+      >
         Upgrade
       </button>
     </div>
