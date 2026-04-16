@@ -19,7 +19,7 @@ export async function initNativeUI(): Promise<void> {
   }
 }
 
-function probeSafeAreaInsets(): void {
+function applySafeAreaInsets(): void {
   if (typeof document === 'undefined') return;
   const probe = document.createElement('div');
   probe.style.cssText =
@@ -33,6 +33,14 @@ function probeSafeAreaInsets(): void {
   const root = document.documentElement;
   if (parseFloat(top) > 0) root.style.setProperty('--sat', top);
   if (parseFloat(bottom) > 0) root.style.setProperty('--sab', bottom);
+}
+
+function probeSafeAreaInsets(): void {
+  applySafeAreaInsets();
+  setTimeout(applySafeAreaInsets, 100);
+  setTimeout(applySafeAreaInsets, 500);
+  window.addEventListener('resize', applySafeAreaInsets);
+  window.addEventListener('orientationchange', applySafeAreaInsets);
 }
 
 export const APP_URL = 'https://pandastracker.web.app';
