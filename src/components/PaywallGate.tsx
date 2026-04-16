@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Lock, Crown, CheckCircle, Users } from 'lucide-react';
+import { Loader2, Lock, Crown, CheckCircle } from 'lucide-react';
 import { isRevenueCatAvailable } from '@/lib/revenuecat';
 import type { PurchasesPackage } from '@revenuecat/purchases-capacitor';
 
@@ -76,8 +76,11 @@ const PaywallGate: React.FC<PaywallGateProps> = ({ children, feature, requireFam
 
   const renderPackage = (pkg: PurchasesPackage) => {
     const title = pkg.product.title
-      .replace(/\s*\(.*?\)\s*/g, '')
+      .replace(/\s*\(com\.pandastracker\.app[^)]*\)\s*/gi, '')
       .trim();
+    const isAnnual = title.toLowerCase().includes('annual') ||
+      pkg.product.identifier?.toLowerCase().includes('annual');
+    const periodLabel = isAnnual ? 'Annual' : 'Monthly';
     return (
       <Card key={pkg.identifier} className="p-0 overflow-hidden">
         <button
@@ -87,7 +90,10 @@ const PaywallGate: React.FC<PaywallGateProps> = ({ children, feature, requireFam
         >
           <div className="text-left min-w-0 flex-1 mr-3">
             <p className="font-sans font-bold text-[14px] text-neutral-800 dark:text-neutral-100 m-0">
-              {title}
+              {periodLabel}
+            </p>
+            <p className="font-sans text-[11px] text-neutral-500 m-0">
+              {isAnnual ? '14-day free trial' : 'Cancel anytime'}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -163,7 +169,7 @@ const PaywallGate: React.FC<PaywallGateProps> = ({ children, feature, requireFam
             )}
 
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-violet-500" />
+              <Crown className="w-4 h-4 text-amber-500" />
               <h3 className="font-sans font-bold text-[15px] text-neutral-800 dark:text-neutral-100 m-0">
                 Family
               </h3>
@@ -172,7 +178,7 @@ const PaywallGate: React.FC<PaywallGateProps> = ({ children, feature, requireFam
             <div className="space-y-1.5">
               {FAMILY_PERKS.map((perk) => (
                 <div key={perk} className="flex items-center gap-2.5">
-                  <CheckCircle className="w-3.5 h-3.5 text-violet-500 shrink-0" />
+                  <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
                   <span className="font-sans text-[12px] text-neutral-600 dark:text-neutral-300">{perk}</span>
                 </div>
               ))}
