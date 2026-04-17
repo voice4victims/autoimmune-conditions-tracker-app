@@ -9,7 +9,6 @@ import SplashScreen from './SplashScreen';
 import TrialOfferScreen from './TrialOfferScreen';
 import ChildManager from './ChildManager';
 import MedicalDisclaimer from './MedicalDisclaimer';
-import SelfCareBanner from './SelfCareBanner';
 import ChildProfileForm from './ChildProfileForm';
 import HomeScreen from './HomeScreen';
 import MoreMenu from './MoreMenu';
@@ -203,8 +202,7 @@ const AppLayout: React.FC = () => {
             <h1 className="font-serif text-[22px] text-white m-0">PANDAS Tracker</h1>
           </div>
         </div>
-        <div className="max-w-lg mx-auto p-4 pt-6">
-          <MedicalDisclaimer />
+        <div className="max-w-lg mx-auto p-4 pt-6 pb-[calc(var(--sab)+16px)]">
           <div className="text-center mb-6 mt-2">
             <h2 className="font-serif text-xl text-neutral-800 dark:text-neutral-100 mb-2">Create Child Profile</h2>
             <p className="font-sans text-[13px] text-neutral-500 dark:text-neutral-400">
@@ -212,6 +210,9 @@ const AppLayout: React.FC = () => {
             </p>
           </div>
           <ChildProfileForm onCreateProfile={saveChildProfile} />
+          <div className="mt-6">
+            <MedicalDisclaimer />
+          </div>
         </div>
       </div>
     );
@@ -267,8 +268,6 @@ const AppLayout: React.FC = () => {
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col relative">
       <div className="fixed top-0 left-0 right-0 h-[var(--sat)] bg-white dark:bg-neutral-900 z-50" />
       <div className="sticky top-0 z-40 pt-[var(--sat)]">
-        <MedicalDisclaimer />
-        <SelfCareBanner />
         <div className="bg-white dark:bg-neutral-900 px-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <div

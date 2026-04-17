@@ -9,6 +9,8 @@ import { toast } from '@/hooks/use-toast';
 import ReminderForm from './ReminderForm';
 import ReminderList from './ReminderList';
 import NotificationSettings from './NotificationSettings';
+import MedicalDisclaimer from './MedicalDisclaimer';
+import SelfCareBanner from './SelfCareBanner';
 import { useReminderNotifications } from '@/hooks/useReminderNotifications';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -202,6 +204,9 @@ const MedicationReminders: React.FC = () => {
       </Card>
 
       <NotificationSettings />
+
+      <MedicalDisclaimer />
+      <SelfCareBanner />
     </div>
   );
 };
