@@ -8,6 +8,8 @@ import {
   identifyUser,
   resetUser,
   isRevenueCatAvailable,
+  computeRcId,
+  isRcUserIdentified,
 } from '@/lib/revenuecat';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -69,6 +71,25 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
   const listenerIdRef = useRef<PurchasesCallbackId | null>(null);
   const initializedRef = useRef(false);
+  const userRef = useRef(user);
+  const identifyPromiseRef = useRef<Promise<string | null> | null>(null);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  const ensureIdentified = useCallback(async (): Promise<void> => {
+    const currentUser = userRef.current;
+    if (!currentUser) return;
+    const expectedId = await computeRcId(currentUser.uid);
+    if (await isRcUserIdentified(expectedId)) return;
+    if (!identifyPromiseRef.current) {
+      identifyPromiseRef.current = identifyUser(currentUser.uid).finally(() => {
+        identifyPromiseRef.current = null;
+      });
+    }
+    await identifyPromiseRef.current;
+  }, []);
 
   const processCustomerInfo = useCallback((info: CustomerInfo) => {
     const derived = deriveTier(info);
@@ -76,6 +97,22 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setIsTrialing(derived.isTrialing);
     setTrialExpirationDate(derived.trialExpirationDate);
   }, []);
+
+  const selfHealFromCustomerInfo = useCallback(async (info: CustomerInfo): Promise<void> => {
+    const hasActiveEntitlement =
+      !!info.entitlements.active[ENTITLEMENT_PRO] ||
+      !!info.entitlements.active[ENTITLEMENT_FAMILY];
+    if (!hasActiveEntitlement) return;
+    try {
+      const { appUserID } = await Purchases.getAppUserID();
+      if (appUserID.startsWith('$RCAnonymousID:')) {
+        await ensureIdentified();
+        await Purchases.restorePurchases().catch(() => {});
+      }
+    } catch {
+      // no-op — best-effort self-heal
+    }
+  }, [ensureIdentified]);
 
   useEffect(() => {
     if (!isRevenueCatAvailable()) {
@@ -93,13 +130,16 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
       initializedRef.current = true;
 
-      if (user) {
-        await identifyUser(user.uid);
+      if (userRef.current) {
+        await ensureIdentified();
       }
 
       try {
         const { customerInfo: info } = await Purchases.getCustomerInfo();
-        if (!cancelled) processCustomerInfo(info);
+        if (!cancelled) {
+          processCustomerInfo(info);
+          await selfHealFromCustomerInfo(info);
+        }
       } catch {
         // no-op
       }
@@ -138,14 +178,23 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!initializedRef.current) return;
 
     if (user) {
-      identifyUser(user.uid);
+      (async () => {
+        await ensureIdentified();
+        try {
+          const { customerInfo: info } = await Purchases.getCustomerInfo();
+          processCustomerInfo(info);
+          await selfHealFromCustomerInfo(info);
+        } catch {
+          // no-op
+        }
+      })();
     } else {
       resetUser();
       setTier('free');
       setIsTrialing(false);
       setTrialExpirationDate(null);
     }
-  }, [user?.uid]);
+  }, [user?.uid, ensureIdentified]);
 
   useEffect(() => {
     if (!user) return;
@@ -167,6 +216,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const purchasePackage = useCallback(async (pkg: PurchasesPackage, onError?: (err: unknown) => void): Promise<boolean> => {
     try {
+      await ensureIdentified();
       const { customerInfo: info } = await Purchases.purchasePackage({ aPackage: pkg });
       processCustomerInfo(info);
       const derived = deriveTier(info);
@@ -175,10 +225,11 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (onError) onError(err);
       return false;
     }
-  }, [processCustomerInfo]);
+  }, [processCustomerInfo, ensureIdentified]);
 
   const restore = useCallback(async (): Promise<boolean> => {
     try {
+      await ensureIdentified();
       const { customerInfo: info } = await Purchases.restorePurchases();
       processCustomerInfo(info);
       const derived = deriveTier(info);
@@ -186,7 +237,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } catch {
       return false;
     }
-  }, [processCustomerInfo]);
+  }, [processCustomerInfo, ensureIdentified]);
 
   const refreshOfferings = useCallback(async () => {
     try {

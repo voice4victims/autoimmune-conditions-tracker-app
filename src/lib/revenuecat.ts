@@ -40,14 +40,29 @@ async function hashUid(uid: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function identifyUser(uid: string): Promise<void> {
-  if (!configured) return;
+export async function computeRcId(uid: string): Promise<string> {
+  return hashUid(uid);
+}
+
+export async function identifyUser(uid: string): Promise<string | null> {
+  if (!configured) return null;
   try {
     const appUserID = await hashUid(uid);
     await Purchases.logIn({ appUserID });
     await setDoc(doc(db, 'users', uid), { rcId: appUserID }, { merge: true }).catch(() => {});
+    return appUserID;
   } catch {
-    // silent — identity sync is best-effort
+    return null;
+  }
+}
+
+export async function isRcUserIdentified(expectedAppUserID: string): Promise<boolean> {
+  if (!configured) return false;
+  try {
+    const { appUserID } = await Purchases.getAppUserID();
+    return appUserID === expectedAppUserID;
+  } catch {
+    return false;
   }
 }
 

@@ -1,6 +1,7 @@
 import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { logger } from "firebase-functions/v2";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
@@ -316,29 +317,49 @@ export const onSubscriptionWebhook = onRequest({ secrets: ["REVENUECAT_WEBHOOK_S
     return;
   }
 
-  const rcAppUserId: string = event.app_user_id || "";
-  if (!rcAppUserId) {
-    res.status(200).send("No app_user_id");
+  const candidateIds = new Set<string>();
+  const addId = (v: unknown) => {
+    if (typeof v === "string" && v && !v.startsWith("$RCAnonymousID:")) {
+      candidateIds.add(v);
+    }
+  };
+  addId(event.app_user_id);
+  addId(event.original_app_user_id);
+  addId(event.subscriber?.original_app_user_id);
+  (Array.isArray(event.aliases) ? event.aliases : []).forEach(addId);
+  (Array.isArray(event.transferred_to) ? event.transferred_to : []).forEach(addId);
+  (Array.isArray(event.transferred_from) ? event.transferred_from : []).forEach(addId);
+
+  if (candidateIds.size === 0) {
+    res.status(200).send("No non-anonymous app_user_id");
     return;
   }
 
-  const usersSnap = await db
-    .collection("users")
-    .where("rcId", "==", rcAppUserId)
-    .limit(1)
-    .get();
-
   let firebaseUid: string | null = null;
-  if (!usersSnap.empty) {
-    firebaseUid = usersSnap.docs[0].id;
+  let userDoc: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+  for (const candidate of candidateIds) {
+    const usersSnap = await db
+      .collection("users")
+      .where("rcId", "==", candidate)
+      .limit(1)
+      .get();
+    if (!usersSnap.empty) {
+      firebaseUid = usersSnap.docs[0].id;
+      userDoc = usersSnap.docs[0];
+      break;
+    }
   }
 
-  if (!firebaseUid) {
+  if (!firebaseUid || !userDoc) {
+    logger.warn("[onSubscriptionWebhook] No matching user for any candidate id", {
+      eventType: event.type,
+      candidateIds: Array.from(candidateIds),
+    });
     res.status(200).send("User not found");
     return;
   }
 
-  const existingUser = usersSnap.docs[0].data();
+  const existingUser = userDoc.data();
   if (existingUser.isLifetime) {
     res.status(200).send("Lifetime user — skipping");
     return;
