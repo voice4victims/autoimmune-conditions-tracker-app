@@ -45,6 +45,7 @@
 	},
 	"packageClassList": [
 		"BiometricAuthNative",
+		"FirebaseAppCheckPlugin",
 		"FirebaseAuthenticationPlugin",
 		"CAPBrowserPlugin",
 		"CAPCameraPlugin",
