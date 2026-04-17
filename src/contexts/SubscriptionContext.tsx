@@ -28,7 +28,7 @@ export interface SubscriptionState {
   trialExpirationDate: string | null;
   loading: boolean;
   offerings: PurchasesOfferings | null;
-  purchasePackage: (pkg: PurchasesPackage) => Promise<boolean>;
+  purchasePackage: (pkg: PurchasesPackage, onError?: (err: unknown) => void) => Promise<boolean>;
   restore: () => Promise<boolean>;
   refreshOfferings: () => Promise<void>;
 }
@@ -165,13 +165,14 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return unsub;
   }, [user?.uid]);
 
-  const purchasePackage = useCallback(async (pkg: PurchasesPackage): Promise<boolean> => {
+  const purchasePackage = useCallback(async (pkg: PurchasesPackage, onError?: (err: unknown) => void): Promise<boolean> => {
     try {
       const { customerInfo: info } = await Purchases.purchasePackage({ aPackage: pkg });
       processCustomerInfo(info);
       const derived = deriveTier(info);
       return derived.tier !== 'free';
-    } catch {
+    } catch (err) {
+      if (onError) onError(err);
       return false;
     }
   }, [processCustomerInfo]);

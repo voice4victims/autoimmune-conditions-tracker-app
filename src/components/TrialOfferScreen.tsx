@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Crown, Check, Loader2 } from 'lucide-react';
+import { Crown, Check, Loader2, AlertCircle } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import type { PurchasesPackage } from '@revenuecat/purchases-capacitor';
 
@@ -21,37 +21,69 @@ const formatPrice = (pkg: PurchasesPackage): string => {
   return product.priceString || `$${product.price}`;
 };
 
-const getPeriodLabel = (identifier: string): string => {
-  if (identifier.includes('annual')) return '/year';
-  return '/month';
+const isProPkg = (pkg: PurchasesPackage): boolean => {
+  const productId = (pkg.product.identifier || '').toLowerCase();
+  const title = (pkg.product.title || '').toLowerCase();
+  if (productId.includes('family') || title.includes('family')) return false;
+  return productId.includes('pro') || title.includes('pro');
+};
+
+const isMonthlyPkg = (pkg: PurchasesPackage): boolean => {
+  const pkgId = pkg.identifier.toLowerCase();
+  const productId = (pkg.product.identifier || '').toLowerCase();
+  return (
+    pkgId === '$rc_monthly' ||
+    pkgId === 'monthly' ||
+    pkgId.includes('monthly') ||
+    productId.includes('monthly')
+  );
+};
+
+const isAnnualPkg = (pkg: PurchasesPackage): boolean => {
+  const pkgId = pkg.identifier.toLowerCase();
+  const productId = (pkg.product.identifier || '').toLowerCase();
+  return (
+    pkgId === '$rc_annual' ||
+    pkgId === 'annual' ||
+    pkgId.includes('annual') ||
+    pkgId.includes('yearly') ||
+    productId.includes('annual') ||
+    productId.includes('yearly')
+  );
+};
+
+const isUserCancel = (err: unknown): boolean => {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { code?: string | number; userCancelled?: boolean };
+  return e.userCancelled === true || String(e.code) === '1';
 };
 
 const TrialOfferScreen: React.FC<TrialOfferScreenProps> = ({ onDone }) => {
   const { offerings, purchasePackage } = useSubscription();
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const trialOffering = offerings?.all?.['trial_offer'];
-  const packages = trialOffering?.availablePackages ?? [];
+  const sourceOffering =
+    offerings?.all?.['trial_offer'] ?? offerings?.current ?? null;
+  const allPackages = sourceOffering?.availablePackages ?? [];
+  const proPackages = allPackages.filter(isProPkg);
 
-  const monthlyPkg = packages.find(
-    (p) => p.identifier === '$rc_monthly' || p.identifier === 'monthly'
-  );
-  const annualPkg = packages.find(
-    (p) => p.identifier === '$rc_annual' || p.identifier === 'annual'
-  );
+  const searchSet = proPackages.length > 0 ? proPackages : allPackages;
+  const monthlyPkg = searchSet.find(isMonthlyPkg);
+  const annualPkg = searchSet.find(isAnnualPkg);
 
   const displayPackages = [annualPkg, monthlyPkg].filter(Boolean) as PurchasesPackage[];
 
   const handlePurchase = async (pkg: PurchasesPackage) => {
     setPurchasing(pkg.identifier);
-    try {
-      await purchasePackage(pkg);
-    } catch {
-      // silent
-    } finally {
-      setPurchasing(null);
-      onDone();
-    }
+    setErrorMsg(null);
+    const ok = await purchasePackage(pkg, (err) => {
+      if (isUserCancel(err)) return;
+      const e = err as { message?: string };
+      setErrorMsg(e?.message || 'Trial could not start. Please try again.');
+    });
+    setPurchasing(null);
+    if (ok) onDone();
   };
 
   return (
@@ -87,23 +119,23 @@ const TrialOfferScreen: React.FC<TrialOfferScreenProps> = ({ onDone }) => {
         {displayPackages.length > 0 ? (
           <div className="w-full space-y-3 mb-6">
             {displayPackages.map((pkg) => {
-              const isAnnual = pkg.identifier.includes('annual');
+              const annual = isAnnualPkg(pkg);
               return (
                 <button
                   key={pkg.identifier}
                   onClick={() => handlePurchase(pkg)}
                   disabled={purchasing !== null}
                   className={`w-full rounded-2xl px-5 py-4 flex items-center justify-between cursor-pointer border transition-all ${
-                    isAnnual
+                    annual
                       ? 'bg-white text-neutral-900 border-white/30'
                       : 'bg-white/10 text-white border-white/20 hover:bg-white/15'
                   } ${purchasing === pkg.identifier ? 'opacity-70' : ''}`}
                 >
                   <div className="text-left">
-                    <p className={`font-sans font-bold text-[14px] ${isAnnual ? 'text-neutral-900' : 'text-white'}`}>
-                      {isAnnual ? 'Annual' : 'Monthly'}
+                    <p className={`font-sans font-bold text-[14px] ${annual ? 'text-neutral-900' : 'text-white'}`}>
+                      {annual ? 'Annual' : 'Monthly'}
                     </p>
-                    <p className={`font-sans text-[11px] ${isAnnual ? 'text-neutral-500' : 'text-white/60'}`}>
+                    <p className={`font-sans text-[11px] ${annual ? 'text-neutral-500' : 'text-white/60'}`}>
                       14-day free trial
                     </p>
                   </div>
@@ -111,8 +143,8 @@ const TrialOfferScreen: React.FC<TrialOfferScreenProps> = ({ onDone }) => {
                     {purchasing === pkg.identifier && (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     )}
-                    <span className={`font-sans font-bold text-[15px] ${isAnnual ? 'text-neutral-900' : 'text-white'}`}>
-                      {formatPrice(pkg)}{getPeriodLabel(pkg.identifier)}
+                    <span className={`font-sans font-bold text-[15px] ${annual ? 'text-neutral-900' : 'text-white'}`}>
+                      {formatPrice(pkg)}{annual ? '/year' : '/month'}
                     </span>
                   </div>
                 </button>
@@ -123,6 +155,15 @@ const TrialOfferScreen: React.FC<TrialOfferScreenProps> = ({ onDone }) => {
           <div className="w-full rounded-2xl bg-white/10 border border-white/20 px-5 py-4 mb-6">
             <p className="font-sans text-[13px] text-white/70 text-center">
               Trial packages loading...
+            </p>
+          </div>
+        )}
+
+        {errorMsg && (
+          <div className="w-full rounded-2xl bg-red-500/20 border border-red-400/40 px-4 py-3 mb-4 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-200 shrink-0 mt-0.5" />
+            <p className="font-sans text-[12px] text-red-100 m-0 leading-snug">
+              {errorMsg}
             </p>
           </div>
         )}
