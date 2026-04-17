@@ -428,7 +428,7 @@ const AppLayout: React.FC = () => {
         </Suspense>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex justify-center pb-[var(--sab, 8px)] pt-2 z-50" aria-label="Main navigation">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex justify-center pb-[calc(var(--sab)+8px)] pt-2 z-50" aria-label="Main navigation">
         {NAV_TABS.map((t) => (
           <button
             key={t.id}

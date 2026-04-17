@@ -26,7 +26,7 @@ const CookieConsent: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 pb-[calc(var(--sab, 8px)+12px)] shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 pb-[calc(var(--sab)+12px)] shadow-lg">
       <div className="mx-auto max-w-xl flex flex-col items-center gap-3">
         <p className="font-sans text-[13px] text-neutral-600 dark:text-neutral-300 m-0 leading-snug text-center">
           We use analytics cookies to understand how the app is used and improve it. No health data is included.
