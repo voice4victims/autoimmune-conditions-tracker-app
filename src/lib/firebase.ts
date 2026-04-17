@@ -1,13 +1,12 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, setAnalyticsCollectionEnabled, type Analytics } from "firebase/analytics";
-import { initializeAppCheck, CustomProvider, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAuth, indexedDBLocalPersistence, browserLocalPersistence, initializeAuth } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
 import { Capacitor } from '@capacitor/core';
-import { FirebaseAppCheck } from '@capacitor-firebase/app-check';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -23,39 +22,17 @@ const app = initializeApp(firebaseConfig);
 
 let analytics: Analytics | null = null;
 
-if (typeof window !== 'undefined') {
-  if (Capacitor.isNativePlatform()) {
-    const nativeInit = FirebaseAppCheck.initialize({
-      isTokenAutoRefreshEnabled: true,
-    }).catch((e) => {
-      console.warn('[AppCheck] Native initialize failed:', e);
-    });
+if (typeof window !== 'undefined' && !Capacitor.isNativePlatform()) {
+  if (import.meta.env.DEV) {
+    // @ts-expect-error Debug token for local development
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APPCHECK_DEBUG_TOKEN || true;
+  }
 
+  if (import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY) {
     initializeAppCheck(app, {
-      provider: new CustomProvider({
-        getToken: async () => {
-          await nativeInit;
-          const { token, expireTimeMillis } = await FirebaseAppCheck.getToken();
-          return {
-            token,
-            expireTimeMillis: expireTimeMillis ?? Date.now() + 60 * 60 * 1000,
-          };
-        },
-      }),
+      provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY),
       isTokenAutoRefreshEnabled: true,
     });
-  } else {
-    if (import.meta.env.DEV) {
-      // @ts-expect-error Debug token for local development
-      self.FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APPCHECK_DEBUG_TOKEN || true;
-    }
-
-    if (import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY) {
-      initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY),
-        isTokenAutoRefreshEnabled: true,
-      });
-    }
   }
 }
 

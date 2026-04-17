@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appIDs": ["TEAM_ID.com.pandastracker.app"],
+        "appIDs": ["J3PH4UN4AZ.com.pandastracker.app"],
         "paths": ["/provider-access/*"],
         "components": [
           {
@@ -14,6 +14,6 @@
     ]
   },
   "webcredentials": {
-    "apps": ["TEAM_ID.com.pandastracker.app"]
+    "apps": ["J3PH4UN4AZ.com.pandastracker.app"]
   }
 }
