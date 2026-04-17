@@ -218,6 +218,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /admin_actions/{docId} {
+      allow read, write: if false;
+    }
+
     match /beta_codes/{codeId} {
       allow read: if request.auth != null;
       allow write: if false;
