@@ -9,10 +9,14 @@ export async function initNativeUI(): Promise<void> {
   probeSafeAreaInsets();
   if (!Capacitor.isNativePlatform()) return;
   try {
-    await StatusBar.setOverlaysWebView({ overlay: true });
-    await StatusBar.setStyle({ style: Style.Dark });
-    if (Capacitor.getPlatform() === 'android') {
-      await StatusBar.setBackgroundColor({ color: '#00000000' });
+    const platform = Capacitor.getPlatform();
+    if (platform === 'android') {
+      await StatusBar.setOverlaysWebView({ overlay: false });
+      await StatusBar.setBackgroundColor({ color: '#176F91' });
+      await StatusBar.setStyle({ style: Style.Dark });
+    } else {
+      await StatusBar.setOverlaysWebView({ overlay: true });
+      await StatusBar.setStyle({ style: Style.Dark });
     }
   } catch (err) {
     console.warn('[initNativeUI] StatusBar setup failed:', err);
