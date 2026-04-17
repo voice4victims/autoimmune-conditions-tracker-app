@@ -246,10 +246,10 @@ const AppLayout: React.FC = () => {
         />
       ),
       ptec: <PTECTracker />,
-      'provider-access': <PaywallGate feature="Provider Access Links"><ProviderAccessManager /></PaywallGate>,
+      'provider-access': <ProviderAccessManager />,
       providers: <PaywallGate feature="Healthcare Providers"><ProviderTracker /></PaywallGate>,
       files: <PaywallGate feature="Document Storage"><FileManager /></PaywallGate>,
-      email: <PaywallGate feature="Share with Doctor"><ProviderAccessManager /></PaywallGate>,
+      email: <ProviderAccessManager />,
       insurance: <PaywallGate feature="Insurance Tracker"><InsuranceTracker /></PaywallGate>,
       'medical-visits': <PaywallGate feature="Medical Visits"><MedicalVisitTracker /></PaywallGate>,
       'medical-records': <PaywallGate feature="Medical Records"><MedicalRecordsScreen /></PaywallGate>,

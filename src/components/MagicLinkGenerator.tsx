@@ -11,15 +11,21 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import { usePermissions } from '@/hooks/useRoleAccess';
+import { useSubscription } from '@/hooks/useSubscription';
 import { magicLinkService } from '@/lib/firebaseService';
 import { MagicLinkConfig, MagicLinkPermission, MAGIC_LINK_PERMISSIONS } from '@/types/magicLink';
-import { Link2, Copy, Clock, Shield, Eye, FileText } from 'lucide-react';
+import { Link2, Copy, Clock, Shield, Eye, FileText, Crown } from 'lucide-react';
 import { APP_URL, copyToClipboard } from '@/lib/capacitor';
+
+const FREE_PERMISSIONS: MagicLinkPermission[] = ['view_symptoms', 'view_treatments', 'view_notes'];
+const FREE_MAX_EXPIRES_HOURS = 24;
+const FREE_MAX_ACCESS_COUNT = 3;
 
 export const MagicLinkGenerator: React.FC = () => {
     const { user } = useAuth();
     const { childProfile } = useApp();
     const { canInviteUsers } = usePermissions();
+    const { isPro } = useSubscription();
     const { toast } = useToast();
 
     const [loading, setLoading] = useState(false);
@@ -28,12 +34,17 @@ export const MagicLinkGenerator: React.FC = () => {
         provider_name: '',
         provider_email: '',
         permissions: [],
-        expires_in_hours: 24,
-        max_access_count: 5,
+        expires_in_hours: isPro ? 24 : FREE_MAX_EXPIRES_HOURS,
+        max_access_count: isPro ? 5 : FREE_MAX_ACCESS_COUNT,
         notes: ''
     });
 
+    const isPermissionLocked = (permission: MagicLinkPermission): boolean => {
+        return !isPro && !FREE_PERMISSIONS.includes(permission);
+    };
+
     const handlePermissionChange = (permission: MagicLinkPermission, checked: boolean) => {
+        if (checked && isPermissionLocked(permission)) return;
         setConfig(prev => ({
             ...prev,
             permissions: checked
@@ -150,24 +161,45 @@ export const MagicLinkGenerator: React.FC = () => {
 
                         <div className="space-y-3">
                             <Label>Data Access Permissions</Label>
+                            {!isPro && (
+                                <p className="text-xs text-muted-foreground">
+                                    Free plan includes basic sharing. Upgrade to Pro for vitals, files, analytics, and exports.
+                                </p>
+                            )}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {Object.entries(MAGIC_LINK_PERMISSIONS).map(([key, description]) => (
-                                    <div key={key} className="flex items-start space-x-2 p-3 border rounded-lg">
-                                        <Checkbox
-                                            id={key}
-                                            checked={config.permissions.includes(key as MagicLinkPermission)}
-                                            onCheckedChange={(checked) =>
-                                                handlePermissionChange(key as MagicLinkPermission, checked as boolean)
-                                            }
-                                        />
-                                        <div className="flex-1">
-                                            <Label htmlFor={key} className="text-sm font-medium cursor-pointer">
-                                                {key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                            </Label>
-                                            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+                                {Object.entries(MAGIC_LINK_PERMISSIONS).map(([key, description]) => {
+                                    const permKey = key as MagicLinkPermission;
+                                    const locked = isPermissionLocked(permKey);
+                                    return (
+                                        <div
+                                            key={key}
+                                            className={`flex items-start space-x-2 p-3 border rounded-lg ${locked ? 'opacity-60 bg-muted/40' : ''}`}
+                                        >
+                                            <Checkbox
+                                                id={key}
+                                                disabled={locked}
+                                                checked={config.permissions.includes(permKey)}
+                                                onCheckedChange={(checked) =>
+                                                    handlePermissionChange(permKey, checked as boolean)
+                                                }
+                                            />
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Label htmlFor={key} className={`text-sm font-medium ${locked ? '' : 'cursor-pointer'}`}>
+                                                        {key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                    </Label>
+                                                    {locked && (
+                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-amber-400 text-amber-700 bg-amber-50">
+                                                            <Crown className="w-2.5 h-2.5 mr-0.5" />
+                                                            Pro
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-muted-foreground mt-1">{description}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -185,16 +217,19 @@ export const MagicLinkGenerator: React.FC = () => {
                                         <SelectItem value="1">1 Hour</SelectItem>
                                         <SelectItem value="6">6 Hours</SelectItem>
                                         <SelectItem value="24">24 Hours (1 Day)</SelectItem>
-                                        <SelectItem value="72">72 Hours (3 Days)</SelectItem>
-                                        <SelectItem value="168">1 Week</SelectItem>
+                                        {isPro && <SelectItem value="72">72 Hours (3 Days)</SelectItem>}
+                                        {isPro && <SelectItem value="168">1 Week</SelectItem>}
                                     </SelectContent>
                                 </Select>
+                                {!isPro && (
+                                    <p className="text-[11px] text-muted-foreground">Free plan caps expiration at 24 hours.</p>
+                                )}
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="maxAccess">Max Access Count</Label>
                                 <Select
-                                    value={config.max_access_count?.toString() || 'unlimited'}
+                                    value={config.max_access_count?.toString() || (isPro ? 'unlimited' : '3')}
                                     onValueChange={(value) => setConfig(prev => ({
                                         ...prev,
                                         max_access_count: value === 'unlimited' ? undefined : parseInt(value)
@@ -206,11 +241,14 @@ export const MagicLinkGenerator: React.FC = () => {
                                     <SelectContent>
                                         <SelectItem value="1">1 Access</SelectItem>
                                         <SelectItem value="3">3 Accesses</SelectItem>
-                                        <SelectItem value="5">5 Accesses</SelectItem>
-                                        <SelectItem value="10">10 Accesses</SelectItem>
-                                        <SelectItem value="unlimited">Unlimited</SelectItem>
+                                        {isPro && <SelectItem value="5">5 Accesses</SelectItem>}
+                                        {isPro && <SelectItem value="10">10 Accesses</SelectItem>}
+                                        {isPro && <SelectItem value="unlimited">Unlimited</SelectItem>}
                                     </SelectContent>
                                 </Select>
+                                {!isPro && (
+                                    <p className="text-[11px] text-muted-foreground">Free plan caps access at 3 views.</p>
+                                )}
                             </div>
                         </div>
 

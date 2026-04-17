@@ -181,7 +181,18 @@ service cloud.firestore {
          && resource.data.expires_at > request.time
          && (resource.data.max_access_count == null || resource.data.access_count < resource.data.max_access_count))
       );
-      allow create: if request.auth != null && request.resource.data.keys().hasAll(["created_by", "created_at"]) && request.resource.data.created_by == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(["created_by", "created_at"])
+        && request.resource.data.created_by == request.auth.uid
+        && (
+          isPaidUser() ||
+          (
+            request.resource.data.permissions.hasOnly(['view_symptoms', 'view_treatments', 'view_notes'])
+            && request.resource.data.expires_at < (request.time + duration.value(25, 'h'))
+            && request.resource.data.max_access_count != null
+            && request.resource.data.max_access_count <= 3
+          )
+        );
       allow update: if request.auth != null && (
         resource.data.created_by == request.auth.uid ||
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['access_count', 'last_accessed'])
