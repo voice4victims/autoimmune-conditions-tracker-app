@@ -667,8 +667,8 @@ export const redeemBetaCode = onCall({ secrets: ["REVENUECAT_SECRET_KEY"] }, asy
   }
 
   const rcId = userDoc.data()?.rcId || hashUid(uid);
-  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-  const granted = await grantRCEntitlement(rcId, "entitlement_pro", sevenDaysMs);
+  const proDurationMs = 8 * 24 * 60 * 60 * 1000;
+  const granted = await grantRCEntitlement(rcId, "entitlement_pro", proDurationMs);
 
   if (!granted) {
     throw new HttpsError("internal", "Failed to grant promotional entitlement");
@@ -692,6 +692,7 @@ export const redeemBetaCode = onCall({ secrets: ["REVENUECAT_SECRET_KEY"] }, asy
         betaAccess: true,
         betaRedeemedAt: Timestamp.now(),
         betaCodeUsed: normalizedCode,
+        isLifetime: false,
       },
       { merge: true }
     );
@@ -720,11 +721,11 @@ export const upgradeBetaUsers = onSchedule(
     const snap = await db
       .collection("users")
       .where("betaAccess", "==", true)
-      .where("isLifetime", "!=", true)
       .get();
 
     for (const userDoc of snap.docs) {
       const data = userDoc.data();
+      if (data.isLifetime === true) continue;
       const redeemedAt = data.betaRedeemedAt as Timestamp | undefined;
       if (!redeemedAt || redeemedAt.toDate() > cutoff) continue;
 
